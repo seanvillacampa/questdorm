@@ -85,9 +85,17 @@ RUN mkdir -p \
 # Expose port
 EXPOSE 10000
 
-# Copy and setup startup script
-COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
+# Create inline start script
+RUN printf '#!/bin/bash\n\
+set -e\n\
+echo "Starting QuestDorm application..."\n\
+echo "Running migrations..."\n\
+php artisan migrate --force 2>&1 || { echo "Migration attempt 1 failed, retrying..."; sleep 3; php artisan migrate --force 2>&1; } || echo "Migrations failed but continuing"\n\
+php artisan config:cache 2>&1 || true\n\
+php artisan route:cache 2>&1 || true\n\
+php artisan view:cache 2>&1 || true\n\
+echo "QuestDorm started successfully!"\n\
+exec apache2-foreground\n' > /start.sh \
+    && chmod +x /start.sh
 
-# Use ENTRYPOINT instead of CMD for better script execution
-ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["/start.sh"]
