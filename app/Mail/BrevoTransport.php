@@ -2,14 +2,13 @@
 
 namespace App\Mail;
 
-use Brevo\Client\Configuration;
-use Brevo\Client\Api\TransactionalEmailsApi;
-use Brevo\Client\Model\SendSmtpEmail;
+use Symfony\Component\Mailer\SentMessage;
+use Symfony\Component\Mailer\Transport\AbstractTransport;
+use Symfony\Component\Mime\Address;
+use Symfony\Component\Mime\Email;
 use GuzzleHttp\Client;
-use Illuminate\Mail\Transport\Transport;
-use Symfony\Component\Mime\MessageConverter;
 
-class BrevoTransport extends Transport
+class BrevoTransport extends AbstractTransport
 {
     protected $apiKey;
 
@@ -19,44 +18,67 @@ class BrevoTransport extends Transport
         $this->apiKey = $apiKey;
     }
 
-    protected function doSend(\Symfony\Component\Mime\RawMessage $message): void
+    protected function doSend(SentMessage $message): void
     {
-        $email = MessageConverter::toEmail($message);
+        $email = $message->getOriginalMessage();
         
-        $config = Configuration::getDefaultConfiguration()->setApiKey('api-key', $this->apiKey);
-        $apiInstance = new TransactionalEmailsApi(new Client(), $config);
+        if (!$email instanceof Email) {
+            throw new \InvalidArgumentException('Message must be an instance of Email');
+        }
         
-        $sendSmtpEmail = new SendSmtpEmail([
-            'sender' => [
-                'email' => $email->getFrom()[0]->getAddress(),
-                'name' => $email->getFrom()[0]->getName() ?? config('app.name')
-            ],
-            'to' => collect($email->getTo())->map(fn($addr) => [
-                'email' => $addr->getAddress(),
-                'name' => $addr->getName()
-            ])->toArray(),
+        $payload = [
+            'sender' => $this->formatAddress($email->getFrom()[0]),
+            'to' => $this->formatAddresses($email->getTo()),
             'subject' => $email->getSubject(),
-            'htmlContent' => $email->getHtmlBody() ?? $email->getTextBody(),
-        ]);
-
+        ];
+        
+        // Add HTML or text content
+        if ($email->getHtmlBody()) {
+            $payload['htmlContent'] = $email->getHtmlBody();
+        } else {
+            $payload['htmlContent'] = nl2br(htmlspecialchars($email->getTextBody() ?? ''));
+        }
+        
+        // Add CC if present
         if ($email->getCc()) {
-            $sendSmtpEmail->setCc(
-                collect($email->getCc())->map(fn($addr) => [
-                    'email' => $addr->getAddress(),
-                    'name' => $addr->getName()
-                ])->toArray()
-            );
+            $payload['cc'] = $this->formatAddresses($email->getCc());
         }
-
+        
+        // Add BCC if present
         if ($email->getBcc()) {
-            $sendSmtpEmail->setBcc(
-                collect($email->getBcc())->map(fn($addr) => [
-                    'email' => $addr->getAddress(),
-                    'name' => $addr->getName()
-                ])->toArray()
-            );
+            $payload['bcc'] = $this->formatAddresses($email->getBcc());
         }
-
-        $apiInstance->sendTransacEmail($sendSmtpEmail);
+        
+        $client = new Client();
+        $response = $client->post('https://api.brevo.com/v3/smtp/email', [
+            'headers' => [
+                'accept' => 'application/json',
+                'api-key' => $this->apiKey,
+                'content-type' => 'application/json',
+            ],
+            'json' => $payload,
+        ]);
+        
+        if ($response->getStatusCode() !== 201) {
+            throw new \Exception('Failed to send email via Brevo API: ' . $response->getBody());
+        }
+    }
+    
+    protected function formatAddress(Address $address): array
+    {
+        return [
+            'email' => $address->getAddress(),
+            'name' => $address->getName() ?: null,
+        ];
+    }
+    
+    protected function formatAddresses(array $addresses): array
+    {
+        return array_map(fn(Address $addr) => $this->formatAddress($addr), $addresses);
+    }
+    
+    public function __toString(): string
+    {
+        return 'brevo';
     }
 }
