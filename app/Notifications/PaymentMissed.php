@@ -36,8 +36,7 @@ class PaymentMissed extends Notification
             ->line("Your payment for **Room {$room}** ({$month}) is now **{$daysLate} day(s) late**.")
             ->line("**Your outstanding share: ₱{$amount}**")
             ->line('Please settle your payment as soon as possible to avoid further action.')
-            ->action('Pay Now with PayMongo', url(route('tenant.bill')))
-            ->line('**To view and pay your bill:** Login to your portal at https://questdorm.onrender.com and go to "My Bill".')
+            ->action('Pay Now with PayMongo', url('/login'))
             ->line('Accepts GCash, Maya, Card, and QR Ph.')
             ->salutation('— Quest Building');
     }

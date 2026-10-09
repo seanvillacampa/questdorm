@@ -37,9 +37,8 @@ class InvoiceDueReminder extends Notification
             ->line("**Your share: ₱{$amount}**")
             ->line("Room total: ₱" . number_format($this->invoice->total_amount, 2) .
                    " shared among {$this->invoice->tenant_count} tenant(s).")
-            ->action('Pay with PayMongo', url(route('tenant.bill')))
+            ->action('Pay with PayMongo', url('/login'))
             ->line('You can pay using GCash, Maya, Card, or QR Ph.')
-            ->line('**To view and pay your bill:** Login to your portal at https://questdorm.onrender.com and go to "My Bill".')
             ->line('If you have already paid, please disregard this message.')
             ->salutation('— Quest Building');
     }
