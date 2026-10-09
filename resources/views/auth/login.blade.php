@@ -71,7 +71,7 @@
 
             {{-- Headline --}}
             <div class="max-w-[520px]">
-                <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-200/60">Residence operations</p>
+                <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-200/60"></p>
                 <h1 class="mt-5 text-[54px] font-black leading-[0.93] tracking-[-0.065em] text-white">
                     Manage rooms,<br>
                     payments, laundry, and<br>
@@ -132,7 +132,7 @@
                                 <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                             </svg>
                         </div>
-                        <span class="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-400">Secure sign-in</span>
+                        
                     </div>
                     <h2 class="text-[42px] font-black leading-none tracking-[-0.06em] text-[#0d1f1a]">Welcome back</h2>
                     <p class="mt-2.5 text-[14px] leading-snug text-slate-500">Sign in to access your Quest Building account.</p>

@@ -108,6 +108,14 @@ class InvoiceController extends Controller
             ->groupBy('billing_month')
             ->pluck('cnt', 'billing_month');
 
+        // NEW: Check if all tenant payments are paid for each month
+        $fullyPaidMonths = \App\Models\TenantPayment::join('invoices', 'tenant_payments.invoice_id', '=', 'invoices.id')
+            ->where('invoices.status', '!=', 'void')
+            ->groupBy('invoices.billing_month')
+            ->havingRaw('COUNT(*) = SUM(CASE WHEN tenant_payments.status = "paid" THEN 1 ELSE 0 END)')
+            ->pluck('invoices.billing_month')
+            ->flip();
+
         $months = collect();
         for ($i = 0; $i <= 12; $i++) {
             $m = now()->subMonths($i)->format('Y-m');
@@ -122,10 +130,12 @@ class InvoiceController extends Controller
                 }
             }
             
+            // Only show green checkmark if ALL invoices exist AND all tenant payments are paid
+            $allPaid = isset($fullyPaidMonths[$m]);
             $status = match(true) {
-                $totalRooms > 0 && $cnt >= $totalRooms => 'all',
-                $cnt > 0                               => 'partial',
-                default                                => 'none',
+                $totalRooms > 0 && $cnt >= $totalRooms && $allPaid => 'all',
+                $cnt > 0                                           => 'partial',
+                default                                            => 'none',
             };
             $months->put($m, [
                 'label'  => now()->subMonths($i)->format('F Y'),

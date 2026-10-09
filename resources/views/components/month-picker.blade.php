@@ -59,8 +59,8 @@
         @foreach($coverage as $ym => $info)
             @php
                 $icon = match($info['status']) {
-                    'all'     => ['sym' => '[✓]', 'cls' => 'text-green-500',  'title' => "All {$info['total']} billing statements generated"],
-                    'partial' => ['sym' => '[–]', 'cls' => 'text-yellow-500', 'title' => "{$info['count']} of {$info['total']} billing statements generated"],
+                    'all'     => ['sym' => '[✓]', 'cls' => 'text-green-500',  'title' => "All {$info['total']} billing statements generated and fully paid by all tenants"],
+                    'partial' => ['sym' => '[–]', 'cls' => 'text-yellow-500', 'title' => "{$info['count']} of {$info['total']} billing statements generated or some payments pending"],
                     default   => ['sym' => '[✕]', 'cls' => 'text-red-500',    'title' => 'No billing statements generated'],
                 };
             @endphp
@@ -87,8 +87,8 @@
 
         {{-- Legend --}}
         <div class="border-t border-gray-100 mt-1 px-3 py-2 space-y-1">
-            <p class="text-[10px] text-gray-400 flex items-center gap-1.5"><span class="font-bold text-green-500">[✓]</span> All rooms invoiced</p>
-            <p class="text-[10px] text-gray-400 flex items-center gap-1.5"><span class="font-bold text-yellow-500">[–]</span> Partially invoiced</p>
+            <p class="text-[10px] text-gray-400 flex items-center gap-1.5"><span class="font-bold text-green-500">[✓]</span> All invoiced & fully paid</p>
+            <p class="text-[10px] text-gray-400 flex items-center gap-1.5"><span class="font-bold text-yellow-500">[–]</span> Partially invoiced or unpaid</p>
             <p class="text-[10px] text-gray-400 flex items-center gap-1.5"><span class="font-bold text-red-500">[✕]</span> No billing statements yet</p>
         </div>
     </div>

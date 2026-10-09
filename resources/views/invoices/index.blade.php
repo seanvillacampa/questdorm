@@ -1,7 +1,7 @@
 <x-layouts.app title="Billing Statements — Quest Building">
 
     <x-page-header title="Billing Statements" badge="Owner + Employee"
-        subtitle="{{ now()->parse($month)->format('F Y') }} billing · rent + electricity">
+        subtitle="Monthly rent and electricity billing for all rooms">
         <x-slot:actions>
             <x-month-picker :coverage="$monthCoverage" :selected="$month" />
             <a href="{{ route('invoices.latest') }}"

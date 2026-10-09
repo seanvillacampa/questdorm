@@ -1,7 +1,7 @@
 <x-layouts.app title="Meter Readings — Quest Building">
 
     <x-page-header title="Meter Readings" badge="Owner + Employee"
-        subtitle="Enter this month's kWh reading per room">
+        subtitle="Enter monthly kWh reading per room">
     </x-page-header>
 
     <div id="flash-msg" class="hidden mb-4 px-4 py-2 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm"></div>
@@ -13,7 +13,7 @@
 
     {{-- Month dropdown --}}
     <div class="flex items-center gap-3 mb-4">
-        <h2 class="text-sm font-semibold text-gray-900">{{ now()->parse($month)->format('F Y') }} readings</h2>
+        <h2 class="text-sm font-semibold text-gray-900">Meter readings</h2>
         <select onchange="window.location='{{ route('meter-readings.index') }}?month='+this.value"
                 class="ml-auto text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
             @for($i = 0; $i <= 12; $i++)
