@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: questdorm
+    env: docker
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: LOG_CHANNEL
+        value: errorlog
+      - key: LOG_LEVEL
+        value: error
+      - key: LOG_STDERR_FORMATTER
+        value: Monolog\Formatter\LineFormatter

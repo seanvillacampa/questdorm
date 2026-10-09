@@ -85,16 +85,42 @@ RUN mkdir -p \
 # Expose port
 EXPOSE 10000
 
-# Create inline start script
+# Create inline start script with better debugging
 RUN printf '#!/bin/bash\n\
 set -e\n\
+echo "========================================"\n\
 echo "Starting QuestDorm application..."\n\
-echo "Running migrations..."\n\
-php artisan migrate --force 2>&1 || { echo "Migration attempt 1 failed, retrying..."; sleep 3; php artisan migrate --force 2>&1; } || echo "Migrations failed but continuing"\n\
-php artisan config:cache 2>&1 || true\n\
-php artisan route:cache 2>&1 || true\n\
-php artisan view:cache 2>&1 || true\n\
-echo "QuestDorm started successfully!"\n\
+echo "========================================"\n\
+echo ""\n\
+echo "Step 1: Fixing storage permissions..."\n\
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache 2>&1 || echo "  Warning: Could not change ownership"\n\
+chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache 2>&1 || echo "  Warning: Could not change permissions"\n\
+mkdir -p /var/www/html/storage/logs 2>&1 || echo "  Warning: Could not create logs directory"\n\
+touch /var/www/html/storage/logs/laravel.log 2>&1 || echo "  Warning: Could not create log file"\n\
+chown www-data:www-data /var/www/html/storage/logs/laravel.log 2>&1 || echo "  Warning: Could not change log file ownership"\n\
+chmod 664 /var/www/html/storage/logs/laravel.log 2>&1 || echo "  Warning: Could not change log file permissions"\n\
+echo "  ✓ Storage permissions configured"\n\
+echo ""\n\
+echo "Step 2: Testing database connection..."\n\
+php artisan tinker --execute="try { DB::connection()->getPdo(); echo \"  ✓ Database connected successfully\"; } catch (Exception \\$e) { echo \"  ✗ Database connection failed: \" . \\$e->getMessage(); }" 2>&1 || echo "  ✗ Could not test database connection"\n\
+echo ""\n\
+echo "Step 3: Running migrations..."\n\
+php artisan migrate --force 2>&1 && echo "  ✓ Migrations completed" || { \n\
+  echo "  ✗ Migration attempt 1 failed, waiting 5 seconds...";\n\
+  sleep 5;\n\
+  echo "  Retrying migrations...";\n\
+  php artisan migrate --force 2>&1 && echo "  ✓ Migrations completed on retry" || echo "  ✗ Migrations failed - will need manual intervention";\n\
+}\n\
+echo ""\n\
+echo "Step 4: Caching configuration..."\n\
+php artisan config:cache 2>&1 && echo "  ✓ Config cached" || echo "  ✗ Config cache failed"\n\
+php artisan route:cache 2>&1 && echo "  ✓ Routes cached" || echo "  ✗ Route cache failed"\n\
+php artisan view:cache 2>&1 && echo "  ✓ Views cached" || echo "  ✗ View cache failed"\n\
+echo ""\n\
+echo "========================================"\n\
+echo "QuestDorm startup complete!"\n\
+echo "========================================"\n\
+echo ""\n\
 exec apache2-foreground\n' > /start.sh \
     && chmod +x /start.sh
 
