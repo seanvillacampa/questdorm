@@ -66,9 +66,11 @@ RUN php artisan storage:link || true
 
 # Fix permissions
 RUN mkdir -p \
-    storage/framework/cache \
+    storage/app/public \
+    storage/framework/cache/data \
     storage/framework/sessions \
     storage/framework/views \
+    storage/logs \
     bootstrap/cache \
     public/uploads \
     && chown -R www-data:www-data \
@@ -80,11 +82,12 @@ RUN mkdir -p \
     bootstrap/cache \
     public/uploads
 
-# Run migrations
-RUN php artisan migrate --force || true
-
 # Expose port
 EXPOSE 10000
 
-# Start Apache
-CMD ["apache2-foreground"]
+# Copy startup script
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Start with entrypoint script
+CMD ["docker-entrypoint.sh"]
