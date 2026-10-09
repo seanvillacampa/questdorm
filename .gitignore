@@ -22,3 +22,8 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# SQL dumps
+*.sql
+!database/schema/*.sql
+!database/migrations/*.sql
