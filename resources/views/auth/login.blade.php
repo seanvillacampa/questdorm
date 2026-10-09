@@ -74,7 +74,7 @@
                 <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-200/60">Residence operations</p>
                 <h1 class="mt-5 text-[54px] font-black leading-[0.93] tracking-[-0.065em] text-white">
                     Manage rooms,<br>
-                    payments and<br>
+                    payments, laundry, and<br>
                     tenants in one place.
                 </h1>
                 <p class="mt-6 max-w-[400px] text-[17px] leading-[1.75] text-emerald-50/75">

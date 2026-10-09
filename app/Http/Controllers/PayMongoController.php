@@ -148,6 +148,12 @@ class PayMongoController extends Controller
 
             // Find the TenantPayment that originated this link
             $linkId    = $event['link_id'] ?? $event['resource_id'] ?? null;
+            
+            Log::info('PayMongo: Searching for TenantPayment', [
+                'link_id_from_event' => $linkId,
+                'resource_id' => $event['resource_id'],
+            ]);
+            
             $tenantPay = $linkId
                 ? \App\Models\TenantPayment::where('paymongo_link_id', $linkId)->first()
                 : null;
