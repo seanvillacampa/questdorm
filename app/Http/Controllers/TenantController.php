@@ -120,20 +120,28 @@ class TenantController extends Controller
         // Send activation email OUTSIDE the transaction so a mail failure
         // doesn't roll back the user record. Log any failure clearly.
         $emailSent = false;
+        $errorMessage = null;
         try {
             $token = Password::broker()->createToken($user);
             $user->notify(new TenantWelcome($token));
             $emailSent = true;
         } catch (\Exception $e) {
+            $errorMessage = $e->getMessage();
             Log::error('TenantWelcome notification failed', [
                 'tenant_email' => $user->email,
-                'error'        => $e->getMessage(),
+                'error'        => $errorMessage,
+                'trace'        => $e->getTraceAsString(),
             ]);
         }
 
-        $message = $emailSent
-            ? "Tenant {$user->name} registered. Activation email sent to {$user->email}."
-            : "Tenant {$user->name} registered. ⚠️ Activation email could not be sent — check mail config in .env.";
+        if ($emailSent) {
+            $message = "Tenant {$user->name} registered. Activation email sent to {$user->email}.";
+        } else {
+            $message = "Tenant {$user->name} registered. ⚠️ Activation email could not be sent.";
+            if ($errorMessage) {
+                $message .= " Error: " . $errorMessage;
+            }
+        }
 
         return redirect()->route('tenants.index')->with('success', $message);
     }
