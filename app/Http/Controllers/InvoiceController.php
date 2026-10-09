@@ -252,32 +252,47 @@ class InvoiceController extends Controller
                     $electricity = round($reading->kwh_used * $rate, 2);
                 }
 
-                // ── Carry-over from previous billing statement ────────────────────
-                $carryOver   = 0.0; // unpaid balance from prev billing statement
-                $creditBal   = 0.0; // overpayment from prev billing statement
+                // ── Calculate per-tenant carry-over and total room carry-over ────
+                $perTenantCarryOver = []; // keyed by tenant_id
+                $totalRoomCarryOver = 0.0;
+                $totalRoomCredit = 0.0;
 
-                $prevInvoice = Invoice::where('contract_id', $contract->id)
-                    ->where('billing_month', '<', $month)
-                    ->whereNotIn('status', ['void'])
-                    ->orderByDesc('billing_month')
+                // Get each tenant's previous payment record
+                foreach ($contract->tenants as $tenant) {
+                    $prevTenantPayment = TenantPayment::whereHas('invoice', function($q) use ($contract, $month) {
+                        $q->where('contract_id', $contract->id)
+                          ->where('billing_month', '<', $month)
+                          ->whereNotIn('status', ['void']);
+                    })
+                    ->where('tenant_id', $tenant->id)
+                    ->orderByDesc('invoice_id')
                     ->first();
 
-                if ($prevInvoice) {
-                    $prevBalance = $prevInvoice->balanceDue();
-                    $prevCredit  = max(0, $prevInvoice->amount_paid - $prevInvoice->effectiveTotal());
-
-                    if ($prevBalance > 0) {
-                        // Previous billing statement has unpaid balance — add it to this month
-                        $carryOver = round($prevBalance, 2);
-                    } elseif ($prevCredit > 0) {
-                        // Previous billing statement was overpaid — credit this month
-                        $creditBal = round($prevCredit, 2);
+                    if ($prevTenantPayment) {
+                        // Calculate this tenant's unpaid balance
+                        $prevBalance = $prevTenantPayment->balanceDue();
+                        
+                        if ($prevBalance > 0) {
+                            $perTenantCarryOver[$tenant->id] = round($prevBalance, 2);
+                            $totalRoomCarryOver += $perTenantCarryOver[$tenant->id];
+                        } else {
+                            $perTenantCarryOver[$tenant->id] = 0;
+                            
+                            // Check for overpayment credit
+                            $tenantTotal = $prevTenantPayment->totalOwed();
+                            if ($prevTenantPayment->amount_paid > $tenantTotal) {
+                                $credit = $prevTenantPayment->amount_paid - $tenantTotal;
+                                $totalRoomCredit += round($credit, 2);
+                            }
+                        }
+                    } else {
+                        $perTenantCarryOver[$tenant->id] = 0;
                     }
                 }
 
-                // Effective total: base + carry-over - credit
+                // Create invoice at room level (for legacy compatibility)
                 $baseTotal   = $roomRate + $electricity;
-                $effectTotal = max(0, round($baseTotal + $carryOver - $creditBal, 2));
+                $effectTotal = max(0, round($baseTotal + $totalRoomCarryOver - $totalRoomCredit, 2));
 
                 $dueDate = \Carbon\Carbon::createFromFormat('Y-m', $month)
                     ->day($contract->due_day);
@@ -290,24 +305,29 @@ class InvoiceController extends Controller
                     'due_date'           => $dueDate,
                     'rent_amount'        => $roomRate,
                     'electricity_amount' => $electricity,
-                    'carry_over_balance' => $carryOver,
-                    'credit_balance'     => $creditBal,
+                    'carry_over_balance' => $totalRoomCarryOver,
+                    'credit_balance'     => $totalRoomCredit,
                     'total_amount'       => $effectTotal,
                     'amount_paid'        => 0,
                     'status'             => 'pending',
                     'created_by'         => Auth::id(),
                 ]);
 
-                // Per-tenant share based on effective total
-                $shareTotal = round($effectTotal / $tenantCount, 2);
+                // Create per-tenant payment records with individual carry-overs
+                $rentPerTenant = round($roomRate / $tenantCount, 2);
+                $elecPerTenant = round($electricity / $tenantCount, 2);
+                $baseSharePerTenant = $rentPerTenant + $elecPerTenant;
 
                 foreach ($contract->tenants as $tenant) {
+                    $tenantCarryOver = $perTenantCarryOver[$tenant->id] ?? 0;
+                    
                     TenantPayment::create([
-                        'invoice_id'   => $invoice->id,
-                        'tenant_id'    => $tenant->id,
-                        'share_amount' => $shareTotal,
-                        'amount_paid'  => 0,
-                        'status'       => 'pending',
+                        'invoice_id'         => $invoice->id,
+                        'tenant_id'          => $tenant->id,
+                        'share_amount'       => $baseSharePerTenant,
+                        'carry_over_balance' => $tenantCarryOver,
+                        'amount_paid'        => 0,
+                        'status'             => 'pending',
                     ]);
                 }
 

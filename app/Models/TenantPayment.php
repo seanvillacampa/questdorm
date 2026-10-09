@@ -10,6 +10,7 @@ class TenantPayment extends Model
         'invoice_id',
         'tenant_id',
         'share_amount',
+        'carry_over_balance',
         'amount_paid',
         'status',
         'method',
@@ -36,7 +37,17 @@ class TenantPayment extends Model
 
     public function balanceDue(): float
     {
-        return max(0, $this->share_amount - $this->amount_paid);
+        // Total owed = share + carry-over - amount paid
+        $totalOwed = $this->share_amount + ($this->carry_over_balance ?? 0);
+        return max(0, $totalOwed - $this->amount_paid);
+    }
+    
+    /**
+     * Total amount this tenant owes (including carry-over)
+     */
+    public function totalOwed(): float
+    {
+        return $this->share_amount + ($this->carry_over_balance ?? 0);
     }
 
     /**

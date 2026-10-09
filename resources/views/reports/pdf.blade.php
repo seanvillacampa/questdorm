@@ -62,35 +62,47 @@
   @endforeach
 </table>
 
-<h2>Invoice Details</h2>
+<h2>Invoice Details (Per-Tenant Breakdown)</h2>
 <table>
   <tr>
-    <th>Invoice #</th><th>Room</th><th>Tenants</th><th>Due Date</th>
-    <th class="right">Rent</th><th class="right">Electricity</th>
-    <th class="right">Total</th><th class="right">Paid</th><th class="right">Balance</th><th>Status</th>
+    <th>Invoice #</th><th>Room</th><th>Tenant</th><th>Due Date</th>
+    <th class="right">Rent Share</th><th class="right">Elec Share</th>
+    <th class="right">Carry-Over</th><th class="right">Total Owed</th>
+    <th class="right">Paid</th><th class="right">Balance</th><th>Status</th>
   </tr>
   @foreach($invoices as $inv)
-    @php
-      $tenants = $inv->contract->tenants->map(fn($t)=>$t->user->name)->implode(', ');
-      $sCls = match(true) {
-        $inv->status === 'paid'    => 'status-paid',
-        $inv->status === 'overdue' => 'status-overdue',
-        str_starts_with($inv->status,'partial') => 'status-partial',
-        default => 'status-pending',
-      };
-    @endphp
-    <tr>
-      <td>{{ $inv->invoice_number }}</td>
-      <td>{{ $inv->contract->room->room_number }}</td>
-      <td style="max-width:120px">{{ $tenants }}</td>
-      <td>{{ $inv->due_date->format('M d, Y') }}</td>
-      <td class="right">₱{{ number_format($inv->rent_amount,2) }}</td>
-      <td class="right">₱{{ number_format($inv->electricity_amount,2) }}</td>
-      <td class="right">₱{{ number_format($inv->total_amount,2) }}</td>
-      <td class="right">₱{{ number_format($inv->amount_paid,2) }}</td>
-      <td class="right">₱{{ number_format($inv->balanceDue(),2) }}</td>
-      <td class="{{ $sCls }}">{{ ucfirst(str_replace('_',' ',$inv->status)) }}</td>
-    </tr>
+    @foreach($inv->tenantPayments as $tp)
+      @php
+        $tenantName = $tp->tenant?->user?->name ?? 'Unknown';
+        $rentShare = round($inv->rent_amount / max(1, $inv->tenant_count), 2);
+        $elecShare = round($inv->electricity_amount / max(1, $inv->tenant_count), 2);
+        $carryOver = $tp->carry_over_balance ?? 0;
+        $totalOwed = $tp->share_amount + $carryOver;
+        $balance = max(0, $totalOwed - $tp->amount_paid);
+        $sCls = match($tp->status) {
+          'paid'    => 'status-paid',
+          'overdue' => 'status-overdue',
+          'late'    => 'status-overdue',
+          'partial' => 'status-partial',
+          default   => 'status-pending',
+        };
+      @endphp
+      <tr>
+        <td>{{ $inv->invoice_number }}</td>
+        <td>{{ $inv->contract->room->room_number }}</td>
+        <td>{{ $tenantName }}</td>
+        <td>{{ $inv->due_date->format('M d, Y') }}</td>
+        <td class="right">₱{{ number_format($rentShare,2) }}</td>
+        <td class="right">₱{{ number_format($elecShare,2) }}</td>
+        <td class="right" style="color:{{ $carryOver > 0 ? '#dc2626' : '#6b7280' }}">
+          {{ $carryOver > 0 ? '+₱' . number_format($carryOver,2) : '—' }}
+        </td>
+        <td class="right">₱{{ number_format($totalOwed,2) }}</td>
+        <td class="right">₱{{ number_format($tp->amount_paid,2) }}</td>
+        <td class="right" style="color:{{ $balance > 0 ? '#dc2626' : '#16a34a' }}">₱{{ number_format($balance,2) }}</td>
+        <td class="{{ $sCls }}">{{ ucfirst(str_replace('_',' ',$tp->status)) }}</td>
+      </tr>
+    @endforeach
   @endforeach
 </table>
 

@@ -213,29 +213,39 @@ class ReportsController extends Controller
         $month  = $request->get('month', now()->format('Y-m'));
         $label  = now()->parse($month)->format('F_Y');
 
-        $invoices = Invoice::with(['contract.room', 'contract.tenants.user', 'tenantPayments'])
+        $invoices = Invoice::with(['contract.room', 'contract.tenants.user', 'tenantPayments.tenant.user'])
             ->where('billing_month', $month)
             ->where('status', '!=', 'void')
             ->orderBy('invoice_number')
             ->get();
 
         $rows   = [];
-        $rows[] = ['Invoice #','Room','Tenants','Due Date','Room Rent','Electricity','Total','Amount Paid','Balance','Status'];
+        // Updated header to include per-tenant breakdown
+        $rows[] = ['Invoice #','Room','Tenant','Rent Share','Electricity Share','Carry-Over','Total Owed','Amount Paid','Balance','Status'];
 
         foreach ($invoices as $inv) {
-            $tenants = $inv->contract->tenants->map(fn($t)=>$t->user->name)->implode(', ');
-            $rows[] = [
-                $inv->invoice_number,
-                $inv->contract->room->room_number,
-                $tenants,
-                $inv->due_date->format('Y-m-d'),
-                $inv->rent_amount,
-                $inv->electricity_amount,
-                $inv->total_amount,
-                $inv->amount_paid,
-                $inv->balanceDue(),
-                $inv->status,
-            ];
+            // Export one row per tenant
+            foreach ($inv->tenantPayments as $tp) {
+                $tenantName = $tp->tenant?->user?->name ?? 'Unknown';
+                $rentShare = round($inv->rent_amount / max(1, $inv->tenant_count), 2);
+                $elecShare = round($inv->electricity_amount / max(1, $inv->tenant_count), 2);
+                $carryOver = $tp->carry_over_balance ?? 0;
+                $totalOwed = $tp->share_amount + $carryOver;
+                $balance = max(0, $totalOwed - $tp->amount_paid);
+                
+                $rows[] = [
+                    $inv->invoice_number,
+                    $inv->contract->room->room_number,
+                    $tenantName,
+                    $rentShare,
+                    $elecShare,
+                    $carryOver,
+                    $totalOwed,
+                    $tp->amount_paid,
+                    $balance,
+                    $tp->status,
+                ];
+            }
         }
 
         $callback = function () use ($rows) {
@@ -257,7 +267,7 @@ class ReportsController extends Controller
         $month  = $request->get('month', now()->format('Y-m'));
         $data   = $this->getData($month);
 
-        $invoices = Invoice::with(['contract.room', 'contract.tenants.user', 'tenantPayments'])
+        $invoices = Invoice::with(['contract.room', 'contract.tenants.user', 'tenantPayments.tenant.user'])
             ->where('billing_month', $month)
             ->where('status', '!=', 'void')
             ->orderBy('invoice_number')

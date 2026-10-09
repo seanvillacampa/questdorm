@@ -110,32 +110,52 @@ class GenerateScheduledInvoices extends Command
 
             $roomRate = $contract->room->monthly_rate;
 
-            // ── Carry-over from previous invoice ────────────────────────
-            $carryOver = 0.0;
-            $creditBal = 0.0;
+            // ── Calculate per-tenant carry-over ────────────────────────
+            $perTenantCarryOver = []; // keyed by tenant_id
+            $totalRoomCarryOver = 0.0;
+            $totalRoomCredit = 0.0;
 
-            $prevInvoice = Invoice::where('contract_id', $contract->id)
-                ->where('billing_month', '<', $billingMonth)
-                ->whereNotIn('status', ['void'])
-                ->orderByDesc('billing_month')
+            // Get each tenant's previous payment record
+            foreach ($contract->tenants as $tenant) {
+                $prevTenantPayment = TenantPayment::whereHas('invoice', function($q) use ($contract, $billingMonth) {
+                    $q->where('contract_id', $contract->id)
+                      ->where('billing_month', '<', $billingMonth)
+                      ->whereNotIn('status', ['void']);
+                })
+                ->where('tenant_id', $tenant->id)
+                ->orderByDesc('invoice_id')
                 ->first();
 
-            if ($prevInvoice) {
-                $prevBalance = $prevInvoice->balanceDue();
-                $prevCredit  = max(0, $prevInvoice->amount_paid - $prevInvoice->effectiveTotal());
-                if ($prevBalance > 0) {
-                    $carryOver = round($prevBalance, 2);
-                } elseif ($prevCredit > 0) {
-                    $creditBal = round($prevCredit, 2);
+                if ($prevTenantPayment) {
+                    $prevBalance = $prevTenantPayment->balanceDue();
+                    
+                    if ($prevBalance > 0) {
+                        $perTenantCarryOver[$tenant->id] = round($prevBalance, 2);
+                        $totalRoomCarryOver += $perTenantCarryOver[$tenant->id];
+                    } else {
+                        $perTenantCarryOver[$tenant->id] = 0;
+                        
+                        // Check for overpayment credit
+                        $tenantTotal = $prevTenantPayment->totalOwed();
+                        if ($prevTenantPayment->amount_paid > $tenantTotal) {
+                            $credit = $prevTenantPayment->amount_paid - $tenantTotal;
+                            $totalRoomCredit += round($credit, 2);
+                        }
+                    }
+                } else {
+                    $perTenantCarryOver[$tenant->id] = 0;
                 }
             }
 
-            $total    = max(0, round($roomRate + $electricity + $carryOver - $creditBal, 2));
-            $shareAmt = round($total / $tenantCount, 2);
+            $total = max(0, round($roomRate + $electricity + $totalRoomCarryOver - $totalRoomCredit, 2));
+            $rentPerTenant = round($roomRate / $tenantCount, 2);
+            $elecPerTenant = round($electricity / $tenantCount, 2);
+            $baseSharePerTenant = $rentPerTenant + $elecPerTenant;
 
             DB::transaction(function () use (
                 $contract, $billingMonth, $dueDate, $roomRate,
-                $electricity, $carryOver, $creditBal, $total, $tenantCount, $shareAmt, &$generated
+                $electricity, $totalRoomCarryOver, $totalRoomCredit, $total, $tenantCount,
+                $baseSharePerTenant, $perTenantCarryOver, &$generated
             ) {
                 $invoice = Invoice::create([
                     'invoice_number'     => 'BILL-' . str_replace('-', '', substr($billingMonth, 2))
@@ -146,8 +166,8 @@ class GenerateScheduledInvoices extends Command
                     'due_date'           => $dueDate,
                     'rent_amount'        => $roomRate,
                     'electricity_amount' => $electricity,
-                    'carry_over_balance' => $carryOver,
-                    'credit_balance'     => $creditBal,
+                    'carry_over_balance' => $totalRoomCarryOver,
+                    'credit_balance'     => $totalRoomCredit,
                     'total_amount'       => $total,
                     'amount_paid'        => 0,
                     'status'             => 'pending',
@@ -155,12 +175,15 @@ class GenerateScheduledInvoices extends Command
                 ]);
 
                 foreach ($contract->tenants as $tenant) {
+                    $tenantCarryOver = $perTenantCarryOver[$tenant->id] ?? 0;
+                    
                     TenantPayment::create([
-                        'invoice_id'   => $invoice->id,
-                        'tenant_id'    => $tenant->id,
-                        'share_amount' => $shareAmt,
-                        'amount_paid'  => 0,
-                        'status'       => 'pending',
+                        'invoice_id'         => $invoice->id,
+                        'tenant_id'          => $tenant->id,
+                        'share_amount'       => $baseSharePerTenant,
+                        'carry_over_balance' => $tenantCarryOver,
+                        'amount_paid'        => 0,
+                        'status'             => 'pending',
                     ]);
                 }
 

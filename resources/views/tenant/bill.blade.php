@@ -32,7 +32,9 @@
             @php
                 $myPaid    = $myPayment?->amount_paid ?? 0;
                 $myShare   = $myPayment?->share_amount ?? $invoice->amountPerTenant();
-                $myBalance = max(0, $myShare - $myPaid);
+                $myCarryOver = $myPayment?->carry_over_balance ?? 0;
+                $myTotalOwed = $myShare + $myCarryOver;
+                $myBalance = max(0, $myTotalOwed - $myPaid);
                 $myStatus  = $myPayment?->status ?? 'pending';
                 $isPreviousMonth = $invoice->billing_month !== now()->format('Y-m');
             @endphp
@@ -79,21 +81,15 @@
                                     <span>Electricity share @if($reading)<span class="text-xs text-slate-400">({{ number_format($reading->kwh_used, 1) }} kWh ÷ {{ $invoice->tenant_count }})</span>@endif</span>
                                     <span class="font-semibold text-slate-800">₱{{ number_format($invoice->electricityPerTenant(), 2) }}</span>
                                 </div>
-                                @if(($invoice->carry_over_balance ?? 0) > 0)
+                                @if($myCarryOver > 0)
                                     <div class="flex justify-between text-xs text-red-600">
-                                        <span>Unpaid balance carried from previous month</span>
-                                        <span>+ ₱{{ number_format(round($invoice->carry_over_balance / max(1,$invoice->tenant_count), 2), 2) }}</span>
-                                    </div>
-                                @endif
-                                @if(($invoice->credit_balance ?? 0) > 0)
-                                    <div class="flex justify-between text-xs text-emerald-600">
-                                        <span>Overpayment credit from previous month</span>
-                                        <span>− ₱{{ number_format(round($invoice->credit_balance / max(1,$invoice->tenant_count), 2), 2) }}</span>
+                                        <span>Your unpaid balance from previous billing statement(s)</span>
+                                        <span>+ ₱{{ number_format($myCarryOver, 2) }}</span>
                                     </div>
                                 @endif
                                 <div class="flex items-center justify-between border-t border-slate-200 pt-3 text-base font-bold text-slate-900">
                                     <span>Your total</span>
-                                    <span>₱{{ number_format($myShare, 2) }}</span>
+                                    <span>₱{{ number_format($myTotalOwed, 2) }}</span>
                                 </div>
                                 @if($myPaid > 0)
                                     <div class="flex items-center justify-between text-emerald-600">

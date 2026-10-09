@@ -13,23 +13,32 @@
                         <th class="px-5 py-3">Billing month</th>
                         <th class="px-5 py-3">Invoice</th>
                         <th class="px-5 py-3 text-right">Your share</th>
+                        <th class="px-5 py-3 text-right">Carry-over</th>
+                        <th class="px-5 py-3 text-right">Total owed</th>
                         <th class="px-5 py-3 text-right">Paid</th>
                         <th class="px-5 py-3">Status</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     @forelse($payments as $tp)
+                        @php
+                            $totalOwed = $tp->share_amount + ($tp->carry_over_balance ?? 0);
+                        @endphp
                         <tr class="hover:bg-slate-50/60">
                             <td class="px-5 py-3 text-slate-600">{{ now()->parse($tp->invoice->billing_month)->format('F Y') }}</td>
                             <td class="px-5 py-3 font-semibold text-[#145d4b]">{{ $tp->invoice->invoice_number }}</td>
                             <td class="px-5 py-3 text-right font-semibold text-slate-800">₱{{ number_format($tp->share_amount, 2) }}</td>
+                            <td class="px-5 py-3 text-right {{ ($tp->carry_over_balance ?? 0) > 0 ? 'text-red-600' : 'text-slate-400' }}">
+                                {{ ($tp->carry_over_balance ?? 0) > 0 ? '+₱'.number_format($tp->carry_over_balance, 2) : '—' }}
+                            </td>
+                            <td class="px-5 py-3 text-right font-bold text-slate-900">₱{{ number_format($totalOwed, 2) }}</td>
                             <td class="px-5 py-3 text-right {{ $tp->amount_paid > 0 ? 'text-emerald-600' : 'text-slate-400' }}">
                                 {{ $tp->amount_paid > 0 ? '₱'.number_format($tp->amount_paid,2) : '—' }}
                             </td>
                             <td class="px-5 py-3"><x-status-badge :status="$tp->status" /></td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="px-5 py-10 text-center text-sm text-slate-400">No payment history yet.</td></tr>
+                        <tr><td colspan="7" class="px-5 py-10 text-center text-sm text-slate-400">No payment history yet.</td></tr>
                     @endforelse
                 </tbody>
             </table>
