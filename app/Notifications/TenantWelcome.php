@@ -38,6 +38,7 @@ class TenantWelcome extends Notification
             ->line('Click the button below to set your password and activate your account.')
             ->action('Set My Password', $url)
             ->line('This link expires in ' . config('auth.passwords.users.expire', 60) . ' minutes.')
+            ->line('**After setting your password, you can access your tenant portal at:** https://questdorm.onrender.com')
             ->line('If you did not expect this email, you can safely ignore it.')
             ->salutation('— Quest Building');
     }

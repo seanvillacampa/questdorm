@@ -39,6 +39,7 @@ class InvoiceDueReminder extends Notification
                    " shared among {$this->invoice->tenant_count} tenant(s).")
             ->action('Pay with PayMongo', url(route('tenant.bill')))
             ->line('You can pay using GCash, Maya, Card, or QR Ph.')
+            ->line('**To view and pay your bill:** Login to your portal at https://questdorm.onrender.com and go to "My Bill".')
             ->line('If you have already paid, please disregard this message.')
             ->salutation('— Quest Building');
     }
