@@ -33,25 +33,36 @@
                 </div>
             @endif
 
-            {{-- Total contract deposit summary --}}
+            {{-- Deposit breakdown in simple card format --}}
             <div>
-                <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Total Contract Deposit (All Tenants)</p>
                 <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_2px_8px_rgba(15,23,42,0.03)]">
-                    <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Total Required</p>
+                    <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Total Required (Room)</p>
                     <p class="mt-3 text-2xl font-extrabold text-slate-900">₱{{ number_format($contract->room->deposit_required ?? 0, 2) }}</p>
                 </div>
                 <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_2px_8px_rgba(15,23,42,0.03)]">
-                    <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Collected</p>
-                    <p class="mt-3 text-2xl font-extrabold text-emerald-600">₱{{ number_format($entries->where('type','collected')->sum('amount'),2) }}</p>
+                    <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Your Contribution</p>
+                    @if($myDeposit)
+                        <p class="mt-3 text-2xl font-extrabold text-emerald-600">₱{{ number_format($myDeposit->amount_paid, 2) }} <span class="text-sm text-slate-500">/ ₱{{ number_format($myDeposit->amount_required, 2) }}</span></p>
+                    @else
+                        <p class="mt-3 text-2xl font-extrabold text-slate-400">—</p>
+                    @endif
                 </div>
                 <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_2px_8px_rgba(15,23,42,0.03)]">
                     <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Deductions</p>
-                    <p class="mt-3 text-2xl font-extrabold text-red-500">− ₱{{ number_format($entries->where('type','deduction')->sum('amount'),2) }}</p>
+                    @if($myDeposit)
+                        <p class="mt-3 text-2xl font-extrabold text-red-500">− ₱{{ number_format($myDeposit->amount_deducted, 2) }}</p>
+                    @else
+                        <p class="mt-3 text-2xl font-extrabold text-slate-400">—</p>
+                    @endif
                 </div>
                 <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_2px_8px_rgba(15,23,42,0.03)]">
-                    <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Refundable balance</p>
-                    <p class="mt-3 text-2xl font-extrabold text-[#145d4b]">₱{{ number_format($depositBalance,2) }}</p>
+                    <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Refundable Balance</p>
+                    @if($myDeposit)
+                        <p class="mt-3 text-2xl font-extrabold text-[#145d4b]">₱{{ number_format($myDeposit->balance(), 2) }}</p>
+                    @else
+                        <p class="mt-3 text-2xl font-extrabold text-slate-400">—</p>
+                    @endif
                 </div>
                 </div>
             </div>

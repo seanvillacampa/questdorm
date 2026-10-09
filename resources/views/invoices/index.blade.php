@@ -164,7 +164,6 @@
                     <tr class="border-b border-gray-100 text-xs text-gray-400 font-medium uppercase tracking-wide">
                         <th class="px-4 py-3 text-left">Statement #</th>
                         <th class="px-4 py-3 text-left">Room</th>
-                        <th class="px-4 py-3 text-left">Billing month</th>
                         <th class="px-4 py-3 text-left">Due date</th>
                         <th class="px-4 py-3 text-right">Room rent</th>
                         <th class="px-4 py-3 text-right">Electricity</th>
@@ -185,7 +184,6 @@
                                 </a>
                             </td>
                             <td class="px-4 py-3 font-semibold text-gray-900">{{ $inv->contract->room->room_number }}</td>
-                            <td class="px-4 py-3 text-gray-500">{{ now()->parse($inv->billing_month)->format('M Y') }}</td>
                             <td class="px-4 py-3 text-gray-500">{{ $inv->due_date->format('M d, Y') }}</td>
                             <td class="px-4 py-3 text-right text-gray-900">₱{{ number_format($inv->rent_amount,2) }}</td>
                             <td class="px-4 py-3 text-right text-gray-900">₱{{ number_format($inv->electricity_amount,2) }}</td>

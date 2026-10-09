@@ -2,11 +2,6 @@
 
     <x-page-header title="Audit Logs" badge="Owner only"
         subtitle="Insert-only record of who changed what">
-        <x-slot:actions>
-            <button class="px-3.5 py-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50">
-                Export
-            </button>
-        </x-slot:actions>
     </x-page-header>
 
     {{-- Filters --}}

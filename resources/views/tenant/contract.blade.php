@@ -19,9 +19,6 @@
                         <div><dt class="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Due day</dt><dd class="mt-1 text-slate-800">{{ $contract->due_day }}{{ match($contract->due_day%10){1=>'st',2=>'nd',3=>'rd',default=>'th'} }} of each month</dd></div>
                         <div><dt class="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Deposit</dt><dd class="mt-1 text-slate-800">₱{{ number_format($contract->deposit_required,2) }}</dd></div>
                     </dl>
-                    <button class="mt-5 w-full rounded-xl bg-[#145d4b] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#104f3f]">
-                        Download PDF
-                    </button>
                 </div>
 
                 <div class="rounded-2xl border border-slate-200 bg-white p-8 shadow-[0_2px_8px_rgba(15,23,42,0.03)]">
