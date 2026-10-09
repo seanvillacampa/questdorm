@@ -42,14 +42,14 @@
                     <svg class="size-5 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                     <div>
                         <p class="font-semibold">Outstanding balance from {{ \Carbon\Carbon::parse($invoice->billing_month)->format('F Y') }}</p>
-                        <p class="mt-1">You have an unpaid balance from a previous month. Please settle this immediately to avoid additional penalties.</p>
+                        <p class="mt-1">You have an unpaid balance from a previous month. Please settle this as soon as possible.</p>
                     </div>
                 </div>
             @endif
 
             @if(in_array($myStatus, ['overdue']))
                 <div class="flex items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-                    <span>Your payment is <strong>{{ $myStatus }}</strong>. Please settle immediately to avoid further charges.</span>
+                    <span>Your payment is <strong>{{ $myStatus }}</strong>. Please settle as soon as possible.</span>
                     <x-status-badge :status="$myStatus" />
                 </div>
             @endif

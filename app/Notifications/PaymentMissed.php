@@ -35,7 +35,7 @@ class PaymentMissed extends Notification
             ->greeting("Hello, {(\$notifiable->name ?? 'there')}!")
             ->line("Your payment for **Room {$room}** ({$month}) is now **{$daysLate} day(s) late**.")
             ->line("**Your outstanding share: ₱{$amount}**")
-            ->line('Please settle your payment as soon as possible to avoid further action.')
+            ->line('Please settle your payment as soon as possible.')
             ->action('Pay Now with PayMongo', url('/login'))
             ->line('Accepts GCash, Maya, Card, and QR Ph.')
             ->salutation('— Quest Building');

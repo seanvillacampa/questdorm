@@ -56,7 +56,6 @@ class InvoiceCreated extends Notification
             ->line("**Due date: {$dueDate}**" . ($daysLeft > 0 ? " — {$daysLeft} day(s) from now" : ""))
             ->action('View My Bill & Pay Online', url('/login'))
             ->line('You can pay using **GCash, Maya, Card, or QR Ph** through PayMongo.')
-            ->line('Please pay before the due date to avoid late charges.')
             ->salutation('— Quest Building');
     }
 }

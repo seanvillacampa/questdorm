@@ -36,7 +36,6 @@ class PaymentOverdue extends Notification
             ->line("**Amount owed: ₱{$amount}**")
             ->line('The grace period has ended. Please contact the management office immediately or settle online.')
             ->action('Pay Now with PayMongo', url('/login'))
-            ->line('Failure to pay may result in penalties or contract review.')
             ->salutation('— Quest Building');
     }
 }
