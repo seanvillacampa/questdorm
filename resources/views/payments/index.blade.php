@@ -1,11 +1,47 @@
 <x-layouts.app title="Payments — Quest Building">
 
+    <x-breadcrumbs :items="[
+        ['label' => 'Dashboard', 'url' => route('dashboard')],
+        ['label' => 'Payments']
+    ]" />
+
     <x-page-header title="Payments" badge="Owner + Employee"
         subtitle="All recorded payments — online and cash" />
 
     @if(session('success'))
         <div class="mb-4 px-4 py-2 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">{{ session('success') }}</div>
     @endif
+
+    {{-- Search and Filter --}}
+    <form method="GET" class="mb-4 flex gap-3">
+        <div class="flex-1">
+            <input type="text" 
+                   name="search" 
+                   value="{{ $search ?? '' }}"
+                   placeholder="Search by invoice #, tenant name, or reference..."
+                   class="w-full px-3.5 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <select name="method" 
+                class="px-3.5 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-blue-500">
+            <option value="all" {{ ($method ?? 'all') === 'all' ? 'selected' : '' }}>All methods</option>
+            <option value="cash" {{ ($method ?? '') === 'cash' ? 'selected' : '' }}>Cash</option>
+            <option value="bank_transfer" {{ ($method ?? '') === 'bank_transfer' ? 'selected' : '' }}>Bank Transfer</option>
+            <option value="gcash" {{ ($method ?? '') === 'gcash' ? 'selected' : '' }}>GCash</option>
+            <option value="maya" {{ ($method ?? '') === 'maya' ? 'selected' : '' }}>Maya</option>
+            <option value="card" {{ ($method ?? '') === 'card' ? 'selected' : '' }}>Card</option>
+            <option value="qr_ph" {{ ($method ?? '') === 'qr_ph' ? 'selected' : '' }}>QR Ph</option>
+        </select>
+        <button type="submit" 
+                class="px-4 py-2 text-sm font-medium bg-[#145d4b] text-white rounded-lg hover:bg-[#104f3f] transition-colors">
+            Filter
+        </button>
+        @if($search || ($method && $method !== 'all'))
+            <a href="{{ route('payments.index') }}" 
+               class="px-4 py-2 text-sm font-medium border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                Clear
+            </a>
+        @endif
+    </form>
 
     <div class="bg-white rounded-xl border border-gray-200 shadow-xs overflow-hidden">
         <table class="w-full text-sm">
@@ -54,9 +90,6 @@
         </div>
     </div>
 
-    <p class="mt-4 text-xs text-gray-400 text-center">
-        To record a cash payment, open the invoice and use the "Record cash payment" panel on the right.
-        <a href="{{ route('invoices.index') }}" class="text-blue-600 hover:underline ml-1">Go to Invoices →</a>
-    </p>
+
 
 </x-layouts.app>

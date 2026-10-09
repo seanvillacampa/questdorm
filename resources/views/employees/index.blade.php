@@ -1,5 +1,10 @@
 <x-layouts.app title="Employees & Roles — Quest Building">
 
+    <x-breadcrumbs :items="[
+        ['label' => 'Dashboard', 'url' => route('dashboard')],
+        ['label' => 'Employees & Roles']
+    ]" />
+
     <x-page-header title="Employees &amp; Roles" badge="Owner only"
         subtitle="Manage staff accounts and what each role can do">
         <x-slot:actions>

@@ -1,4 +1,9 @@
 <x-layouts.tenant title="My Bill — Quest Building">
+    <x-breadcrumbs :items="[
+        ['label' => 'Dashboard', 'url' => route('tenant.dashboard')],
+        ['label' => 'My Bill']
+    ]" />
+    
     <div class="space-y-6">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>

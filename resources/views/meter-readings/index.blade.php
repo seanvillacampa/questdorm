@@ -1,5 +1,10 @@
 <x-layouts.app title="Meter Readings — Quest Building">
 
+    <x-breadcrumbs :items="[
+        ['label' => 'Dashboard', 'url' => route('dashboard')],
+        ['label' => 'Meter Readings']
+    ]" />
+
     <x-page-header title="Meter Readings" badge="Owner + Employee"
         subtitle="Enter monthly kWh reading per room">
     </x-page-header>

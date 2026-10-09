@@ -157,22 +157,25 @@ class InvoiceController extends Controller
         $search    = $request->get('search', '');
 
         $query = Invoice::with(['contract.room', 'contract.tenants.user', 'tenantPayments.tenant.user'])
-            ->where('billing_month', $month)
             ->where('status', '!=', 'void')
             ->orderBy('invoice_number');
 
-        // Status filter
-        if ($status && $status !== 'all') {
-            $query->where('status', $status);
-        }
-
-        // Search by room number or invoice number
+        // If search is active, search across ALL months, not just the selected month
         if ($search) {
             $query->where(fn ($q) =>
                 $q->where('invoice_number', 'like', "%{$search}%")
                   ->orWhereHas('contract.room', fn ($r) =>
                       $r->where('room_number', 'like', "%{$search}%"))
             );
+            // Don't filter by month when searching
+        } else {
+            // Only filter by month when NOT searching
+            $query->where('billing_month', $month);
+        }
+
+        // Status filter
+        if ($status && $status !== 'all') {
+            $query->where('status', $status);
         }
 
         $invoices = $query->paginate(10)->withQueryString();

@@ -1,5 +1,10 @@
 <x-layouts.app title="Tenants — Quest Building">
 
+    <x-breadcrumbs :items="[
+        ['label' => 'Dashboard', 'url' => route('dashboard')],
+        ['label' => 'Tenants']
+    ]" />
+
     <x-page-header title="Tenants" badge="Owner + Employee"
         subtitle="{{ $tenants->total() }} active tenants">
         <x-slot:actions>

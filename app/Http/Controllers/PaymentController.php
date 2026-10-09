@@ -16,17 +16,38 @@ class PaymentController extends Controller
 {
     public function index(Request $request)
     {
-        $payments = Payment::with([
+        $search = $request->get('search');
+        $method = $request->get('method');
+        
+        $query = Payment::with([
                 'invoice.contract.room',
                 'tenantPayment.tenant.user',
                 'recordedByUser',
             ])
             ->orderByDesc('received_at')
-            ->orderByDesc('created_at')
-            ->paginate(15)
-            ->withQueryString();
+            ->orderByDesc('created_at');
+        
+        // Search by invoice number, tenant name, or reference
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->whereHas('invoice', function($q2) use ($search) {
+                    $q2->where('invoice_number', 'like', "%{$search}%");
+                })
+                ->orWhereHas('tenantPayment.tenant.user', function($q2) use ($search) {
+                    $q2->where('name', 'like', "%{$search}%");
+                })
+                ->orWhere('reference', 'like', "%{$search}%");
+            });
+        }
+        
+        // Filter by payment method
+        if ($method && $method !== 'all') {
+            $query->where('method', $method);
+        }
+        
+        $payments = $query->paginate(15)->withQueryString();
 
-        return view('payments.index', compact('payments'));
+        return view('payments.index', compact('payments', 'search', 'method'));
     }
 
     public function store(Request $request)
