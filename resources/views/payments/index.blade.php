@@ -1,10 +1,5 @@
 <x-layouts.app title="Payments — Quest Building">
 
-    <x-breadcrumbs :items="[
-        ['label' => 'Dashboard', 'url' => route('dashboard')],
-        ['label' => 'Payments']
-    ]" />
-
     <x-page-header title="Payments" badge="Owner + Employee"
         subtitle="All recorded payments — online and cash" />
 

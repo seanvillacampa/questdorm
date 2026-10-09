@@ -1,10 +1,5 @@
 <x-layouts.app title="Contracts — Quest Building">
 
-    <x-breadcrumbs :items="[
-        ['label' => 'Dashboard', 'url' => route('dashboard')],
-        ['label' => 'Contracts']
-    ]" />
-
     <x-page-header title="Contracts" badge="Owner + Employee"
         subtitle="Contract letters, rent and deposit terms">
         <x-slot:actions>

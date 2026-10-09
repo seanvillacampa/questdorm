@@ -1,10 +1,5 @@
 <x-layouts.app title="Rates & Settings — Quest Building">
 
-    <x-breadcrumbs :items="[
-        ['label' => 'Dashboard', 'url' => route('dashboard')],
-        ['label' => 'Settings']
-    ]" />
-
     <x-page-header title="Rates &amp; Settings" badge="Owner only"
         subtitle="Electricity rate, billing rules and PayMongo">
         <x-slot:actions>

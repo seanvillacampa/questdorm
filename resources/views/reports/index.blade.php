@@ -1,10 +1,5 @@
 <x-layouts.app title="Reports — Quest Building">
 
-    <x-breadcrumbs :items="[
-        ['label' => 'Dashboard', 'url' => route('dashboard')],
-        ['label' => 'Reports']
-    ]" />
-
     {{-- Header with Toggle --}}
     <div class="mb-6">
         <div class="flex items-center justify-between mb-4">

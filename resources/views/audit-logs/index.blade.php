@@ -1,10 +1,5 @@
 <x-layouts.app title="Audit Logs — Quest Building">
 
-    <x-breadcrumbs :items="[
-        ['label' => 'Dashboard', 'url' => route('dashboard')],
-        ['label' => 'Audit Logs']
-    ]" />
-
     <x-page-header title="Audit Logs" badge="Owner only"
         subtitle="Insert-only record of who changed what">
         <x-slot:actions>

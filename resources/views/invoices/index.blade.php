@@ -1,10 +1,5 @@
 <x-layouts.app title="Billing Statements — Quest Building">
 
-    <x-breadcrumbs :items="[
-        ['label' => 'Dashboard', 'url' => route('dashboard')],
-        ['label' => 'Billing Statements']
-    ]" />
-
     <x-page-header title="Billing Statements" badge="Owner + Employee"
         subtitle="Monthly rent and electricity billing for all rooms">
         <x-slot:actions>

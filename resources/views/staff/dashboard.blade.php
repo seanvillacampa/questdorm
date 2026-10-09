@@ -1,8 +1,4 @@
 <x-layouts.app :title="'Dashboard — Quest Building'">
-    <x-breadcrumbs :items="[
-        ['label' => 'Dashboard']
-    ]" />
-    
     <style>
         /* Custom scrollbar for horizontal room scroll */
         .overflow-x-auto::-webkit-scrollbar {

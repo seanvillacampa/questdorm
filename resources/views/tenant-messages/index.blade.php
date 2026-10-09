@@ -1,10 +1,5 @@
 <x-layouts.app title="Tenant Concerns — Quest Building">
 
-    <x-breadcrumbs :items="[
-        ['label' => 'Dashboard', 'url' => route('dashboard')],
-        ['label' => $showResolved ? 'Resolved Concerns' : 'Tenant Concerns']
-    ]" />
-
     <x-page-header 
         :title="$showResolved ? 'Resolved Concerns' : 'Tenant Concerns'" 
         badge="Owner + Employee"

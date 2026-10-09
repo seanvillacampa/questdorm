@@ -1,8 +1,4 @@
 <x-layouts.tenant :title="'Dashboard — Quest Building'">
-    <x-breadcrumbs :items="[
-        ['label' => 'Dashboard']
-    ]" />
-    
     <div class="space-y-6">
         <div class="flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_2px_8px_rgba(15,23,42,0.03)] sm:flex-row sm:items-end sm:justify-between">
             <div>

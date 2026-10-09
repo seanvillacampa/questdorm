@@ -1,9 +1,4 @@
 <x-layouts.tenant title="Payment History — Quest Building">
-    <x-breadcrumbs :items="[
-        ['label' => 'Dashboard', 'url' => route('tenant.dashboard')],
-        ['label' => 'Payment History']
-    ]" />
-    
     <div class="space-y-6">
         <div>
             <p class="text-sm font-semibold text-[#18705a]">Payments</p>
