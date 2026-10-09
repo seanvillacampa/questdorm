@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Mail\BrevoTransport;
 use App\Models\DetergentInventory;
 use App\Models\LaundryOrder;
 use App\Policies\DetergentInventoryPolicy;
@@ -9,6 +10,7 @@ use App\Policies\LaundryOrderPolicy;
 use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
@@ -20,6 +22,16 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         //
+    }
+    
+    /**
+     * Configure custom mail transports.
+     */
+    protected function configureMailTransport(): void
+    {
+        Mail::extend('brevo', function () {
+            return new BrevoTransport(config('services.brevo.key'));
+        });
     }
 
     /**
@@ -34,6 +46,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        /*
+         * Register custom mail transport
+         */
+        $this->configureMailTransport();
+
         /*
          * Register policies
          */

@@ -1,0 +1,135 @@
+==============================================================================
+                    FINAL SQL FILE - IMPORT TO CLEVER CLOUD
+==============================================================================
+
+✅ USE THIS FILE:
+-----------------
+File: clever_cloud_final.sql
+Size: 1.15 MB
+Location: C:\Users\Sean\Downloads\questdorm\clever_cloud_final.sql
+
+✨ NEW: Randomized Payment Statuses
+- Paid, Pending, Late, Overdue distributed realistically across all months
+- Current month: More pending/overdue (realistic)
+- Recent months: Mix of statuses
+- Older months: Mostly paid with some outstanding
+
+==============================================================================
+                        WHAT'S INCLUDED
+==============================================================================
+
+✓ 28 Rooms (11 on floor 1)
+✓ 65+ Users (owner, staff, tenants)
+✓ 13 Months of Data (Oct 2025 - Oct 2026)
+✓ ~364 Invoices with REALISTIC PAYMENT STATUSES:
+  
+  CURRENT MONTH (Oct 2026):
+  - 25% Paid
+  - 35% Pending
+  - 20% Late
+  - 20% Overdue
+  
+  LAST MONTH (Sep 2026):
+  - 45% Paid
+  - 15% Partial
+  - 15% Pending
+  - 13% Late
+  - 12% Overdue
+  
+  2-3 MONTHS AGO:
+  - 60% Paid
+  - 15% Partial
+  - 10% Late
+  - 10% Pending
+  - 5% Overdue
+  
+  4+ MONTHS AGO:
+  - 75% Paid
+  - 13% Partial
+  - 7% Late
+  - 3% Pending
+  - 2% Overdue
+
+✓ ~2,500 Laundry Orders
+✓ 5 Laundry Services
+✓ Complete Detergent Inventory
+✓ All relationships properly linked
+
+==============================================================================
+                        IMPORT STEPS
+==============================================================================
+
+1. Go to Clever Cloud Console
+   → https://console.clever-cloud.com
+
+2. Open Your MySQL Add-on
+   → Click your MySQL database
+
+3. Click "phpMyAdmin"
+   → Opens phpMyAdmin interface
+
+4. Select Your Database
+   → Click database name in left sidebar
+
+5. Click "Import" Tab
+   → At the top navigation
+
+6. Click "Choose File"
+   → Select: clever_cloud_final.sql
+
+7. Click "Go" at Bottom
+   → Wait 1-2 minutes
+
+8. Success!
+   → "Import successfully finished"
+
+==============================================================================
+                        TEST LOGIN
+==============================================================================
+
+URL: https://your-app.cleverapps.io/login
+
+Owner Account:
+Email: owner@dorm.test
+Password: password
+
+Staff Account:
+Email: staff@dorm.test
+Password: password
+
+==============================================================================
+                        VERIFY AFTER IMPORT
+==============================================================================
+
+Dashboard Should Show:
+✓ Total rooms: 28
+✓ Statistics with data
+✓ Revenue charts
+
+Invoices Page Should Show:
+✓ Mix of statuses: Paid, Pending, Late, Overdue
+✓ Different colors for each status
+✓ Recent invoices are mostly unpaid/pending
+✓ Older invoices are mostly paid
+
+Laundry Orders:
+✓ ~2,500 orders visible
+✓ Can create new order
+✓ Tenant autocomplete works
+
+==============================================================================
+                        PREVIOUS FILES (DON'T USE)
+==============================================================================
+
+❌ clever_cloud_seed.sql (encoding issues)
+❌ clever_cloud_seed_clean.sql (old payment distribution)
+✅ clever_cloud_final.sql (THIS ONE - randomized payments)
+
+==============================================================================
+
+Ready to import! 🚀
+
+This is the final, production-ready SQL file with realistic payment
+distributions that will make your dashboard and reports look authentic.
+
+Good luck!

@@ -1,0 +1,56 @@
+========================================
+QUICK IMPORT GUIDE - CLEVER CLOUD
+========================================
+
+THE CORRECT FILE TO IMPORT:
+---------------------------
+File Name: clever_cloud_seed.sql
+Location: C:\Users\Sean\Downloads\questdorm\clever_cloud_seed.sql
+Size: 2.2 MB
+
+DO NOT IMPORT THESE FILES:
+--------------------------
+❌ IMPORT_TO_CLEVER_CLOUD.md (documentation)
+❌ CLEVER_CLOUD_SEEDING.md (documentation)
+❌ QUICK_IMPORT_GUIDE.txt (this file)
+
+IMPORT STEPS:
+-------------
+1. Go to Clever Cloud Console
+2. Click your MySQL add-on
+3. Click "phpMyAdmin" button
+4. Select your database in left sidebar
+5. Click "Import" tab at the top
+6. Click "Choose File"
+7. Navigate to: C:\Users\Sean\Downloads\questdorm\
+8. Select: clever_cloud_seed.sql (NOT the .md files!)
+9. Click "Go" button at the bottom
+10. Wait 1-2 minutes
+11. You should see "Import has been successfully finished"
+
+VERIFY YOU SELECTED THE RIGHT FILE:
+-----------------------------------
+The file should:
+✓ End with .sql (not .md or .txt)
+✓ Be about 2.2 MB in size
+✓ Have "clever_cloud_seed" in the name
+
+TEST AFTER IMPORT:
+------------------
+Login URL: https://your-app.cleverapps.io/login
+Email: owner@dorm.test
+Password: password
+
+If you see the dashboard with data, SUCCESS! ✅
+
+TROUBLESHOOTING:
+----------------
+Error: "You have an error in your SQL syntax"
+→ You imported the wrong file (probably a .md file)
+→ Solution: Import clever_cloud_seed.sql instead
+
+Error: "Table already exists"
+→ Database already has tables
+→ Solution: Drop all tables first, then import
+
+========================================

@@ -1,0 +1,8 @@
+{
+  "deploy": {
+    "goal": "php"
+  },
+  "hooks": {
+    "postDeploy": ""
+  }
+}

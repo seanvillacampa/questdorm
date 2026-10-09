@@ -3,13 +3,20 @@
 namespace Database\Seeders;
 
 use App\Models\Contract;
-use App\Models\DepositEntry;
+use App\Models\Customer;
+use App\Models\DetergentInventory;
+use App\Models\DetergentLog;
 use App\Models\Invoice;
+use App\Models\LaundryOrder;
 use App\Models\MeterReading;
+use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Models\Room;
+use App\Models\Service;
+use App\Models\ServicePrice;
 use App\Models\Setting;
 use App\Models\Tenant;
+use App\Models\TenantDeposit;
 use App\Models\TenantPayment;
 use App\Models\User;
 use Carbon\Carbon;
@@ -77,8 +84,10 @@ class DatabaseSeeder extends Seeder
         // ── 1. Full wipe ─────────────────────────────────────────────────
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
         foreach ([
+            'order_items','laundry_orders','customers','detergent_logs','detergent_inventory',
+            'service_prices','services',
             'tenant_payments','payments','invoices','meter_readings',
-            'deposit_entries','contract_tenants','contracts','tenants',
+            'tenant_deposits','contract_tenants','contracts','tenants',
             'rooms','settings','audit_logs','users',
             'model_has_roles','model_has_permissions',
         ] as $t) {
@@ -122,10 +131,10 @@ class DatabaseSeeder extends Seeder
         Setting::updateOrCreateSimple('overdue_grace_days', 3);
 
         // ── 5. Room definitions ───────────────────────────────────────────
-        // 28 rooms: 4 floors × 7 rooms each
+        // 28 rooms: Floor 1 (11 rooms), Floor 2-4 (17 rooms total)
         // is_airconditioned → higher rent; capacity 1–4; due_day varies
         $roomDefs = [
-            // [number, floor, capacity, is_ac, rate,  meter,       due_day]
+            // Floor 1: 11 rooms (101-111)
             ['101', 1, 2, false, 7000,  'MTR-1001', 5],
             ['102', 1, 4, true,  12000, 'MTR-1002', 8],
             ['103', 1, 3, false, 8000,  'MTR-1003', 10],
@@ -133,35 +142,41 @@ class DatabaseSeeder extends Seeder
             ['105', 1, 4, false, 8500,  'MTR-1005', 15],
             ['106', 1, 2, true,  11000, 'MTR-1006', 5],
             ['107', 1, 3, false, 7500,  'MTR-1007', 20],
-            ['201', 2, 4, true,  13000, 'MTR-1008', 5],
-            ['202', 2, 2, false, 7000,  'MTR-1009', 10],
-            ['203', 2, 3, true,  11500, 'MTR-1010', 5],
-            ['204', 2, 4, false, 9000,  'MTR-1011', 18],
-            ['205', 2, 1, true,  10000, 'MTR-1012', 5],
-            ['206', 2, 2, false, 7500,  'MTR-1013', 12],
-            ['207', 2, 3, true,  12000, 'MTR-1014', 5],
-            ['301', 3, 4, false, 9500,  'MTR-1015', 5],
-            ['302', 3, 2, true,  11000, 'MTR-1016', 10],
-            ['303', 3, 3, false, 8000,  'MTR-1017', 5],
-            ['304', 3, 4, true,  13500, 'MTR-1018', 15],
-            ['305', 3, 1, false, 6500,  'MTR-1019', 5],
-            ['306', 3, 2, true,  10500, 'MTR-1020', 20],
-            ['307', 3, 4, false, 9000,  'MTR-1021', 5],
-            ['401', 4, 3, true,  12500, 'MTR-1022', 5],
-            ['402', 4, 4, false, 10000, 'MTR-1023', 8],
-            ['403', 4, 2, true,  11500, 'MTR-1024', 5],
-            ['404', 4, 4, true,  14000, 'MTR-1025', 12],
-            ['405', 4, 1, false, 7000,  'MTR-1026', 5],
-            ['406', 4, 2, true,  10000, 'MTR-1027', 5],
-            ['407', 4, 3, false, 8500,  'MTR-1028', 18],
+            ['108', 1, 2, false, 7200,  'MTR-1008', 5],
+            ['109', 1, 4, true,  12500, 'MTR-1009', 10],
+            ['110', 1, 3, false, 8200,  'MTR-1010', 5],
+            ['111', 1, 2, true,  10500, 'MTR-1011', 12],
+            
+            // Floor 2: 6 rooms (201-206)
+            ['201', 2, 4, true,  13000, 'MTR-1012', 5],
+            ['202', 2, 2, false, 7000,  'MTR-1013', 10],
+            ['203', 2, 3, true,  11500, 'MTR-1014', 5],
+            ['204', 2, 4, false, 9000,  'MTR-1015', 18],
+            ['205', 2, 1, true,  10000, 'MTR-1016', 5],
+            ['206', 2, 3, false, 8000,  'MTR-1017', 15],
+            
+            // Floor 3: 6 rooms (301-306)
+            ['301', 3, 4, false, 9500,  'MTR-1018', 5],
+            ['302', 3, 2, true,  11000, 'MTR-1019', 10],
+            ['303', 3, 3, false, 8000,  'MTR-1020', 5],
+            ['304', 3, 4, true,  13500, 'MTR-1021', 15],
+            ['305', 3, 1, false, 6500,  'MTR-1022', 5],
+            ['306', 3, 2, true,  10500, 'MTR-1023', 20],
+            
+            // Floor 4: 5 rooms (401-405)
+            ['401', 4, 3, true,  12500, 'MTR-1024', 5],
+            ['402', 4, 4, false, 10000, 'MTR-1025', 8],
+            ['403', 4, 2, true,  11500, 'MTR-1026', 5],
+            ['404', 4, 4, true,  14000, 'MTR-1027', 12],
+            ['405', 4, 3, false, 8500,  'MTR-1028', 5],
         ];
 
-        // Months: Jan 2025 → Sep 2026 = 21 months
+        // Months: Oct 2025 → Oct 2026 = 13 months
         $startYear  = 2025;
-        $startMonth = 1;
+        $startMonth = 10;
         $endYear    = 2026;
-        $endMonth   = 9; // current month
-        $contractStart = Carbon::create(2025, 1, 1);
+        $endMonth   = 10; // current month
+        $contractStart = Carbon::create(2025, 10, 1);
 
         // kWh baseline per room (realistic starting meter readings)
         $kwhBase = [800,1200,950,600,1400,880,1050,1600,720,1300,
@@ -169,6 +184,8 @@ class DatabaseSeeder extends Seeder
                     1350,1180,1450,1050,1700,620,920,1280];
 
         $nameIdx = 0;
+
+        $allTenantIds = []; // Track all tenant IDs for laundry orders
 
         foreach ($roomDefs as $ri => [$roomNo, $floor, $cap, $isAC, $rate, $meterNo, $dueDay]) {
 
@@ -191,6 +208,9 @@ class DatabaseSeeder extends Seeder
                 $user      = $this->makeUser($fn, $ln, 'tenant');
                 $tenantIds[] = Tenant::create(['user_id' => $user->id])->id;
             }
+            
+            // Store tenant IDs for this room
+            $allTenantIds[$ri] = $tenantIds;
 
             // ── Contract ──────────────────────────────────────────────────
             $contract = Contract::create([
@@ -198,8 +218,6 @@ class DatabaseSeeder extends Seeder
                 'start_date'        => $contractStart,
                 'end_date'          => null,
                 'due_day'           => $dueDay,
-                'deposit_required'  => $rate,
-                'deposit_collected' => $rate,
                 'status'            => 'active',
                 'is_active'         => true,
                 'created_by'        => $owner->id,
@@ -211,15 +229,18 @@ class DatabaseSeeder extends Seeder
             }
             $contract->tenants()->attach($pivotData);
 
-            // Deposit entry
-            DepositEntry::create([
-                'contract_id' => $contract->id,
-                'type'        => 'collected',
-                'amount'      => $rate,
-                'date'        => $contractStart->toDateString(),
-                'reason'      => 'Security deposit collected at move-in',
-                'recorded_by' => $staff->id,
-            ]);
+            // Create tenant deposits for each tenant
+            foreach ($tenantIds as $tid) {
+                TenantDeposit::create([
+                    'contract_id'     => $contract->id,
+                    'tenant_id'       => $tid,
+                    'amount_required' => $rate,
+                    'amount_paid'     => $rate,
+                    'amount_deducted' => 0,
+                    'amount_refunded' => 0,
+                    'notes'           => 'Security deposit collected at move-in',
+                ]);
+            }
 
             // ── Month-by-month data ───────────────────────────────────────
             $prevKwh  = (float)$kwhBase[$ri];
@@ -408,13 +429,290 @@ class DatabaseSeeder extends Seeder
                 if ($curMonth > 12) { $curMonth = 1; $curYear++; }
             }
         }
+
+        // ── 6. Laundry Services ───────────────────────────────────────────
+        $this->seedLaundryServices($owner);
+
+        // ── 7. Laundry Orders ─────────────────────────────────────────────
+        $this->seedLaundryOrders($staff, $staff2, $allTenantIds);
+    }
+
+    // ── Laundry Seeding Methods ──────────────────────────────────────────
+
+    private function seedLaundryServices(User $owner): void
+    {
+        // Define laundry services
+        $services = [
+            ['code' => 'WDF', 'name' => 'Wash-Dry-Fold',      'weight_limit_kg' => 8.0],
+            ['code' => 'WD',  'name' => 'Wash-Dry',           'weight_limit_kg' => 8.0],
+            ['code' => 'DRY', 'name' => 'Dry Only',           'weight_limit_kg' => 8.0],
+            ['code' => 'WO',  'name' => 'Wash Only',          'weight_limit_kg' => 8.0],
+            ['code' => 'COM', 'name' => 'Comforter/Blanket',  'weight_limit_kg' => 5.0],
+        ];
+
+        // Pricing per customer type (using the enum values from migration)
+        $prices = [
+            'WDF' => ['tenant' => 70, 'student' => 75, 'non_student' => 80],
+            'WD'  => ['tenant' => 60, 'student' => 65, 'non_student' => 70],
+            'DRY' => ['tenant' => 40, 'student' => 45, 'non_student' => 50],
+            'WO'  => ['tenant' => 35, 'student' => 40, 'non_student' => 45],
+            'COM' => ['tenant' => 100, 'student' => 110, 'non_student' => 120],
+        ];
+
+        foreach ($services as $serviceData) {
+            $service = Service::create([
+                'code'            => $serviceData['code'],
+                'name'            => $serviceData['name'],
+                'weight_limit_kg' => $serviceData['weight_limit_kg'],
+                'is_active'       => true,
+            ]);
+
+            foreach ($prices[$serviceData['code']] as $type => $price) {
+                ServicePrice::create([
+                    'service_id'    => $service->id,
+                    'customer_type' => $type,
+                    'price'         => $price,
+                ]);
+            }
+        }
+
+        // Initialize detergent inventory with 50 liters (50,000 ml)
+        $inventory = DetergentInventory::create(['stock_ml' => 50000]);
+        
+        // Log initial stock
+        DetergentLog::create([
+            'type'            => 'restock',
+            'amount_ml'       => 50000,
+            'stock_before_ml' => 0,
+            'stock_after_ml'  => 50000,
+            'user_id'         => $owner->id,
+            'notes'           => 'Initial inventory stock',
+        ]);
+    }
+
+    private function seedLaundryOrders(User $staff, User $staff2, array $allTenantIds): void
+    {
+        $services = Service::with('prices')->get()->keyBy('code');
+        $inventory = DetergentInventory::current();
+        
+        // Get all tenants with their rooms
+        $tenantsWithRooms = [];
+        foreach ($allTenantIds as $roomIdx => $tenantIds) {
+            $roomNo = $this->getRoomNumberByIndex($roomIdx);
+            foreach ($tenantIds as $tid) {
+                $tenant = Tenant::with('user')->find($tid);
+                if ($tenant && $tenant->user) {
+                    $tenantsWithRooms[] = [
+                        'id'         => $tid,
+                        'name'       => $tenant->user->name,
+                        'room_no'    => $roomNo,
+                        'contact_no' => $tenant->user->phone,
+                    ];
+                }
+            }
+        }
+
+        // Generate laundry orders from Oct 2025 to Oct 2026
+        $startDate = Carbon::create(2025, 10, 1);
+        $endDate   = Carbon::create(2026, 10, 9); // Current date
+        $currentDate = $startDate->copy();
+
+        $orderCount = 0;
+        $customers = []; // Track walk-in customers
+
+        while ($currentDate <= $endDate) {
+            // Random 2-8 orders per day
+            $ordersToday = rand(2, 8);
+
+            for ($i = 0; $i < $ordersToday; $i++) {
+                $orderCount++;
+                
+                // 60% tenant, 30% student, 10% non-student
+                $isTenant = rand(1, 100) <= 60;
+                
+                if ($isTenant && !empty($tenantsWithRooms)) {
+                    // Tenant customer
+                    $tenantData = $tenantsWithRooms[array_rand($tenantsWithRooms)];
+                    
+                    $customer = Customer::firstOrCreate(
+                        ['name' => $tenantData['name'], 'type' => 'tenant'],
+                        [
+                            'room_no'    => $tenantData['room_no'],
+                            'contact_no' => $tenantData['contact_no'],
+                        ]
+                    );
+                } else {
+                    // Student or non-student customer
+                    $type = rand(1, 100) <= 75 ? 'student' : 'non_student';
+                    
+                    // Reuse or create customer
+                    $customerKey = $type . '_' . rand(1, 30);
+                    if (!isset($customers[$customerKey])) {
+                        [$fn, $ln] = $this->makeName(rand(0, 1000));
+                        $customers[$customerKey] = Customer::create([
+                            'name'       => "$fn $ln",
+                            'type'       => $type,
+                            'room_no'    => null,
+                            'contact_no' => rand(0, 1) ? '09' . rand(10,99) . ' ' . rand(100,999) . ' ' . rand(1000,9999) : null,
+                        ]);
+                    }
+                    $customer = $customers[$customerKey];
+                }
+
+                // Create order
+                $order = LaundryOrder::create([
+                    'order_no'            => LaundryOrder::generateOrderNo($currentDate->toDateString()),
+                    'customer_id'         => $customer->id,
+                    'customer_type'       => $customer->type,
+                    'room_no'             => $customer->room_no,
+                    'date_received'       => $currentDate->toDateString(),
+                    'payment_method'      => $this->randomLaundryPaymentMethod($customer->type),
+                    'payment_status'      => $this->randomLaundryPaymentStatus($currentDate),
+                    'paid_before_service' => rand(0, 1),
+                    'remarks'             => rand(1, 100) <= 20 ? $this->randomLaundryRemark() : null,
+                    'recorded_by'         => rand(0, 1) ? $staff->id : $staff2->id,
+                ]);
+
+                // Add 1-3 service items
+                $itemCount = rand(1, 3);
+                $totalAmount = 0;
+                $totalWeight = 0;
+                $totalLoads = 0;
+                $totalLiquid = 0;
+
+                for ($j = 0; $j < $itemCount; $j++) {
+                    $serviceCode = $this->randomLaundryService();
+                    $service = $services[$serviceCode];
+                    $weight = $this->randomWeight($serviceCode);
+                    $unitPrice = (float) $service->priceFor($customer->type);
+                    $loads = max(1, (int) ceil($weight / $service->weight_limit_kg));
+                    $liquidMl = (int) ceil($weight / Service::LIQUID_KG_PER_UNIT) * Service::LIQUID_ML_PER_UNIT;
+
+                    OrderItem::create([
+                        'laundry_order_id' => $order->id,
+                        'service_id'       => $service->id,
+                        'weight_kg'        => $weight,
+                        'weight_limit_kg'  => $service->weight_limit_kg,
+                        'unit_price'       => $unitPrice,
+                        'loads'            => $loads,
+                        'liquid_ml'        => $liquidMl,
+                        'subtotal'         => $unitPrice * $loads,
+                    ]);
+
+                    $totalAmount += $unitPrice * $loads;
+                    $totalWeight += $weight;
+                    $totalLoads += $loads;
+                    $totalLiquid += $liquidMl;
+                }
+
+                // Update order totals
+                $order->update([
+                    'total_amount'    => $totalAmount,
+                    'total_weight_kg' => $totalWeight,
+                    'total_loads'     => $totalLoads,
+                    'total_liquid_ml' => $totalLiquid,
+                ]);
+
+                // Deduct detergent (if enough stock)
+                if ($inventory->hasEnough($totalLiquid)) {
+                    $inventory->deductStock($totalLiquid, $order, $order->recorder);
+                } else {
+                    // Restock if low (add 30 liters)
+                    $inventory->addStock(30000, $order->recorder, 'Auto-restock during seeding');
+                    $inventory->deductStock($totalLiquid, $order, $order->recorder);
+                }
+
+                // Occasionally add more restock entries
+                if (rand(1, 100) <= 5) {
+                    $inventory->addStock(rand(10000, 50000), rand(0, 1) ? $staff : $staff2, 'Regular restock');
+                }
+            }
+
+            $currentDate->addDay();
+        }
+    }
+
+    // ── Laundry Helper Methods ───────────────────────────────────────────
+
+    private function getRoomNumberByIndex(int $idx): string
+    {
+        $rooms = [
+            '101','102','103','104','105','106','107','108','109','110','111',
+            '201','202','203','204','205','206',
+            '301','302','303','304','305','306',
+            '401','402','403','404','405',
+        ];
+        return $rooms[$idx] ?? '101';
+    }
+
+    private function randomLaundryService(): string
+    {
+        $services = ['WDF', 'WD', 'DRY', 'WO', 'COM'];
+        $weights = [40, 30, 15, 10, 5]; // Weighted probability
+        
+        $rand = rand(1, 100);
+        $cumulative = 0;
+        
+        foreach ($weights as $i => $weight) {
+            $cumulative += $weight;
+            if ($rand <= $cumulative) {
+                return $services[$i];
+            }
+        }
+        
+        return 'WDF';
+    }
+
+    private function randomWeight(string $serviceCode): float
+    {
+        return match($serviceCode) {
+            'COM' => round(rand(30, 60) / 10, 1), // 3.0 - 6.0 kg for comforters
+            default => round(rand(15, 120) / 10, 1), // 1.5 - 12.0 kg for regular
+        };
+    }
+
+    private function randomLaundryPaymentMethod(string $customerType): string
+    {
+        $methods = ['cash', 'cash', 'cash', 'online']; // 75% cash, 25% online
+        return $methods[array_rand($methods)];
+    }
+
+    private function randomLaundryPaymentStatus(Carbon $date): string
+    {
+        // Past orders: 90% paid, 10% unpaid
+        // Recent orders (last week): 70% paid, 30% unpaid
+        $daysAgo = now()->diffInDays($date);
+        
+        if ($daysAgo > 7) {
+            return rand(1, 100) <= 90 ? 'paid' : 'unpaid';
+        }
+        
+        return rand(1, 100) <= 70 ? 'paid' : 'unpaid';
+    }
+
+    private function randomLaundryRemark(): string
+    {
+        $remarks = [
+            'Extra fabric softener',
+            'Separate whites',
+            'No bleach',
+            'Delicate cycle',
+            'Rush order',
+            'Fold neatly',
+            'Separate dark colors',
+            'Air dry only',
+            'Iron shirts',
+            'Stain on collar',
+        ];
+        
+        return $remarks[array_rand($remarks)];
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────
 
     /**
      * Determine payment scenario for a tenant in a given month.
-     * Past months: mostly paid. Current month: mix. Last 2 months: more unpaid.
+     * More realistic distribution: mix of paid, pending, late, overdue across all months.
      */
     private function paymentScenario(int $roomIdx, int $tenantIdx, int $year, int $month): string
     {
@@ -422,35 +720,49 @@ class DatabaseSeeder extends Seeder
         $monthDate  = Carbon::create($year, $month, 1);
         $monthsAgo  = $now->diffInMonths($monthDate);
 
-        // Current month (Sep 2026) — mix of statuses
+        // Current month (Oct 2026) — mostly pending/unpaid
         if ($monthsAgo === 0) {
-            $seed = ($roomIdx * 7 + $tenantIdx * 3) % 10;
+            $seed = ($roomIdx * 7 + $tenantIdx * 3) % 100;
             return match(true) {
-                $seed < 4 => 'paid',
-                $seed < 6 => 'pending',
-                $seed < 8 => 'late',
-                default   => 'overdue',
+                $seed < 25 => 'paid',       // 25% already paid
+                $seed < 60 => 'pending',    // 35% pending
+                $seed < 80 => 'late',       // 20% late
+                default   => 'overdue',     // 20% overdue
             };
         }
 
-        // Last 1-2 months — some unpaid
-        if ($monthsAgo <= 2) {
-            $seed = ($roomIdx * 5 + $tenantIdx * 11 + $month) % 10;
+        // Last month — mix of statuses
+        if ($monthsAgo === 1) {
+            $seed = ($roomIdx * 11 + $tenantIdx * 5 + $month) % 100;
             return match(true) {
-                $seed < 6 => 'paid',
-                $seed < 8 => 'partial',
-                $seed < 9 => 'late',
-                default   => 'overdue',
+                $seed < 45 => 'paid',       // 45% paid
+                $seed < 60 => 'partial',    // 15% partial
+                $seed < 75 => 'pending',    // 15% still pending
+                $seed < 88 => 'late',       // 13% late
+                default   => 'overdue',     // 12% overdue
             };
         }
 
-        // Older months — mostly paid, some partial
-        $seed = ($roomIdx * 3 + $tenantIdx * 7 + $month + $year) % 20;
+        // 2-3 months ago — more paid but still some pending
+        if ($monthsAgo <= 3) {
+            $seed = ($roomIdx * 5 + $tenantIdx * 11 + $month) % 100;
+            return match(true) {
+                $seed < 60 => 'paid',       // 60% paid
+                $seed < 75 => 'partial',    // 15% partial
+                $seed < 85 => 'late',       // 10% late
+                $seed < 95 => 'pending',    // 10% pending
+                default   => 'overdue',     // 5% overdue
+            };
+        }
+
+        // Older months (4+ months) — mostly paid, occasional issues
+        $seed = ($roomIdx * 3 + $tenantIdx * 7 + $month + $year) % 100;
         return match(true) {
-            $seed < 14 => 'paid',
-            $seed < 17 => 'partial',
-            $seed < 19 => 'paid',  // catch-up payment
-            default    => 'paid',
+            $seed < 75 => 'paid',       // 75% paid
+            $seed < 88 => 'partial',    // 13% partial
+            $seed < 95 => 'late',       // 7% late (eventually paid)
+            $seed < 98 => 'pending',    // 3% still pending
+            default   => 'overdue',     // 2% overdue
         };
     }
 
