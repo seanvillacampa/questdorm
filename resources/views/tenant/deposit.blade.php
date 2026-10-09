@@ -7,39 +7,9 @@
         </div>
 
         @if($contract)
-            {{-- Individual tenant's deposit contribution --}}
-            @if($myDeposit)
-                <div class="rounded-2xl border-2 border-[#18705a] bg-gradient-to-br from-[#18705a] to-[#145d4b] p-6 shadow-lg">
-                    <p class="text-xs font-bold uppercase tracking-[0.18em] text-white/70">Your Deposit Contribution</p>
-                    <div class="mt-4 grid gap-4 md:grid-cols-3">
-                        <div>
-                            <p class="text-xs text-white/80">Required</p>
-                            <p class="mt-1 text-2xl font-extrabold text-white">₱{{ number_format($myDeposit->amount_required, 2) }}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-white/80">Paid</p>
-                            <p class="mt-1 text-2xl font-extrabold text-emerald-300">₱{{ number_format($myDeposit->amount_paid, 2) }}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-white/80">Your Balance</p>
-                            <p class="mt-1 text-2xl font-extrabold text-white">₱{{ number_format($myDeposit->balance(), 2) }}</p>
-                        </div>
-                    </div>
-                    @if($myDeposit->amount_deducted > 0)
-                        <div class="mt-3 pt-3 border-t border-white/20">
-                            <p class="text-xs text-white/80">Deductions from your share: <span class="font-bold text-red-300">− ₱{{ number_format($myDeposit->amount_deducted, 2) }}</span></p>
-                        </div>
-                    @endif
-                </div>
-            @endif
-
             {{-- Deposit breakdown in simple card format --}}
             <div>
-                <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_2px_8px_rgba(15,23,42,0.03)]">
-                    <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Total Required (Room)</p>
-                    <p class="mt-3 text-2xl font-extrabold text-slate-900">₱{{ number_format($contract->room->deposit_required ?? 0, 2) }}</p>
-                </div>
+                <div class="grid gap-4 md:grid-cols-3">
                 <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_2px_8px_rgba(15,23,42,0.03)]">
                     <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Your Contribution</p>
                     @if($myDeposit)
