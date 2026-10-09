@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dorm Management System - Entity Relationship Diagram</title>
+    <style>
+        @page {
+            size: A3 landscape;
+            margin: 15mm;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: white;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #2563eb;
+            padding-bottom: 20px;
+        }
+        
+        .header h1 {
+            color: #1e40af;
+            margin: 0 0 10px 0;
+            font-size: 32px;
+        }
+        
+        .header p {
+            color: #64748b;
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        
+        .erd-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+        
+        .entities {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+            margin: 30px 0;
+        }
+        
+        .entity {
+            border: 2px solid #2563eb;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .entity-header {
+            background: #2563eb;
+            color: white;
+            padding: 12px;
+            font-weight: bold;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .entity-body {
+            padding: 0;
+        }
+        
+        .field {
+            padding: 8px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .field:last-child {
+            border-bottom: none;
+        }
+        
+        .field-icon {
+            margin-right: 8px;
+            font-weight: bold;
+            color: #2563eb;
+            font-size: 10px;
+        }
+        
+        .pk { color: #dc2626; }
+        .fk { color: #ea580c; }
+        
+        .field-name {
+            font-weight: 500;
+            color: #1e293b;
+        }
+        
+        .field-type {
+            color: #64748b;
+            font-size: 10px;
+            margin-left: auto;
+            font-style: italic;
+        }
+        
+        .relationships {
+            margin-top: 40px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+        
+        .relationships h2 {
+            color: #1e40af;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        
+        .rel-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        
+        .rel-item {
+            padding: 10px;
+            background: white;
+            border-left: 4px solid #2563eb;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+        
+        .rel-item strong {
+            color: #1e40af;
+        }
+        
+        .legend {
+            margin-top: 30px;
+            padding: 15px;
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 8px;
+        }
+        
+        .legend h3 {
+            margin: 0 0 10px 0;
+            color: #92400e;
+            font-size: 14px;
+        }
+        
+        .legend-items {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            font-size: 11px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .legend-icon {
+            margin-right: 8px;
+            font-weight: bold;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 11px;
+            color: #64748b;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Dormitory Management System</h1>
+        <p><strong>Entity Relationship Diagram (ERD)</strong></p>
+        <p>Database Schema Version 1.0 | Updated: September 2026</p>
+    </div>
+
+    <div class="entities">
+        <!-- Users -->
+        <div class="entity">
+            <div class="entity-header">USERS</div>
+            <div class="entity-body">
+                <div class="field">
+                    <span class="field-icon pk">PK</span>
+                    <span class="field-name">id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">name</span>
+                    <span class="field-type">varchar(255)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">email</span>
+                    <span class="field-type">varchar(255)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">phone</span>
+                    <span class="field-type">varchar(20)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">password</span>
+                    <span class="field-type">varchar(255)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">is_active</span>
+                    <span class="field-type">boolean</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">last_login_at</span>
+                    <span class="field-type">timestamp</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rooms -->
+        <div class="entity">
+            <div class="entity-header">ROOMS</div>
+            <div class="entity-body">
+                <div class="field">
+                    <span class="field-icon pk">PK</span>
+                    <span class="field-name">id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">room_number</span>
+                    <span class="field-type">varchar(10)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">floor</span>
+                    <span class="field-type">tinyint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">capacity</span>
+                    <span class="field-type">tinyint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">monthly_rate</span>
+                    <span class="field-type">decimal(10,2)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">is_airconditioned</span>
+                    <span class="field-type">boolean</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">meter_number</span>
+                    <span class="field-type">varchar(30)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">status</span>
+                    <span class="field-type">varchar(20)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tenants -->
+        <div class="entity">
+            <div class="entity-header">TENANTS</div>
+            <div class="entity-body">
+                <div class="field">
+                    <span class="field-icon pk">PK</span>
+                    <span class="field-name">id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon fk">FK</span>
+                    <span class="field-name">user_id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contracts -->
+        <div class="entity">
+            <div class="entity-header">CONTRACTS</div>
+            <div class="entity-body">
+                <div class="field">
+                    <span class="field-icon pk">PK</span>
+                    <span class="field-name">id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon fk">FK</span>
+                    <span class="field-name">room_id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">start_date</span>
+                    <span class="field-type">date</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">end_date</span>
+                    <span class="field-type">date</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">due_day</span>
+                    <span class="field-type">tinyint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">deposit_required</span>
+                    <span class="field-type">decimal(10,2)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">deposit_collected</span>
+                    <span class="field-type">decimal(10,2)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">status</span>
+                    <span class="field-type">varchar(20)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">is_active</span>
+                    <span class="field-type">boolean</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon fk">FK</span>
+                    <span class="field-name">created_by</span>
+                    <span class="field-type">bigint</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contract Tenants (Junction) -->
+        <div class="entity">
+            <div class="entity-header">CONTRACT_TENANTS</div>
+            <div class="entity-body">
+                <div class="field">
+                    <span class="field-icon pk">PK</span>
+                    <span class="field-name">id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon fk">FK</span>
+                    <span class="field-name">contract_id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon fk">FK</span>
+                    <span class="field-name">tenant_id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">joined_on</span>
+                    <span class="field-type">date</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">left_on</span>
+                    <span class="field-type">date</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Deposit Entries -->
+        <div class="entity">
+            <div class="entity-header">DEPOSIT_ENTRIES</div>
+            <div class="entity-body">
+                <div class="field">
+                    <span class="field-icon pk">PK</span>
+                    <span class="field-name">id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon fk">FK</span>
+                    <span class="field-name">contract_id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">type</span>
+                    <span class="field-type">varchar(20)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">amount</span>
+                    <span class="field-type">decimal(10,2)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">date</span>
+                    <span class="field-type">date</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">reason</span>
+                    <span class="field-type">varchar(255)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon fk">FK</span>
+                    <span class="field-name">recorded_by</span>
+                    <span class="field-type">bigint</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Invoices -->
+        <div class="entity">
+            <div class="entity-header">INVOICES</div>
+            <div class="entity-body">
+                <div class="field">
+                    <span class="field-icon pk">PK</span>
+                    <span class="field-name">id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">invoice_number</span>
+                    <span class="field-type">varchar(30)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon fk">FK</span>
+                    <span class="field-name">contract_id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">billing_month</span>
+                    <span class="field-type">varchar(7)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">due_date</span>
+                    <span class="field-type">date</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">tenant_count</span>
+                    <span class="field-type">tinyint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">rent_amount</span>
+                    <span class="field-type">decimal(10,2)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">electricity_amount</span>
+                    <span class="field-type">decimal(10,2)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">carry_over_balance</span>
+                    <span class="field-type">decimal(10,2)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">credit_balance</span>
+                    <span class="field-type">decimal(10,2)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">total_amount</span>
+                    <span class="field-type">decimal(10,2)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">amount_paid</span>
+                    <span class="field-type">decimal(10,2)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">status</span>
+                    <span class="field-type">varchar(20)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon fk">FK</span>
+                    <span class="field-name">created_by</span>
+                    <span class="field-type">bigint</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tenant Payments -->
+        <div class="entity">
+            <div class="entity-header">TENANT_PAYMENTS</div>
+            <div class="entity-body">
+                <div class="field">
+                    <span class="field-icon pk">PK</span>
+                    <span class="field-name">id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon fk">FK</span>
+                    <span class="field-name">invoice_id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon fk">FK</span>
+                    <span class="field-name">tenant_id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">share_amount</span>
+                    <span class="field-type">decimal(10,2)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">amount_paid</span>
+                    <span class="field-type">decimal(10,2)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">status</span>
+                    <span class="field-type">varchar(20)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">method</span>
+                    <span class="field-type">varchar(30)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">paid_at</span>
+                    <span class="field-type">timestamp</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payments -->
+        <div class="entity">
+            <div class="entity-header">PAYMENTS</div>
+            <div class="entity-body">
+                <div class="field">
+                    <span class="field-icon pk">PK</span>
+                    <span class="field-name">id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon fk">FK</span>
+                    <span class="field-name">invoice_id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon fk">FK</span>
+                    <span class="field-name">tenant_payment_id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">amount</span>
+                    <span class="field-type">decimal(10,2)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">method</span>
+                    <span class="field-type">varchar(30)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">received_at</span>
+                    <span class="field-type">date</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">reference</span>
+                    <span class="field-type">varchar(100)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon fk">FK</span>
+                    <span class="field-name">recorded_by_user</span>
+                    <span class="field-type">bigint</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Meter Readings -->
+        <div class="entity">
+            <div class="entity-header">METER_READINGS</div>
+            <div class="entity-body">
+                <div class="field">
+                    <span class="field-icon pk">PK</span>
+                    <span class="field-name">id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon fk">FK</span>
+                    <span class="field-name">room_id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">reading_month</span>
+                    <span class="field-type">varchar(7)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">previous_kwh</span>
+                    <span class="field-type">decimal(10,2)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">current_kwh</span>
+                    <span class="field-type">decimal(10,2)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">kwh_used</span>
+                    <span class="field-type">decimal(10,2)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon fk">FK</span>
+                    <span class="field-name">recorded_by</span>
+                    <span class="field-type">bigint</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Services (Laundry) -->
+        <div class="entity">
+            <div class="entity-header">SERVICES</div>
+            <div class="entity-body">
+                <div class="field">
+                    <span class="field-icon pk">PK</span>
+                    <span class="field-name">id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">code</span>
+                    <span class="field-type">varchar(20)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">name</span>
+                    <span class="field-type">varchar(100)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">weight_limit_kg</span>
+                    <span class="field-type">decimal(5,2)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">is_active</span>
+                    <span class="field-type">boolean</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Service Prices -->
+        <div class="entity">
+            <div class="entity-header">SERVICE_PRICES</div>
+            <div class="entity-body">
+                <div class="field">
+                    <span class="field-icon pk">PK</span>
+                    <span class="field-name">id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon fk">FK</span>
+                    <span class="field-name">service_id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">customer_type</span>
+                    <span class="field-type">enum</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">price</span>
+                    <span class="field-type">decimal(8,2)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Laundry Orders -->
+        <div class="entity">
+            <div class="entity-header">LAUNDRY_ORDERS</div>
+            <div class="entity-body">
+                <div class="field">
+                    <span class="field-icon pk">PK</span>
+                    <span class="field-name">id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon fk">FK</span>
+                    <span class="field-name">tenant_id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">order_date</span>
+                    <span class="field-type">timestamp</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">pickup_date</span>
+                    <span class="field-type">date</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">status</span>
+                    <span class="field-type">varchar(20)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">notes</span>
+                    <span class="field-type">text</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Items -->
+        <div class="entity">
+            <div class="entity-header">ORDER_ITEMS</div>
+            <div class="entity-body">
+                <div class="field">
+                    <span class="field-icon pk">PK</span>
+                    <span class="field-name">id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon fk">FK</span>
+                    <span class="field-name">laundry_order_id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon fk">FK</span>
+                    <span class="field-name">service_id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">quantity</span>
+                    <span class="field-type">int</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">price</span>
+                    <span class="field-type">decimal(8,2)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">subtotal</span>
+                    <span class="field-type">decimal(10,2)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings -->
+        <div class="entity">
+            <div class="entity-header">SETTINGS</div>
+            <div class="entity-body">
+                <div class="field">
+                    <span class="field-icon pk">PK</span>
+                    <span class="field-name">id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">key</span>
+                    <span class="field-type">varchar(100)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">value</span>
+                    <span class="field-type">text</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">effective_from</span>
+                    <span class="field-type">date</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon fk">FK</span>
+                    <span class="field-name">set_by</span>
+                    <span class="field-type">bigint</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Audit Logs -->
+        <div class="entity">
+            <div class="entity-header">AUDIT_LOGS</div>
+            <div class="entity-body">
+                <div class="field">
+                    <span class="field-icon pk">PK</span>
+                    <span class="field-name">id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon fk">FK</span>
+                    <span class="field-name">user_id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">action</span>
+                    <span class="field-type">varchar(50)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">model_type</span>
+                    <span class="field-type">varchar(100)</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">model_id</span>
+                    <span class="field-type">bigint</span>
+                </div>
+                <div class="field">
+                    <span class="field-icon"></span>
+                    <span class="field-name">description</span>
+                    <span class="field-type">text</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="relationships">
+        <h2>Entity Relationships</h2>
+        <div class="rel-list">
+            <div class="rel-item">
+                <strong>Users → Tenants:</strong> One-to-One (1:1)<br>
+                Each user can be one tenant, each tenant has one user account
+            </div>
+            <div class="rel-item">
+                <strong>Rooms → Contracts:</strong> One-to-Many (1:N)<br>
+                One room can have multiple contracts over time
+            </div>
+            <div class="rel-item">
+                <strong>Contracts → Tenants:</strong> Many-to-Many (M:N)<br>
+                Multiple tenants can share one contract via contract_tenants
+            </div>
+            <div class="rel-item">
+                <strong>Contracts → Deposit Entries:</strong> One-to-Many (1:N)<br>
+                One contract can have multiple deposit transactions
+            </div>
+            <div class="rel-item">
+                <strong>Contracts → Invoices:</strong> One-to-Many (1:N)<br>
+                One contract generates monthly invoices
+            </div>
+            <div class="rel-item">
+                <strong>Invoices → Tenant Payments:</strong> One-to-Many (1:N)<br>
+                One invoice split into payments per tenant
+            </div>
+            <div class="rel-item">
+                <strong>Invoices → Payments:</strong> One-to-Many (1:N)<br>
+                One invoice can have multiple payment transactions
+            </div>
+            <div class="rel-item">
+                <strong>Rooms → Meter Readings:</strong> One-to-Many (1:N)<br>
+                One room has monthly electricity readings
+            </div>
+            <div class="rel-item">
+                <strong>Tenants → Laundry Orders:</strong> One-to-Many (1:N)<br>
+                One tenant can place multiple laundry orders
+            </div>
+            <div class="rel-item">
+                <strong>Laundry Orders → Order Items:</strong> One-to-Many (1:N)<br>
+                One order contains multiple service items
+            </div>
+            <div class="rel-item">
+                <strong>Services → Service Prices:</strong> One-to-Many (1:N)<br>
+                One service has different prices per customer type
+            </div>
+            <div class="rel-item">
+                <strong>Users → Multiple Entities:</strong> One-to-Many (1:N)<br>
+                Users create/record contracts, invoices, payments, readings
+            </div>
+        </div>
+    </div>
+
+    <div class="legend">
+        <h3>Legend</h3>
+        <div class="legend-items">
+            <div class="legend-item">
+                <span class="legend-icon pk" style="color: #dc2626;">PK</span>
+                <span>Primary Key - Unique identifier</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-icon fk" style="color: #ea580c;">FK</span>
+                <span>Foreign Key - Reference to another table</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-icon" style="color: #2563eb;">●</span>
+                <span>Regular Field - Data attribute</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p><strong>Dormitory Management System</strong> | Database Schema v1.0</p>
+        <p>Generated: September 2026 | Total Entities: 16 | Total Relationships: 12+</p>
+    </div>
+</body>
+</html>

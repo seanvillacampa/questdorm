@@ -1,0 +1,1787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dorm Management System - User Manual</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #1e293b;
+            margin: 0;
+            padding: 20px;
+            background: white;
+        }
+        
+        .cover-page {
+            text-align: center;
+            padding: 100px 40px;
+            page-break-after: always;
+        }
+        
+        .cover-page h1 {
+            font-size: 48px;
+            color: #1e40af;
+            margin-bottom: 20px;
+        }
+        
+        .cover-page .subtitle {
+            font-size: 24px;
+            color: #64748b;
+            margin-bottom: 40px;
+        }
+        
+        .cover-page .version {
+            font-size: 18px;
+            color: #94a3b8;
+            margin: 20px 0;
+        }
+        
+        .cover-page .date {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+        
+        .toc {
+            page-break-after: always;
+            padding: 20px 0;
+        }
+        
+        .toc h2 {
+            font-size: 28px;
+            color: #1e40af;
+            border-bottom: 3px solid #2563eb;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .toc-item {
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+        
+        .toc-item.level-1 {
+            font-weight: bold;
+            font-size: 16px;
+            margin-top: 25px;
+        }
+        
+        .toc-item.level-2 {
+            padding-left: 40px;
+            font-size: 14px;
+        }
+        
+        .toc-item.level-3 {
+            padding-left: 60px;
+            font-size: 13px;
+            color: #64748b;
+        }
+        
+        .section {
+            page-break-before: auto;
+            margin-bottom: 40px;
+        }
+        
+        h1 {
+            font-size: 32px;
+            color: #1e40af;
+            border-bottom: 3px solid #2563eb;
+            padding-bottom: 15px;
+            margin-top: 40px;
+            margin-bottom: 25px;
+            page-break-after: avoid;
+        }
+        
+        h2 {
+            font-size: 24px;
+            color: #2563eb;
+            margin-top: 35px;
+            margin-bottom: 20px;
+            page-break-after: avoid;
+        }
+        
+        h3 {
+            font-size: 18px;
+            color: #3b82f6;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            page-break-after: avoid;
+        }
+        
+        h4 {
+            font-size: 16px;
+            color: #64748b;
+            margin-top: 20px;
+            margin-bottom: 12px;
+        }
+        
+        p {
+            margin: 12px 0;
+            text-align: justify;
+        }
+        
+        .info-box {
+            background: #eff6ff;
+            border-left: 4px solid #2563eb;
+            padding: 15px 20px;
+            margin: 20px 0;
+            page-break-inside: avoid;
+        }
+        
+        .info-box h4 {
+            margin-top: 0;
+            color: #1e40af;
+        }
+        
+        .warning-box {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px 20px;
+            margin: 20px 0;
+            page-break-inside: avoid;
+        }
+        
+        .warning-box h4 {
+            margin-top: 0;
+            color: #92400e;
+        }
+        
+        .feature-box {
+            background: #f0fdf4;
+            border-left: 4px solid #10b981;
+            padding: 15px 20px;
+            margin: 20px 0;
+            page-break-inside: avoid;
+        }
+        
+        .feature-box h4 {
+            margin-top: 0;
+            color: #047857;
+        }
+        
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin: 8px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            page-break-inside: avoid;
+        }
+        
+        th {
+            background: #2563eb;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        td {
+            padding: 10px 12px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+        
+        .step-number {
+            display: inline-block;
+            background: #2563eb;
+            color: white;
+            width: 28px;
+            height: 28px;
+            line-height: 28px;
+            text-align: center;
+            border-radius: 50%;
+            margin-right: 10px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .step {
+            margin: 20px 0;
+            page-break-inside: avoid;
+        }
+        
+        .screenshot-placeholder {
+            background: #f1f5f9;
+            border: 2px dashed #cbd5e1;
+            padding: 60px 20px;
+            text-align: center;
+            margin: 20px 0;
+            color: #64748b;
+            font-style: italic;
+        }
+        
+        .footer {
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 2px solid #e5e7eb;
+            text-align: center;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        
+        code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #dc2626;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin: 0 5px;
+        }
+        
+        .badge-owner {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .badge-employee {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .badge-tenant {
+            background: #f0fdf4;
+            color: #047857;
+        }
+        
+        .page-break {
+            page-break-after: always;
+        }
+    </style>
+</head>
+<body>
+
+<!-- COVER PAGE -->
+<div class="cover-page">
+    <h1>Dormitory Management System</h1>
+    <div class="subtitle">User Manual</div>
+    <div style="margin: 60px 0;">
+        <svg width="120" height="120" viewBox="0 0 120 120" style="margin: 0 auto;">
+            <circle cx="60" cy="60" r="55" fill="#2563eb" opacity="0.1"/>
+            <path d="M40 70 L40 45 L80 45 L80 70 M30 70 L90 70 M45 55 L55 55 M65 55 L75 55 M45 65 L55 65 M65 65 L75 65" 
+                  stroke="#2563eb" stroke-width="3" fill="none"/>
+        </svg>
+    </div>
+    <div class="version">Version 1.0</div>
+    <div class="date">September 2026</div>
+    <div style="margin-top: 100px; font-size: 14px; color: #64748b;">
+        <p>Comprehensive Guide for Owners, Employees, and Tenants</p>
+    </div>
+</div>
+
+<!-- TABLE OF CONTENTS -->
+<div class="toc">
+    <h2>Table of Contents</h2>
+    
+    <div class="toc-item level-1">1. Introduction</div>
+    <div class="toc-item level-2">1.1 System Overview</div>
+    <div class="toc-item level-2">1.2 User Roles</div>
+    <div class="toc-item level-2">1.3 Key Features</div>
+    
+    <div class="toc-item level-1">2. Getting Started</div>
+    <div class="toc-item level-2">2.1 System Requirements</div>
+    <div class="toc-item level-2">2.2 Accessing the System</div>
+    <div class="toc-item level-2">2.3 First Time Login</div>
+    
+    <div class="toc-item level-1">3. Owner Functions</div>
+    <div class="toc-item level-2">3.1 Dashboard Overview</div>
+    <div class="toc-item level-2">3.2 Room Management</div>
+    <div class="toc-item level-2">3.3 Tenant Management</div>
+    <div class="toc-item level-2">3.4 Contract Management</div>
+    <div class="toc-item level-3">3.4.1 Creating Contracts</div>
+    <div class="toc-item level-3">3.4.2 Deposit Management</div>
+    <div class="toc-item level-3">3.4.3 Deposit Deductions</div>
+    <div class="toc-item level-2">3.5 Invoice Management</div>
+    <div class="toc-item level-2">3.6 Payment Processing</div>
+    <div class="toc-item level-2">3.7 Meter Readings</div>
+    <div class="toc-item level-2">3.8 Reports</div>
+    <div class="toc-item level-2">3.9 Employee Management</div>
+    <div class="toc-item level-2">3.10 Settings</div>
+    <div class="toc-item level-2">3.11 Audit Logs</div>
+    
+    <div class="toc-item level-1">4. Employee Functions</div>
+    <div class="toc-item level-2">4.1 Dashboard Overview</div>
+    <div class="toc-item level-2">4.2 Daily Operations</div>
+    <div class="toc-item level-2">4.3 Laundry Services</div>
+    
+    <div class="toc-item level-1">5. Tenant Portal</div>
+    <div class="toc-item level-2">5.1 Viewing Bills</div>
+    <div class="toc-item level-2">5.2 Payment History</div>
+    <div class="toc-item level-2">5.3 Deposit Information</div>
+    <div class="toc-item level-2">5.4 Contract Details</div>
+    <div class="toc-item level-2">5.5 Online Payments</div>
+    
+    <div class="toc-item level-1">6. Troubleshooting</div>
+    <div class="toc-item level-2">6.1 Common Issues</div>
+    <div class="toc-item level-2">6.2 Contact Support</div>
+</div>
+
+<!-- CHAPTER 1: INTRODUCTION -->
+<div class="section">
+    <h1>1. Introduction</h1>
+    
+    <h2>1.1 System Overview</h2>
+    <p>
+        The Dormitory Management System is a comprehensive web-based application designed to streamline 
+        the management of dormitory operations. The system handles room assignments, tenant management, 
+        contract processing, invoice generation, payment tracking, utility billing, and deposit management.
+    </p>
+    
+    <div class="info-box">
+        <h4>Purpose</h4>
+        <p>
+            This system eliminates manual paperwork and provides real-time visibility into all aspects 
+            of dormitory operations, ensuring transparency, accountability, and efficient management.
+        </p>
+    </div>
+    
+    <h2>1.2 User Roles</h2>
+    <p>The system supports three distinct user roles, each with specific permissions and capabilities:</p>
+    
+    <table>
+        <tr>
+            <th>Role</th>
+            <th>Description</th>
+            <th>Key Responsibilities</th>
+        </tr>
+        <tr>
+            <td><span class="badge badge-owner">Owner</span></td>
+            <td>Full system administrator with complete access</td>
+            <td>
+                <ul style="margin: 5px 0;">
+                    <li>Manage employees</li>
+                    <li>Configure system settings</li>
+                    <li>View financial reports</li>
+                    <li>Manage all operations</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td><span class="badge badge-employee">Employee</span></td>
+            <td>Staff member handling daily operations</td>
+            <td>
+                <ul style="margin: 5px 0;">
+                    <li>Process payments</li>
+                    <li>Record meter readings</li>
+                    <li>Generate invoices</li>
+                    <li>Manage laundry services</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td><span class="badge badge-tenant">Tenant</span></td>
+            <td>Resident with view-only access to personal information</td>
+            <td>
+                <ul style="margin: 5px 0;">
+                    <li>View bills and invoices</li>
+                    <li>Make online payments</li>
+                    <li>Check deposit status</li>
+                    <li>View contract details</li>
+                </ul>
+            </td>
+        </tr>
+    </table>
+    
+    <h2>1.3 Key Features</h2>
+    
+    <h3>For Owners and Employees</h3>
+    <ul>
+        <li><strong>Room Management:</strong> Track room status, capacity, rates, and amenities</li>
+        <li><strong>Contract Management:</strong> Create and manage rental agreements with multiple tenants per room</li>
+        <li><strong>Deposit System:</strong> Track security deposits with deduction capability for damages</li>
+        <li><strong>Automated Invoicing:</strong> Generate monthly bills with electricity calculations</li>
+        <li><strong>Payment Tracking:</strong> Record and monitor payments from multiple tenants</li>
+        <li><strong>Meter Readings:</strong> Track electricity consumption for accurate billing</li>
+        <li><strong>Laundry Services:</strong> Manage laundry orders and track revenue</li>
+        <li><strong>Financial Reports:</strong> Generate comprehensive financial summaries</li>
+        <li><strong>Audit Trail:</strong> Complete logging of all system activities</li>
+    </ul>
+    
+    <h3>For Tenants</h3>
+    <ul>
+        <li><strong>Online Bill Viewing:</strong> Access current and historical invoices</li>
+        <li><strong>Payment Portal:</strong> Pay bills securely using PayMongo integration</li>
+        <li><strong>Deposit Transparency:</strong> View deposit balance and all deductions</li>
+        <li><strong>Contract Information:</strong> Access rental agreement details</li>
+        <li><strong>Payment History:</strong> Track all payment transactions</li>
+    </ul>
+</div>
+
+<div class="page-break"></div>
+
+<!-- CHAPTER 2: GETTING STARTED -->
+<div class="section">
+    <h1>2. Getting Started</h1>
+    
+    <h2>2.1 System Requirements</h2>
+    <p>The system is web-based and accessible from any device with:</p>
+    <ul>
+        <li>Modern web browser (Chrome, Firefox, Safari, or Edge)</li>
+        <li>Internet connection</li>
+        <li>Minimum screen resolution of 1024x768 pixels (desktop recommended)</li>
+    </ul>
+    
+    <h2>2.2 Accessing the System</h2>
+    
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>Open your web browser and navigate to the system URL</strong>
+        <p>Enter the web address provided by your system administrator.</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">2</span>
+        <strong>Login Page</strong>
+        <p>You will see the login page with fields for email and password.</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">3</span>
+        <strong>Enter your credentials</strong>
+        <ul>
+            <li><strong>Email:</strong> Your registered email address</li>
+            <li><strong>Password:</strong> Your account password</li>
+        </ul>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">4</span>
+        <strong>Click "Login"</strong>
+        <p>You will be redirected to your role-specific dashboard.</p>
+    </div>
+    
+    <div class="info-box">
+        <h4>First Time Users</h4>
+        <p>
+            <strong>Owners and Employees:</strong> Register using the "Register" link on the login page.<br>
+            <strong>Tenants:</strong> Your account will be created by staff. You will receive a password reset 
+            email to activate your account.
+        </p>
+    </div>
+    
+    <h2>2.3 First Time Login</h2>
+    
+    <h3>For Tenants</h3>
+    <p>When your account is created, follow these steps:</p>
+    
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>Check your email</strong>
+        <p>You will receive a password reset email with an activation link.</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">2</span>
+        <strong>Click the activation link</strong>
+        <p>This opens the password setup page.</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">3</span>
+        <strong>Create your password</strong>
+        <p>Enter a strong password (minimum 8 characters) and confirm it.</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">4</span>
+        <strong>Login with your new password</strong>
+        <p>Return to the login page and access your tenant portal.</p>
+    </div>
+    
+    <div class="warning-box">
+        <h4>Security Reminder</h4>
+        <p>
+            Never share your password with anyone. The system staff will never ask for your password.
+            If you forget your password, use the "Forgot Password" link on the login page.
+        </p>
+    </div>
+</div>
+
+<div class="page-break"></div>
+
+<!-- CHAPTER 3: OWNER FUNCTIONS -->
+<div class="section">
+    <h1>3. Owner Functions</h1>
+    
+    <h2>3.1 Dashboard Overview</h2>
+    <p>
+        Upon login, owners see a comprehensive dashboard displaying key metrics and recent activities.
+    </p>
+    
+    <h3>Dashboard Components</h3>
+    <ul>
+        <li><strong>Total Revenue:</strong> Current month income from rent and services</li>
+        <li><strong>Occupancy Rate:</strong> Percentage of occupied rooms</li>
+        <li><strong>Pending Payments:</strong> Number of unpaid invoices</li>
+        <li><strong>Recent Activities:</strong> Latest system transactions</li>
+        <li><strong>Quick Actions:</strong> Shortcuts to common tasks</li>
+    </ul>
+    
+    <h2>3.2 Room Management</h2>
+    <p>
+        The room management module allows you to track and configure all dormitory rooms.
+    </p>
+    
+    <h3>Viewing Rooms</h3>
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>Navigate to Rooms</strong>
+        <p>Click "Rooms" in the main navigation menu.</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">2</span>
+        <strong>View Room List</strong>
+        <p>The room list displays all rooms with their current status, occupancy, and rates.</p>
+    </div>
+    
+    <h3>Adding a New Room</h3>
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>Click "Create Room"</strong>
+        <p>This opens the room creation form.</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">2</span>
+        <strong>Fill in room details:</strong>
+        <ul>
+            <li><strong>Room Number:</strong> Unique identifier (e.g., 101, 205)</li>
+            <li><strong>Floor:</strong> Floor number</li>
+            <li><strong>Capacity:</strong> Maximum number of tenants (1-4)</li>
+            <li><strong>Monthly Rate:</strong> Base rent amount</li>
+            <li><strong>Air Conditioning:</strong> Check if room has AC</li>
+            <li><strong>Meter Number:</strong> Electricity meter identifier</li>
+        </ul>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">3</span>
+        <strong>Click "Save"</strong>
+        <p>The room is created and added to the system.</p>
+    </div>
+    
+    <h3>Editing Room Information</h3>
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>Click "Edit" on any room</strong>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">2</span>
+        <strong>Update the necessary fields</strong>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">3</span>
+        <strong>Click "Update"</strong>
+    </div>
+    
+    <div class="info-box">
+        <h4>Room Status Values</h4>
+        <ul style="margin: 5px 0;">
+            <li><strong>Vacant:</strong> Available for new tenants</li>
+            <li><strong>Occupied:</strong> Currently rented</li>
+            <li><strong>Maintenance:</strong> Under repair or renovation</li>
+        </ul>
+    </div>
+    
+    <h2>3.3 Tenant Management</h2>
+    <p>
+        Manage all tenant information and accounts from this module.
+    </p>
+    
+    <h3>Creating a Tenant Account</h3>
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>Navigate to Tenants → Create</strong>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">2</span>
+        <strong>Enter tenant information:</strong>
+        <ul>
+            <li>Full Name</li>
+            <li>Email Address</li>
+            <li>Phone Number</li>
+            <li>Address</li>
+            <li>Emergency Contact</li>
+            <li>ID Number</li>
+        </ul>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">3</span>
+        <strong>Click "Create Tenant"</strong>
+        <p>The tenant account is created and a password reset email is sent automatically.</p>
+    </div>
+    
+    <div class="info-box">
+        <h4>Tenant Activation</h4>
+        <p>
+            New tenants must activate their account by clicking the link in the email and setting 
+            their password before they can access the tenant portal.
+        </p>
+    </div>
+    
+    <h3>Viewing Tenant Details</h3>
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>Click on a tenant name</strong>
+        <p>View complete tenant profile including:</p>
+        <ul>
+            <li>Contact information</li>
+            <li>Current contract details</li>
+            <li>Payment history</li>
+            <li>Outstanding balances</li>
+        </ul>
+    </div>
+    
+    <h2>3.4 Contract Management</h2>
+    <p>
+        Contracts link rooms with tenants and define rental terms. The system supports multiple 
+        tenants per contract (room sharing).
+    </p>
+    
+    <h3>3.4.1 Creating Contracts</h3>
+    <p>Follow these steps to create a new rental contract:</p>
+    
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>Navigate to Contracts → Create</strong>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">2</span>
+        <strong>Select a room</strong>
+        <p>Choose from available vacant rooms. The room rate is automatically displayed.</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">3</span>
+        <strong>Select tenants</strong>
+        <p>
+            Choose one or more tenants from the list of available tenants. The system shows 
+            available tenants who are not currently in an active contract.
+        </p>
+    </div>
+    
+    <div class="warning-box">
+        <h4>Capacity Warning</h4>
+        <p>
+            The system will warn you if you select more tenants than the room capacity. 
+            You can proceed if necessary, but it's not recommended.
+        </p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">4</span>
+        <strong>Set contract terms:</strong>
+        <ul>
+            <li><strong>Start Date:</strong> When the contract begins</li>
+            <li><strong>Due Day:</strong> Day of month when rent is due (1-28)</li>
+            <li><strong>Deposit Required:</strong> Security deposit amount</li>
+        </ul>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">5</span>
+        <strong>Click "Create Contract"</strong>
+        <p>The contract is created and the room status changes to "Occupied".</p>
+    </div>
+    
+    <div class="info-box">
+        <h4>Per-Tenant Calculations</h4>
+        <p>
+            When multiple tenants share a room, the system automatically splits rent and utility 
+            bills equally among all tenants in the contract.
+        </p>
+    </div>
+    
+    <h3>3.4.2 Deposit Management</h3>
+    <p>
+        The system tracks security deposits throughout the contract lifecycle. Deposits can be 
+        collected, deducted for damages, or refunded.
+    </p>
+    
+    <h4>Viewing Deposit Information</h4>
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>Open any contract</strong>
+        <p>Click on a contract number to view details.</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">2</span>
+        <strong>Scroll to Deposit section</strong>
+        <p>Located below the Invoices section on the right side.</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">3</span>
+        <strong>Review deposit information:</strong>
+        <ul>
+            <li><strong>Current Balance:</strong> Displayed prominently at the top</li>
+            <li><strong>Transaction History:</strong> All collections and deductions</li>
+            <li><strong>Staff Member:</strong> Who recorded each transaction</li>
+            <li><strong>Reasons:</strong> Explanation for each deduction</li>
+        </ul>
+    </div>
+    
+    <h3>3.4.3 Deposit Deductions</h3>
+    <p>
+        When property damage occurs, you can deduct repair costs from the security deposit. 
+        This provides transparency and accountability for both parties.
+    </p>
+    
+    <div class="feature-box">
+        <h4>New Feature: Deposit Deduction System</h4>
+        <p>
+            Record damages and deduct costs directly from tenant deposits. All deductions are 
+            immediately visible to tenants with full reason details.
+        </p>
+    </div>
+    
+    <h4>Recording a Deposit Deduction</h4>
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>Navigate to the contract</strong>
+        <p>Open the contract where damage occurred.</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">2</span>
+        <strong>Scroll to Deposit section</strong>
+        <p>Find the deposit information on the right side.</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">3</span>
+        <strong>Click "Deduct from deposit"</strong>
+        <p>This expands the deduction form.</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">4</span>
+        <strong>Fill in deduction details:</strong>
+        <ul>
+            <li><strong>Amount:</strong> Cost of repair or replacement (cannot exceed current balance)</li>
+            <li><strong>Date:</strong> When the damage occurred or was discovered</li>
+            <li><strong>Reason:</strong> Detailed explanation of the damage and repair cost</li>
+        </ul>
+    </div>
+    
+    <div class="info-box">
+        <h4>Example Reasons</h4>
+        <ul style="margin: 5px 0;">
+            <li>"Broken window in bedroom - glass replacement cost ₱2,500"</li>
+            <li>"Wall paint repair - multiple holes from picture hanging ₱800"</li>
+            <li>"Lost room key - lock replacement required ₱500"</li>
+            <li>"Damaged door handle - replacement and installation ₱350"</li>
+        </ul>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">5</span>
+        <strong>Click "Record deduction"</strong>
+        <p>A confirmation dialog appears showing the amount and warning.</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">6</span>
+        <strong>Confirm the deduction</strong>
+        <p>The deduction is recorded and balance is updated immediately.</p>
+    </div>
+    
+    <h4>What Happens After Deduction</h4>
+    <ul>
+        <li>The deposit balance is reduced by the deduction amount</li>
+        <li>The transaction appears in the deposit history</li>
+        <li>All tenants in the contract can see the deduction and reason</li>
+        <li>An audit log entry is created with your name and timestamp</li>
+        <li>The new balance is displayed prominently</li>
+    </ul>
+    
+    <div class="warning-box">
+        <h4>Important Notes</h4>
+        <ul style="margin: 5px 0;">
+            <li>You cannot deduct more than the current deposit balance</li>
+            <li>Deductions are permanent and cannot be undone (contact support if needed)</li>
+            <li>Be specific in your reason to maintain transparency</li>
+            <li>Deductions apply to all tenants in the contract equally</li>
+            <li>Only active contracts allow new deductions</li>
+        </ul>
+    </div>
+    
+    <h4>Tenant Visibility</h4>
+    <p>
+        Tenants can view all deposit deductions in their portal under the "Deposit" section. They see:
+    </p>
+    <ul>
+        <li>Current refundable balance</li>
+        <li>Date of each deduction</li>
+        <li>Amount deducted</li>
+        <li>Detailed reason for the deduction</li>
+        <li>Staff member who recorded it</li>
+    </ul>
+    
+    <h3>Deactivating a Contract</h3>
+    <p>When a tenant moves out or a contract ends:</p>
+    
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>Open the contract</strong>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">2</span>
+        <strong>Click "Make inactive"</strong>
+        <p>This button appears at the top right of the contract page.</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">3</span>
+        <strong>Confirm the action</strong>
+        <p>A warning appears explaining that:</p>
+        <ul>
+            <li>All unpaid invoices will be voided</li>
+            <li>The room will be marked as vacant</li>
+            <li>This action cannot be undone</li>
+        </ul>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">4</span>
+        <strong>Click "OK" to proceed</strong>
+    </div>
+    
+    <div class="info-box">
+        <h4>Deposit Refunds</h4>
+        <p>
+            After deactivating a contract, review the remaining deposit balance. Record any 
+            final deductions before processing the refund to the tenant.
+        </p>
+    </div>
+    
+    <h2>3.5 Invoice Management</h2>
+    <p>
+        The system automatically generates monthly invoices for all active contracts based on 
+        meter readings and configured rates.
+    </p>
+    
+    <h3>Generating Invoices</h3>
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>Navigate to Invoices</strong>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">2</span>
+        <strong>Click "Generate Invoices"</strong>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">3</span>
+        <strong>Select the billing month</strong>
+        <p>Choose the month for which to generate invoices.</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">4</span>
+        <strong>Review the preview</strong>
+        <p>The system shows how many invoices will be created.</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">5</span>
+        <strong>Click "Generate"</strong>
+        <p>Invoices are created for all active contracts.</p>
+    </div>
+    
+    <div class="warning-box">
+        <h4>Prerequisites</h4>
+        <p>
+            Before generating invoices, ensure that meter readings have been recorded for 
+            the billing month. Without meter readings, electricity charges will be zero.
+        </p>
+    </div>
+    
+    <h3>Viewing Invoice Details</h3>
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>Click on an invoice number</strong>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">2</span>
+        <strong>Review invoice information:</strong>
+        <ul>
+            <li>Invoice number and date</li>
+            <li>Room and contract details</li>
+            <li>Rent amount</li>
+            <li>Electricity consumption and charges</li>
+            <li>Previous balance (if any)</li>
+            <li>Credit balance applied</li>
+            <li>Total amount due</li>
+            <li>Per-tenant share</li>
+            <li>Payment status for each tenant</li>
+        </ul>
+    </div>
+    
+    <h3>Invoice Statuses</h3>
+    <table>
+        <tr>
+            <th>Status</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td><strong>Pending</strong></td>
+            <td>Invoice issued but not yet due</td>
+        </tr>
+        <tr>
+            <td><strong>Paid</strong></td>
+            <td>All tenants have paid their share</td>
+        </tr>
+        <tr>
+            <td><strong>Partial</strong></td>
+            <td>Some but not all tenants have paid</td>
+        </tr>
+        <tr>
+            <td><strong>Late</strong></td>
+            <td>Past due date but within grace period</td>
+        </tr>
+        <tr>
+            <td><strong>Overdue</strong></td>
+            <td>Past grace period, action required</td>
+        </tr>
+        <tr>
+            <td><strong>Void</strong></td>
+            <td>Cancelled (usually due to contract termination)</td>
+        </tr>
+    </table>
+    
+    <h2>3.6 Payment Processing</h2>
+    <p>
+        Record payments received from tenants through various payment methods.
+    </p>
+    
+    <h3>Recording a Cash Payment</h3>
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>Open the invoice</strong>
+        <p>Navigate to the invoice for which payment was received.</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">2</span>
+        <strong>Locate "Record cash payment" panel</strong>
+        <p>Found on the right side of the invoice page.</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">3</span>
+        <strong>Select the tenant</strong>
+        <p>Choose which tenant made the payment.</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">4</span>
+        <strong>Enter payment details:</strong>
+        <ul>
+            <li><strong>Amount:</strong> Payment amount received</li>
+            <li><strong>Method:</strong> Cash, GCash, Maya, Bank Transfer, etc.</li>
+            <li><strong>Date:</strong> When payment was received</li>
+            <li><strong>Reference:</strong> Transaction reference number (optional)</li>
+        </ul>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">5</span>
+        <strong>Click "Record Payment"</strong>
+        <p>The payment is recorded and invoice status is updated.</p>
+    </div>
+    
+    <div class="info-box">
+        <h4>Overpayment Handling</h4>
+        <p>
+            If a tenant pays more than their share, the excess is automatically applied as credit 
+            to their next invoice.
+        </p>
+    </div>
+    
+    <h3>Viewing All Payments</h3>
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>Navigate to Payments</strong>
+        <p>View a complete list of all payment transactions.</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">2</span>
+        <strong>Filter and search</strong>
+        <p>Use filters to find specific payments by date, tenant, or method.</p>
+    </div>
+    
+    <h2>3.7 Meter Readings</h2>
+    <p>
+        Record monthly electricity meter readings to calculate consumption and billing.
+    </p>
+    
+    <h3>Recording Meter Readings</h3>
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>Navigate to Meter Readings</strong>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">2</span>
+        <strong>Select the reading month</strong>
+        <p>Choose the month for which you're recording readings.</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">3</span>
+        <strong>Enter current readings</strong>
+        <p>
+            For each room, enter the current meter reading. The system automatically 
+            calculates consumption based on the previous reading.
+        </p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">4</span>
+        <strong>Click "Save" for each room</strong>
+        <p>Or use "Save All" to record all readings at once.</p>
+    </div>
+    
+    <div class="info-box">
+        <h4>Progress Tracking</h4>
+        <p>
+            The system displays a progress bar showing how many rooms have readings recorded 
+            for the current month.
+        </p>
+    </div>
+    
+    <h2>3.8 Reports</h2>
+    <p>
+        Generate comprehensive financial reports for analysis and record-keeping.
+    </p>
+    
+    <h3>Available Reports</h3>
+    <ul>
+        <li><strong>Revenue Summary:</strong> Total income by month</li>
+        <li><strong>Occupancy Report:</strong> Room utilization statistics</li>
+        <li><strong>Payment Collection:</strong> Payment status and outstanding balances</li>
+        <li><strong>Tenant Report:</strong> Active tenant list with contact information</li>
+    </ul>
+    
+    <h3>Generating Reports</h3>
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>Navigate to Reports</strong>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">2</span>
+        <strong>Select date range</strong>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">3</span>
+        <strong>Choose export format</strong>
+        <ul>
+            <li><strong>CSV:</strong> For Excel/spreadsheet analysis</li>
+            <li><strong>PDF:</strong> For printing and archiving</li>
+        </ul>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">4</span>
+        <strong>Click "Generate Report"</strong>
+    </div>
+    
+    <h2>3.9 Employee Management</h2>
+    <p>
+        Add and manage employee accounts with appropriate permissions.
+    </p>
+    
+    <h3>Creating Employee Accounts</h3>
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>Navigate to Employees</strong>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">2</span>
+        <strong>Click "Create Employee"</strong>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">3</span>
+        <strong>Enter employee information:</strong>
+        <ul>
+            <li>Full Name</li>
+            <li>Email Address</li>
+            <li>Phone Number</li>
+            <li>Password (employee will be prompted to change on first login)</li>
+        </ul>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">4</span>
+        <strong>Click "Create"</strong>
+    </div>
+    
+    <h3>Managing Employee Access</h3>
+    <p>
+        Toggle employee accounts active/inactive without deleting them.
+    </p>
+    
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>Locate the employee</strong>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">2</span>
+        <strong>Click "Toggle Status"</strong>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">3</span>
+        <strong>Confirm the action</strong>
+    </div>
+    
+    <div class="warning-box">
+        <h4>Security Note</h4>
+        <p>
+            Inactive employees cannot login but their historical records (payments recorded, 
+            readings entered) remain intact for audit purposes.
+        </p>
+    </div>
+    
+    <h2>3.10 Settings</h2>
+    <p>
+        Configure system-wide settings and rates.
+    </p>
+    
+    <h3>Electricity Rate Management</h3>
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>Navigate to Settings</strong>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">2</span>
+        <strong>Locate "Electricity Rate" section</strong>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">3</span>
+        <strong>Enter new rate information:</strong>
+        <ul>
+            <li><strong>Rate per kWh:</strong> Cost per kilowatt-hour</li>
+            <li><strong>Effective From:</strong> Date when new rate takes effect</li>
+        </ul>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">4</span>
+        <strong>Click "Update Rate"</strong>
+    </div>
+    
+    <div class="info-box">
+        <h4>Rate History</h4>
+        <p>
+            The system maintains a history of all electricity rates with effective dates, 
+            ensuring accurate historical billing.
+        </p>
+    </div>
+    
+    <h3>Billing Configuration</h3>
+    <ul>
+        <li><strong>Default Due Day:</strong> Standard payment due date (1-28)</li>
+        <li><strong>Invoice Advance Days:</strong> Days before month end to generate invoices</li>
+        <li><strong>Grace Period:</strong> Days after due date before marking as overdue</li>
+    </ul>
+    
+    <h2>3.11 Audit Logs</h2>
+    <p>
+        View a complete history of all actions performed in the system.
+    </p>
+    
+    <h3>Accessing Audit Logs</h3>
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>Navigate to Audit Logs</strong>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">2</span>
+        <strong>Filter logs</strong>
+        <ul>
+            <li>By date range</li>
+            <li>By user</li>
+            <li>By action type</li>
+            <li>By entity (Room, Contract, Invoice, etc.)</li>
+        </ul>
+    </div>
+    
+    <h3>Audit Log Information</h3>
+    <p>Each log entry contains:</p>
+    <ul>
+        <li>Timestamp</li>
+        <li>User who performed the action</li>
+        <li>Action type (Created, Updated, Deleted, etc.)</li>
+        <li>Entity affected</li>
+        <li>Description of the action</li>
+    </ul>
+    
+    <div class="info-box">
+        <h4>Compliance</h4>
+        <p>
+            Audit logs are immutable and provide a complete trail of all system activities 
+            for accountability and compliance purposes.
+        </p>
+    </div>
+</div>
+
+<div class="page-break"></div>
+
+<!-- CHAPTER 4: EMPLOYEE FUNCTIONS -->
+<div class="section">
+    <h1>4. Employee Functions</h1>
+    
+    <h2>4.1 Dashboard Overview</h2>
+    <p>
+        The employee dashboard provides quick access to daily operational tasks.
+    </p>
+    
+    <h3>Employee Permissions</h3>
+    <p>Employees can:</p>
+    <ul>
+        <li>View all rooms, tenants, and contracts</li>
+        <li>Generate invoices</li>
+        <li>Record payments</li>
+        <li>Enter meter readings</li>
+        <li>Manage laundry orders</li>
+        <li>Deduct from deposits (for damages)</li>
+    </ul>
+    
+    <p>Employees cannot:</p>
+    <ul>
+        <li>Create or manage other employees</li>
+        <li>Void invoices</li>
+        <li>Modify system settings</li>
+        <li>View financial reports</li>
+    </ul>
+    
+    <h2>4.2 Daily Operations</h2>
+    <p>
+        Most employee tasks follow the same procedures as owner functions (see Chapter 3).
+    </p>
+    
+    <h3>Typical Daily Tasks</h3>
+    <ol>
+        <li>Check for new payment notifications</li>
+        <li>Record cash payments received</li>
+        <li>Process laundry orders</li>
+        <li>Record meter readings (monthly)</li>
+        <li>Assist tenants with account issues</li>
+    </ol>
+    
+    <h2>4.3 Laundry Services</h2>
+    <p>
+        Manage the dormitory's laundry service operations.
+    </p>
+    
+    <h3>Creating a Laundry Order</h3>
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>Navigate to Laundry</strong>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">2</span>
+        <strong>Click "New Order"</strong>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">3</span>
+        <strong>Select the tenant</strong>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">4</span>
+        <strong>Add services:</strong>
+        <ul>
+            <li>Wash Only</li>
+            <li>Dry Only</li>
+            <li>Wash & Dry</li>
+            <li>Wash, Dry & Fold</li>
+            <li>Iron/Press</li>
+            <li>Dry Cleaning</li>
+        </ul>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">5</span>
+        <strong>Enter quantity for each service</strong>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">6</span>
+        <strong>Set pickup date</strong>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">7</span>
+        <strong>Add notes if needed</strong>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">8</span>
+        <strong>Click "Create Order"</strong>
+    </div>
+    
+    <h3>Updating Order Status</h3>
+    <p>Track orders through their lifecycle:</p>
+    <ul>
+        <li><strong>Pending:</strong> Order received</li>
+        <li><strong>Processing:</strong> Being washed/cleaned</li>
+        <li><strong>Ready:</strong> Ready for pickup</li>
+        <li><strong>Picked Up:</strong> Completed</li>
+    </ul>
+</div>
+
+<div class="page-break"></div>
+
+<!-- CHAPTER 5: TENANT PORTAL -->
+<div class="section">
+    <h1>5. Tenant Portal</h1>
+    
+    <h2>5.1 Viewing Bills</h2>
+    <p>
+        Access your current and past invoices from the tenant dashboard.
+    </p>
+    
+    <h3>Current Bill</h3>
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>Login to tenant portal</strong>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">2</span>
+        <strong>View "My Bill" page</strong>
+        <p>This is the default landing page showing your current month's invoice.</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">3</span>
+        <strong>Review bill details:</strong>
+        <ul>
+            <li>Invoice number and due date</li>
+            <li>Your share of rent</li>
+            <li>Your share of electricity</li>
+            <li>Previous balance (if any)</li>
+            <li>Total amount you owe</li>
+            <li>Amount paid so far</li>
+            <li>Remaining balance</li>
+        </ul>
+    </div>
+    
+    <h3>Bill Breakdown</h3>
+    <p>The bill page shows:</p>
+    <ul>
+        <li><strong>Room Rent:</strong> Base room rate divided by number of tenants</li>
+        <li><strong>Electricity:</strong> Your share of electricity consumption</li>
+        <li><strong>Co-tenant Status:</strong> Payment status of roommates (if any)</li>
+        <li><strong>Meter Reading:</strong> kWh consumed and rate applied</li>
+    </ul>
+    
+    <div class="info-box">
+        <h4>Payment Status</h4>
+        <p>
+            You can see the payment status of your roommates to understand if the invoice 
+            has been fully paid or if there are outstanding balances.
+        </p>
+    </div>
+    
+    <h2>5.2 Payment History</h2>
+    <p>
+        Track all your payment transactions.
+    </p>
+    
+    <h3>Viewing Payment History</h3>
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>Navigate to "Payments"</strong>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">2</span>
+        <strong>Review payment list</strong>
+        <p>Shows all your payments with:</p>
+        <ul>
+            <li>Date paid</li>
+            <li>Invoice number</li>
+            <li>Amount paid</li>
+            <li>Payment method</li>
+            <li>Status</li>
+        </ul>
+    </div>
+    
+    <h2>5.3 Deposit Information</h2>
+    <p>
+        View your security deposit balance and transaction history with complete transparency.
+    </p>
+    
+    <h3>Accessing Deposit Information</h3>
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>Navigate to "Deposit"</strong>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">2</span>
+        <strong>View deposit summary:</strong>
+        <ul>
+            <li><strong>Required:</strong> Initial deposit amount</li>
+            <li><strong>Collected:</strong> Total collected from you</li>
+            <li><strong>Deductions:</strong> Total deducted for damages</li>
+            <li><strong>Refundable Balance:</strong> Amount you'll receive at move-out</li>
+        </ul>
+    </div>
+    
+    <h3>Deposit Transaction History</h3>
+    <p>
+        The deposit page displays a complete history of all transactions:
+    </p>
+    
+    <h4>Collection Entry</h4>
+    <ul>
+        <li>Date deposit was collected</li>
+        <li>Amount collected</li>
+        <li>Staff member who recorded it</li>
+    </ul>
+    
+    <h4>Deduction Entries</h4>
+    <ul>
+        <li>Date of deduction</li>
+        <li>Amount deducted</li>
+        <li>Detailed reason for deduction</li>
+        <li>Staff member who recorded it</li>
+    </ul>
+    
+    <div class="feature-box">
+        <h4>Transparency Feature</h4>
+        <p>
+            All deposit deductions are immediately visible to you with complete details. This 
+            ensures you understand exactly why any amount was deducted from your deposit.
+        </p>
+    </div>
+    
+    <h3>Understanding Deductions</h3>
+    <p>
+        Deductions occur when property damage is repaired at the tenant's expense. Common reasons include:
+    </p>
+    <ul>
+        <li>Broken windows or damaged doors</li>
+        <li>Wall damage requiring paint repair</li>
+        <li>Lost keys requiring lock replacement</li>
+        <li>Damaged furniture or fixtures</li>
+        <li>Cleaning fees for excessive mess</li>
+    </ul>
+    
+    <div class="info-box">
+        <h4>Disputing Deductions</h4>
+        <p>
+            If you believe a deduction was made in error, contact the management immediately. 
+            The detailed reason and date help resolve any disputes quickly.
+        </p>
+    </div>
+    
+    <h2>5.4 Contract Details</h2>
+    <p>
+        View your rental agreement information.
+    </p>
+    
+    <h3>Accessing Contract Information</h3>
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>Navigate to "Contract"</strong>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">2</span>
+        <strong>Review contract details:</strong>
+        <ul>
+            <li>Contract number</li>
+            <li>Room number and floor</li>
+            <li>Start date</li>
+            <li>Monthly rent (total and per tenant)</li>
+            <li>Payment due day</li>
+            <li>Deposit required</li>
+            <li>Co-tenants (if any)</li>
+        </ul>
+    </div>
+    
+    <h2>5.5 Online Payments</h2>
+    <p>
+        Pay your bills securely online using the PayMongo integration.
+    </p>
+    
+    <h3>Making an Online Payment</h3>
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>Go to "My Bill"</strong>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">2</span>
+        <strong>Click "Pay Online"</strong>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">3</span>
+        <strong>Review payment amount</strong>
+        <p>The system shows your outstanding balance.</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">4</span>
+        <strong>Click "Proceed to Payment"</strong>
+        <p>You'll be redirected to the secure PayMongo payment page.</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">5</span>
+        <strong>Choose payment method:</strong>
+        <ul>
+            <li>Credit/Debit Card</li>
+            <li>GCash</li>
+            <li>PayMaya</li>
+            <li>Online Banking</li>
+        </ul>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">6</span>
+        <strong>Complete payment</strong>
+        <p>Follow the PayMongo instructions to complete your payment.</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">7</span>
+        <strong>Return to portal</strong>
+        <p>After successful payment, you'll be redirected back to your portal with confirmation.</p>
+    </div>
+    
+    <div class="info-box">
+        <h4>Payment Processing</h4>
+        <p>
+            Online payments are processed immediately and your invoice status is updated automatically. 
+            You'll receive a receipt via email.
+        </p>
+    </div>
+    
+    <div class="warning-box">
+        <h4>Payment Security</h4>
+        <p>
+            All online payments are processed through PayMongo's secure platform. The dormitory 
+            management system never stores your payment card information.
+        </p>
+    </div>
+</div>
+
+<div class="page-break"></div>
+
+<!-- CHAPTER 6: TROUBLESHOOTING -->
+<div class="section">
+    <h1>6. Troubleshooting</h1>
+    
+    <h2>6.1 Common Issues</h2>
+    
+    <h3>Login Issues</h3>
+    
+    <h4>Problem: Forgot Password</h4>
+    <p><strong>Solution:</strong></p>
+    <ol>
+        <li>Click "Forgot Password" on the login page</li>
+        <li>Enter your email address</li>
+        <li>Check your email for the reset link</li>
+        <li>Click the link and create a new password</li>
+    </ol>
+    
+    <h4>Problem: Account Not Activated (Tenants)</h4>
+    <p><strong>Solution:</strong></p>
+    <ol>
+        <li>Check your email for the activation link</li>
+        <li>If you can't find it, check your spam folder</li>
+        <li>If still not received, contact management to resend</li>
+    </ol>
+    
+    <h4>Problem: Account Locked</h4>
+    <p><strong>Solution:</strong></p>
+    <p>Contact management immediately. Only administrators can unlock accounts.</p>
+    
+    <h3>Payment Issues</h3>
+    
+    <h4>Problem: Online Payment Failed</h4>
+    <p><strong>Solution:</strong></p>
+    <ol>
+        <li>Check your internet connection</li>
+        <li>Verify your payment method has sufficient funds</li>
+        <li>Try a different payment method</li>
+        <li>If problem persists, contact PayMongo support or pay via cash</li>
+    </ol>
+    
+    <h4>Problem: Payment Not Reflected</h4>
+    <p><strong>Solution:</strong></p>
+    <ol>
+        <li>Wait 5-10 minutes for the system to update</li>
+        <li>Refresh your browser</li>
+        <li>If still not reflected after 30 minutes, contact management with your transaction reference</li>
+    </ol>
+    
+    <h3>Invoice Issues</h3>
+    
+    <h4>Problem: Invoice Amount Seems Incorrect</h4>
+    <p><strong>Solution:</strong></p>
+    <ol>
+        <li>Check the invoice breakdown for your share</li>
+        <li>Verify the number of tenants in your contract</li>
+        <li>Review the meter reading and consumption</li>
+        <li>Check if there's a previous balance carried forward</li>
+        <li>Contact management if you still believe there's an error</li>
+    </ol>
+    
+    <h3>Deposit Issues</h3>
+    
+    <h4>Problem: Don't Understand Deposit Deduction</h4>
+    <p><strong>Solution:</strong></p>
+    <ol>
+        <li>Review the deduction reason in your deposit history</li>
+        <li>Check the date when the deduction was made</li>
+        <li>Contact management for clarification</li>
+        <li>Request documentation of the damage (photos, repair receipts)</li>
+    </ol>
+    
+    <h4>Problem: Dispute a Deduction</h4>
+    <p><strong>Solution:</strong></p>
+    <ol>
+        <li>Document your concern in writing</li>
+        <li>Contact management within 7 days of the deduction</li>
+        <li>Provide any evidence supporting your claim</li>
+        <li>Management will review and respond within 3 business days</li>
+    </ol>
+    
+    <h3>Technical Issues</h3>
+    
+    <h4>Problem: Page Not Loading</h4>
+    <p><strong>Solution:</strong></p>
+    <ol>
+        <li>Check your internet connection</li>
+        <li>Try refreshing the page (F5 or Ctrl+R)</li>
+        <li>Clear your browser cache and cookies</li>
+        <li>Try a different browser</li>
+        <li>Contact support if problem persists</li>
+    </ol>
+    
+    <h4>Problem: Cannot Upload Files</h4>
+    <p><strong>Solution:</strong></p>
+    <ol>
+        <li>Check file size (maximum 10MB)</li>
+        <li>Verify file format is supported</li>
+        <li>Try a different browser</li>
+        <li>Contact support if problem persists</li>
+    </ol>
+    
+    <h2>6.2 Contact Support</h2>
+    
+    <h3>Getting Help</h3>
+    <p>If you cannot resolve an issue using this manual:</p>
+    
+    <div class="info-box">
+        <h4>Support Channels</h4>
+        <ul style="margin: 5px 0;">
+            <li><strong>In-Person:</strong> Visit the management office during business hours</li>
+            <li><strong>Phone:</strong> Call the office number provided in your contract</li>
+            <li><strong>Email:</strong> Send detailed description to the support email</li>
+        </ul>
+    </div>
+    
+    <h3>When Contacting Support, Provide:</h3>
+    <ul>
+        <li>Your full name and room number</li>
+        <li>Description of the problem</li>
+        <li>Screenshots (if applicable)</li>
+        <li>Error messages (if any)</li>
+        <li>Steps you've already tried</li>
+        <li>Transaction reference numbers (for payment issues)</li>
+    </ul>
+    
+    <h3>Response Times</h3>
+    <table>
+        <tr>
+            <th>Issue Type</th>
+            <th>Expected Response</th>
+        </tr>
+        <tr>
+            <td>Login/Access Issues</td>
+            <td>Same business day</td>
+        </tr>
+        <tr>
+            <td>Payment Issues</td>
+            <td>Within 4 hours</td>
+        </tr>
+        <tr>
+            <td>Billing Questions</td>
+            <td>Within 24 hours</td>
+        </tr>
+        <tr>
+            <td>Deposit Disputes</td>
+            <td>Within 3 business days</td>
+        </tr>
+        <tr>
+            <td>Technical Issues</td>
+            <td>Within 48 hours</td>
+        </tr>
+    </table>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+    <p><strong>Dormitory Management System</strong> | User Manual v1.0</p>
+    <p>For questions or support, contact your system administrator</p>
+    <p>&copy; 2026 All Rights Reserved</p>
+</div>
+
+</body>
+</html>

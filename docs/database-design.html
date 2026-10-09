@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dorm Management System - Database Design Document</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #1e293b;
+            margin: 0;
+            padding: 20px;
+            background: white;
+        }
+        
+        .cover-page {
+            text-align: center;
+            padding: 100px 40px;
+            page-break-after: always;
+        }
+        
+        .cover-page h1 {
+            font-size: 48px;
+            color: #1e40af;
+            margin-bottom: 20px;
+        }
+        
+        .cover-page .subtitle {
+            font-size: 24px;
+            color: #64748b;
+            margin-bottom: 40px;
+        }
+        
+        h1 {
+            font-size: 32px;
+            color: #1e40af;
+            border-bottom: 3px solid #2563eb;
+            padding-bottom: 15px;
+            margin-top: 40px;
+            margin-bottom: 25px;
+            page-break-after: avoid;
+        }
+        
+        h2 {
+            font-size: 24px;
+            color: #2563eb;
+            margin-top: 35px;
+            margin-bottom: 20px;
+            page-break-after: avoid;
+        }
+        
+        h3 {
+            font-size: 18px;
+            color: #3b82f6;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            page-break-after: avoid;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            page-break-inside: avoid;
+        }
+        
+        th {
+            background: #2563eb;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        
+        td {
+            padding: 10px 12px;
+            border: 1px solid #e5e7eb;
+            font-size: 12px;
+        }
+        
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+        
+        .info-box {
+            background: #eff6ff;
+            border-left: 4px solid #2563eb;
+            padding: 15px 20px;
+            margin: 20px 0;
+            page-break-inside: avoid;
+        }
+        
+        .page-break {
+            page-break-after: always;
+        }
+        
+        code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #dc2626;
+        }
+        
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin: 8px 0;
+        }
+        
+        .footer {
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 2px solid #e5e7eb;
+            text-align: center;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+
+<!-- COVER PAGE -->
+<div class="cover-page">
+    <h1>Dormitory Management System</h1>
+    <div class="subtitle">Database Design Document</div>
+    <div style="margin: 60px 0;">
+        <svg width="120" height="120" viewBox="0 0 120 120" style="margin: 0 auto;">
+            <circle cx="60" cy="60" r="55" fill="#2563eb" opacity="0.1"/>
+            <rect x="30" y="35" width="60" height="10" fill="#2563eb"/>
+            <rect x="30" y="50" width="60" height="10" fill="#2563eb"/>
+            <rect x="30" y="65" width="60" height="10" fill="#2563eb"/>
+            <rect x="30" y="80" width="60" height="5" fill="#2563eb"/>
+        </svg>
+    </div>
+    <div style="font-size: 14px; color: #64748b; margin-top: 100px;">
+        <p>Version 1.0</p>
+        <p>September 2026</p>
+    </div>
+</div>
+
+<!-- INTRODUCTION -->
+<div class="section">
+    <h1>1. Introduction</h1>
+    
+    <h2>1.1 Purpose</h2>
+    <p>
+        This document describes the database design for the Dormitory Management System. It serves as a 
+        comprehensive reference for developers, database administrators, and system maintainers.
+    </p>
+    
+    <h2>1.2 Scope</h2>
+    <p>This document covers:</p>
+    <ul>
+        <li>Database schema and structure</li>
+        <li>Table definitions and relationships</li>
+        <li>Data types and constraints</li>
+        <li>Business rules and logic</li>
+        <li>Indexing strategy</li>
+    </ul>
+    
+    <h2>1.3 Database Management System</h2>
+    <p>
+        <strong>DBMS:</strong> MySQL 8.0+<br>
+        <strong>Character Set:</strong> UTF-8<br>
+        <strong>Collation:</strong> utf8mb4_unicode_ci<br>
+        <strong>Storage Engine:</strong> InnoDB
+    </p>
+</div>
+
+<div class="page-break"></div>
+
+<!-- TABLE DEFINITIONS -->
+<div class="section">
+    <h1>2. Table Definitions</h1>
+    
+    <h2>2.1 Users Table</h2>
+    <p>Stores user accounts for all system users (owners, employees, and tenants).</p>
+    
+    <table>
+        <tr>
+            <th>Column</th>
+            <th>Type</th>
+            <th>Constraints</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td><code>id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>PRIMARY KEY, AUTO_INCREMENT</td>
+            <td>Unique user identifier</td>
+        </tr>
+        <tr>
+            <td><code>name</code></td>
+            <td>VARCHAR(255)</td>
+            <td>NOT NULL</td>
+            <td>Full name</td>
+        </tr>
+        <tr>
+            <td><code>email</code></td>
+            <td>VARCHAR(255)</td>
+            <td>UNIQUE, NOT NULL</td>
+            <td>Email address (login credential)</td>
+        </tr>
+        <tr>
+            <td><code>phone</code></td>
+            <td>VARCHAR(20)</td>
+            <td>NULLABLE</td>
+            <td>Contact phone number</td>
+        </tr>
+        <tr>
+            <td><code>password</code></td>
+            <td>VARCHAR(255)</td>
+            <td>NOT NULL</td>
+            <td>Hashed password</td>
+        </tr>
+        <tr>
+            <td><code>is_active</code></td>
+            <td>BOOLEAN</td>
+            <td>DEFAULT TRUE</td>
+            <td>Account status</td>
+        </tr>
+        <tr>
+            <td><code>last_login_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NULLABLE</td>
+            <td>Last login timestamp</td>
+        </tr>
+        <tr>
+            <td><code>created_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Account creation date</td>
+        </tr>
+        <tr>
+            <td><code>updated_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Last update timestamp</td>
+        </tr>
+    </table>
+    
+    <div class="info-box">
+        <strong>Business Rules:</strong>
+        <ul style="margin: 5px 0;">
+            <li>Email must be unique across all users</li>
+            <li>Inactive users cannot login but records are preserved</li>
+            <li>Passwords are hashed using bcrypt</li>
+        </ul>
+    </div>
+    
+    <h2>2.2 Rooms Table</h2>
+    <p>Stores dormitory room information and configuration.</p>
+    
+    <table>
+        <tr>
+            <th>Column</th>
+            <th>Type</th>
+            <th>Constraints</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td><code>id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>PRIMARY KEY, AUTO_INCREMENT</td>
+            <td>Unique room identifier</td>
+        </tr>
+        <tr>
+            <td><code>room_number</code></td>
+            <td>VARCHAR(10)</td>
+            <td>UNIQUE, NOT NULL</td>
+            <td>Room number (e.g., 101, 205)</td>
+        </tr>
+        <tr>
+            <td><code>floor</code></td>
+            <td>TINYINT UNSIGNED</td>
+            <td>NOT NULL</td>
+            <td>Floor number</td>
+        </tr>
+        <tr>
+            <td><code>capacity</code></td>
+            <td>TINYINT UNSIGNED</td>
+            <td>NOT NULL</td>
+            <td>Maximum number of tenants</td>
+        </tr>
+        <tr>
+            <td><code>monthly_rate</code></td>
+            <td>DECIMAL(10,2)</td>
+            <td>NOT NULL</td>
+            <td>Base monthly rent amount</td>
+        </tr>
+        <tr>
+            <td><code>is_airconditioned</code></td>
+            <td>BOOLEAN</td>
+            <td>DEFAULT FALSE</td>
+            <td>AC availability</td>
+        </tr>
+        <tr>
+            <td><code>meter_number</code></td>
+            <td>VARCHAR(30)</td>
+            <td>NULLABLE</td>
+            <td>Electricity meter identifier</td>
+        </tr>
+        <tr>
+            <td><code>status</code></td>
+            <td>VARCHAR(20)</td>
+            <td>DEFAULT 'vacant'</td>
+            <td>Room status: vacant, occupied, maintenance</td>
+        </tr>
+        <tr>
+            <td><code>created_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Record creation date</td>
+        </tr>
+        <tr>
+            <td><code>updated_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Last update timestamp</td>
+        </tr>
+    </table>
+    
+    <div class="info-box">
+        <strong>Business Rules:</strong>
+        <ul style="margin: 5px 0;">
+            <li>Room number must be unique</li>
+            <li>Capacity typically ranges from 1-4 tenants</li>
+            <li>Status changes to 'occupied' when contract is created</li>
+            <li>AC rooms typically have higher monthly rates</li>
+        </ul>
+    </div>
+    
+    <h2>2.3 Tenants Table</h2>
+    <p>Stores tenant information linked to user accounts.</p>
+    
+    <table>
+        <tr>
+            <th>Column</th>
+            <th>Type</th>
+            <th>Constraints</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td><code>id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>PRIMARY KEY, AUTO_INCREMENT</td>
+            <td>Unique tenant identifier</td>
+        </tr>
+        <tr>
+            <td><code>user_id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>FOREIGN KEY, UNIQUE, NOT NULL</td>
+            <td>Reference to users table</td>
+        </tr>
+        <tr>
+            <td><code>created_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Record creation date</td>
+        </tr>
+        <tr>
+            <td><code>updated_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Last update timestamp</td>
+        </tr>
+    </table>
+    
+    <div class="info-box">
+        <strong>Relationship:</strong> One-to-One with Users table. Each tenant has exactly one user account.
+    </div>
+    
+    <h2>2.4 Contracts Table</h2>
+    <p>Stores rental agreements linking rooms with tenants.</p>
+    
+    <table>
+        <tr>
+            <th>Column</th>
+            <th>Type</th>
+            <th>Constraints</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td><code>id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>PRIMARY KEY, AUTO_INCREMENT</td>
+            <td>Unique contract identifier</td>
+        </tr>
+        <tr>
+            <td><code>room_id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>FOREIGN KEY, NOT NULL</td>
+            <td>Reference to rooms table</td>
+        </tr>
+        <tr>
+            <td><code>start_date</code></td>
+            <td>DATE</td>
+            <td>NOT NULL</td>
+            <td>Contract start date</td>
+        </tr>
+        <tr>
+            <td><code>end_date</code></td>
+            <td>DATE</td>
+            <td>NULLABLE</td>
+            <td>Contract end date (null = ongoing)</td>
+        </tr>
+        <tr>
+            <td><code>due_day</code></td>
+            <td>TINYINT UNSIGNED</td>
+            <td>DEFAULT 5</td>
+            <td>Day of month rent is due (1-28)</td>
+        </tr>
+        <tr>
+            <td><code>deposit_required</code></td>
+            <td>DECIMAL(10,2)</td>
+            <td>DEFAULT 0</td>
+            <td>Required security deposit amount</td>
+        </tr>
+        <tr>
+            <td><code>deposit_collected</code></td>
+            <td>DECIMAL(10,2)</td>
+            <td>DEFAULT 0</td>
+            <td>Amount of deposit collected</td>
+        </tr>
+        <tr>
+            <td><code>status</code></td>
+            <td>VARCHAR(20)</td>
+            <td>DEFAULT 'active'</td>
+            <td>Contract status: active, ended, ending_soon</td>
+        </tr>
+        <tr>
+            <td><code>is_active</code></td>
+            <td>BOOLEAN</td>
+            <td>DEFAULT TRUE</td>
+            <td>Active contract flag</td>
+        </tr>
+        <tr>
+            <td><code>created_by</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>FOREIGN KEY, NULLABLE</td>
+            <td>User who created the contract</td>
+        </tr>
+        <tr>
+            <td><code>created_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Contract creation date</td>
+        </tr>
+        <tr>
+            <td><code>updated_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Last update timestamp</td>
+        </tr>
+    </table>
+    
+    <div class="info-box">
+        <strong>Business Rules:</strong>
+        <ul style="margin: 5px 0;">
+            <li>One room can have only one active contract at a time</li>
+            <li>A room can have multiple contracts over time (historical)</li>
+            <li>Due day must be between 1-28 to avoid month-end complications</li>
+            <li>Deposit collected tracks total deposits from all tenants</li>
+        </ul>
+    </div>
+    
+    <h2>2.5 Contract Tenants Table (Junction)</h2>
+    <p>Many-to-many relationship between contracts and tenants.</p>
+    
+    <table>
+        <tr>
+            <th>Column</th>
+            <th>Type</th>
+            <th>Constraints</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td><code>id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>PRIMARY KEY, AUTO_INCREMENT</td>
+            <td>Unique identifier</td>
+        </tr>
+        <tr>
+            <td><code>contract_id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>FOREIGN KEY, NOT NULL</td>
+            <td>Reference to contracts</td>
+        </tr>
+        <tr>
+            <td><code>tenant_id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>FOREIGN KEY, NOT NULL</td>
+            <td>Reference to tenants</td>
+        </tr>
+        <tr>
+            <td><code>joined_on</code></td>
+            <td>DATE</td>
+            <td>NOT NULL</td>
+            <td>Date tenant joined contract</td>
+        </tr>
+        <tr>
+            <td><code>left_on</code></td>
+            <td>DATE</td>
+            <td>NULLABLE</td>
+            <td>Date tenant left (null = still active)</td>
+        </tr>
+        <tr>
+            <td><code>created_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Record creation date</td>
+        </tr>
+        <tr>
+            <td><code>updated_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Last update timestamp</td>
+        </tr>
+    </table>
+    
+    <div class="info-box">
+        <strong>Business Rules:</strong>
+        <ul style="margin: 5px 0;">
+            <li>Multiple tenants can be assigned to one contract (room sharing)</li>
+            <li>Tracks tenant move-in and move-out dates</li>
+            <li>Number of active tenants should not exceed room capacity</li>
+        </ul>
+    </div>
+    
+    <h2>2.6 Deposit Entries Table</h2>
+    <p>Tracks all deposit transactions for transparency and accountability.</p>
+    
+    <table>
+        <tr>
+            <th>Column</th>
+            <th>Type</th>
+            <th>Constraints</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td><code>id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>PRIMARY KEY, AUTO_INCREMENT</td>
+            <td>Unique entry identifier</td>
+        </tr>
+        <tr>
+            <td><code>contract_id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>FOREIGN KEY, NOT NULL</td>
+            <td>Reference to contracts</td>
+        </tr>
+        <tr>
+            <td><code>type</code></td>
+            <td>VARCHAR(20)</td>
+            <td>NOT NULL</td>
+            <td>Transaction type: collected, deduction, refund</td>
+        </tr>
+        <tr>
+            <td><code>amount</code></td>
+            <td>DECIMAL(10,2)</td>
+            <td>NOT NULL</td>
+            <td>Transaction amount</td>
+        </tr>
+        <tr>
+            <td><code>date</code></td>
+            <td>DATE</td>
+            <td>NOT NULL</td>
+            <td>Transaction date</td>
+        </tr>
+        <tr>
+            <td><code>reason</code></td>
+            <td>VARCHAR(255)</td>
+            <td>NULLABLE</td>
+            <td>Reason for transaction</td>
+        </tr>
+        <tr>
+            <td><code>recorded_by</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>FOREIGN KEY, NULLABLE</td>
+            <td>User who recorded the transaction</td>
+        </tr>
+        <tr>
+            <td><code>created_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Record creation date</td>
+        </tr>
+        <tr>
+            <td><code>updated_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Last update timestamp</td>
+        </tr>
+    </table>
+    
+    <div class="info-box">
+        <strong>Business Rules:</strong>
+        <ul style="margin: 5px 0;">
+            <li><strong>collected:</strong> Initial deposit or additional deposits received</li>
+            <li><strong>deduction:</strong> Amount deducted for damages or unpaid rent</li>
+            <li><strong>refund:</strong> Amount returned to tenant at move-out</li>
+            <li>Deductions require detailed reason for transparency</li>
+            <li>Current balance = SUM(collected) - SUM(deduction) - SUM(refund)</li>
+        </ul>
+    </div>
+    
+    <h2>2.7 Invoices Table</h2>
+    <p>Stores monthly billing invoices for each contract.</p>
+    
+    <table>
+        <tr>
+            <th>Column</th>
+            <th>Type</th>
+            <th>Constraints</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td><code>id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>PRIMARY KEY, AUTO_INCREMENT</td>
+            <td>Unique invoice identifier</td>
+        </tr>
+        <tr>
+            <td><code>invoice_number</code></td>
+            <td>VARCHAR(30)</td>
+            <td>UNIQUE, NOT NULL</td>
+            <td>Invoice number (e.g., INV-2609-101)</td>
+        </tr>
+        <tr>
+            <td><code>contract_id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>FOREIGN KEY, NOT NULL</td>
+            <td>Reference to contracts</td>
+        </tr>
+        <tr>
+            <td><code>billing_month</code></td>
+            <td>VARCHAR(7)</td>
+            <td>NOT NULL</td>
+            <td>Billing period (YYYY-MM format)</td>
+        </tr>
+        <tr>
+            <td><code>due_date</code></td>
+            <td>DATE</td>
+            <td>NOT NULL</td>
+            <td>Payment due date</td>
+        </tr>
+        <tr>
+            <td><code>tenant_count</code></td>
+            <td>TINYINT UNSIGNED</td>
+            <td>NOT NULL</td>
+            <td>Number of tenants sharing the bill</td>
+        </tr>
+        <tr>
+            <td><code>rent_amount</code></td>
+            <td>DECIMAL(10,2)</td>
+            <td>NOT NULL</td>
+            <td>Room rent for the month</td>
+        </tr>
+        <tr>
+            <td><code>electricity_amount</code></td>
+            <td>DECIMAL(10,2)</td>
+            <td>DEFAULT 0</td>
+            <td>Electricity charges</td>
+        </tr>
+        <tr>
+            <td><code>carry_over_balance</code></td>
+            <td>DECIMAL(10,2)</td>
+            <td>DEFAULT 0</td>
+            <td>Unpaid balance from previous invoices</td>
+        </tr>
+        <tr>
+            <td><code>credit_balance</code></td>
+            <td>DECIMAL(10,2)</td>
+            <td>DEFAULT 0</td>
+            <td>Overpayment credit from previous invoices</td>
+        </tr>
+        <tr>
+            <td><code>total_amount</code></td>
+            <td>DECIMAL(10,2)</td>
+            <td>NOT NULL</td>
+            <td>Total amount due (rent + electricity + carryover - credit)</td>
+        </tr>
+        <tr>
+            <td><code>amount_paid</code></td>
+            <td>DECIMAL(10,2)</td>
+            <td>DEFAULT 0</td>
+            <td>Total amount paid so far</td>
+        </tr>
+        <tr>
+            <td><code>status</code></td>
+            <td>VARCHAR(20)</td>
+            <td>DEFAULT 'pending'</td>
+            <td>Invoice status: pending, paid, partial, late, overdue, void</td>
+        </tr>
+        <tr>
+            <td><code>created_by</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>FOREIGN KEY, NULLABLE</td>
+            <td>User who created the invoice</td>
+        </tr>
+        <tr>
+            <td><code>created_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Invoice creation date</td>
+        </tr>
+        <tr>
+            <td><code>updated_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Last update timestamp</td>
+        </tr>
+    </table>
+    
+    <div class="info-box">
+        <strong>Business Rules:</strong>
+        <ul style="margin: 5px 0;">
+            <li>One invoice per contract per month</li>
+            <li>Status changes based on payment completion and due date</li>
+            <li>Carry-over balances from unpaid previous invoices</li>
+            <li>Credit balances from overpayments applied to current invoice</li>
+            <li>Per-tenant share = total_amount ÷ tenant_count</li>
+        </ul>
+    </div>
+    
+    <h2>2.8 Tenant Payments Table</h2>
+    <p>Tracks individual tenant payment responsibility for shared invoices.</p>
+    
+    <table>
+        <tr>
+            <th>Column</th>
+            <th>Type</th>
+            <th>Constraints</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td><code>id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>PRIMARY KEY, AUTO_INCREMENT</td>
+            <td>Unique identifier</td>
+        </tr>
+        <tr>
+            <td><code>invoice_id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>FOREIGN KEY, NOT NULL</td>
+            <td>Reference to invoices</td>
+        </tr>
+        <tr>
+            <td><code>tenant_id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>FOREIGN KEY, NOT NULL</td>
+            <td>Reference to tenants</td>
+        </tr>
+        <tr>
+            <td><code>share_amount</code></td>
+            <td>DECIMAL(10,2)</td>
+            <td>NOT NULL</td>
+            <td>Tenant's share of total invoice</td>
+        </tr>
+        <tr>
+            <td><code>amount_paid</code></td>
+            <td>DECIMAL(10,2)</td>
+            <td>DEFAULT 0</td>
+            <td>Amount paid by this tenant</td>
+        </tr>
+        <tr>
+            <td><code>status</code></td>
+            <td>VARCHAR(20)</td>
+            <td>DEFAULT 'pending'</td>
+            <td>Payment status: pending, paid, late, overdue</td>
+        </tr>
+        <tr>
+            <td><code>method</code></td>
+            <td>VARCHAR(30)</td>
+            <td>NULLABLE</td>
+            <td>Payment method used</td>
+        </tr>
+        <tr>
+            <td><code>paid_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NULLABLE</td>
+            <td>Payment completion timestamp</td>
+        </tr>
+        <tr>
+            <td><code>created_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Record creation date</td>
+        </tr>
+        <tr>
+            <td><code>updated_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Last update timestamp</td>
+        </tr>
+    </table>
+    
+    <div class="info-box">
+        <strong>Business Rules:</strong>
+        <ul style="margin: 5px 0;">
+            <li>One row per tenant per invoice</li>
+            <li>Share amount = invoice total_amount ÷ tenant_count</li>
+            <li>Unique constraint on (invoice_id, tenant_id)</li>
+            <li>Invoice status updates based on all tenant payment statuses</li>
+        </ul>
+    </div>
+    
+    <h2>2.9 Payments Table</h2>
+    <p>Records individual payment transactions.</p>
+    
+    <table>
+        <tr>
+            <th>Column</th>
+            <th>Type</th>
+            <th>Constraints</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td><code>id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>PRIMARY KEY, AUTO_INCREMENT</td>
+            <td>Unique payment identifier</td>
+        </tr>
+        <tr>
+            <td><code>invoice_id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>FOREIGN KEY, NOT NULL</td>
+            <td>Reference to invoices</td>
+        </tr>
+        <tr>
+            <td><code>tenant_payment_id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>FOREIGN KEY, NULLABLE</td>
+            <td>Reference to tenant_payments</td>
+        </tr>
+        <tr>
+            <td><code>amount</code></td>
+            <td>DECIMAL(10,2)</td>
+            <td>NOT NULL</td>
+            <td>Payment amount</td>
+        </tr>
+        <tr>
+            <td><code>method</code></td>
+            <td>VARCHAR(30)</td>
+            <td>NOT NULL</td>
+            <td>Payment method: cash, gcash, maya, bank_transfer, card</td>
+        </tr>
+        <tr>
+            <td><code>received_at</code></td>
+            <td>DATE</td>
+            <td>NOT NULL</td>
+            <td>Date payment was received</td>
+        </tr>
+        <tr>
+            <td><code>reference</code></td>
+            <td>VARCHAR(100)</td>
+            <td>NULLABLE</td>
+            <td>Transaction reference number</td>
+        </tr>
+        <tr>
+            <td><code>notes</code></td>
+            <td>TEXT</td>
+            <td>NULLABLE</td>
+            <td>Additional notes</td>
+        </tr>
+        <tr>
+            <td><code>recorded_by_user</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>FOREIGN KEY, NULLABLE</td>
+            <td>User who recorded the payment</td>
+        </tr>
+        <tr>
+            <td><code>created_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Record creation date</td>
+        </tr>
+        <tr>
+            <td><code>updated_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Last update timestamp</td>
+        </tr>
+    </table>
+    
+    <div class="info-box">
+        <strong>Business Rules:</strong>
+        <ul style="margin: 5px 0;">
+            <li>Multiple payments can be made for one invoice</li>
+            <li>Partial payments are supported</li>
+            <li>Each payment updates the related tenant_payment and invoice records</li>
+        </ul>
+    </div>
+    
+    <h2>2.10 Meter Readings Table</h2>
+    <p>Stores monthly electricity meter readings for billing calculations.</p>
+    
+    <table>
+        <tr>
+            <th>Column</th>
+            <th>Type</th>
+            <th>Constraints</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td><code>id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>PRIMARY KEY, AUTO_INCREMENT</td>
+            <td>Unique identifier</td>
+        </tr>
+        <tr>
+            <td><code>room_id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>FOREIGN KEY, NOT NULL</td>
+            <td>Reference to rooms</td>
+        </tr>
+        <tr>
+            <td><code>reading_month</code></td>
+            <td>VARCHAR(7)</td>
+            <td>NOT NULL</td>
+            <td>Reading period (YYYY-MM)</td>
+        </tr>
+        <tr>
+            <td><code>previous_kwh</code></td>
+            <td>DECIMAL(10,2)</td>
+            <td>NOT NULL</td>
+            <td>Previous month's meter reading</td>
+        </tr>
+        <tr>
+            <td><code>current_kwh</code></td>
+            <td>DECIMAL(10,2)</td>
+            <td>NOT NULL</td>
+            <td>Current meter reading</td>
+        </tr>
+        <tr>
+            <td><code>kwh_used</code></td>
+            <td>DECIMAL(10,2)</td>
+            <td>NOT NULL</td>
+            <td>Consumption (current - previous)</td>
+        </tr>
+        <tr>
+            <td><code>recorded_by</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>FOREIGN KEY, NULLABLE</td>
+            <td>User who recorded the reading</td>
+        </tr>
+        <tr>
+            <td><code>created_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Record creation date</td>
+        </tr>
+        <tr>
+            <td><code>updated_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Last update timestamp</td>
+        </tr>
+    </table>
+    
+    <div class="info-box">
+        <strong>Business Rules:</strong>
+        <ul style="margin: 5px 0;">
+            <li>One reading per room per month</li>
+            <li>kwh_used is calculated automatically: current_kwh - previous_kwh</li>
+            <li>Electricity charges = kwh_used × electricity_rate (from settings)</li>
+            <li>Unique constraint on (room_id, reading_month)</li>
+        </ul>
+    </div>
+    
+    <h2>2.11 Services Table (Laundry)</h2>
+    <p>Defines available laundry services.</p>
+    
+    <table>
+        <tr>
+            <th>Column</th>
+            <th>Type</th>
+            <th>Constraints</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td><code>id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>PRIMARY KEY, AUTO_INCREMENT</td>
+            <td>Unique service identifier</td>
+        </tr>
+        <tr>
+            <td><code>code</code></td>
+            <td>VARCHAR(20)</td>
+            <td>UNIQUE, NOT NULL</td>
+            <td>Service code (e.g., WASH, DRY, FOLD)</td>
+        </tr>
+        <tr>
+            <td><code>name</code></td>
+            <td>VARCHAR(100)</td>
+            <td>NOT NULL</td>
+            <td>Service name</td>
+        </tr>
+        <tr>
+            <td><code>weight_limit_kg</code></td>
+            <td>DECIMAL(5,2)</td>
+            <td>NOT NULL</td>
+            <td>Maximum weight per load</td>
+        </tr>
+        <tr>
+            <td><code>is_active</code></td>
+            <td>BOOLEAN</td>
+            <td>DEFAULT TRUE</td>
+            <td>Service availability</td>
+        </tr>
+        <tr>
+            <td><code>created_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Record creation date</td>
+        </tr>
+        <tr>
+            <td><code>updated_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Last update timestamp</td>
+        </tr>
+    </table>
+    
+    <h2>2.12 Service Prices Table</h2>
+    <p>Stores pricing for services by customer type.</p>
+    
+    <table>
+        <tr>
+            <th>Column</th>
+            <th>Type</th>
+            <th>Constraints</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td><code>id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>PRIMARY KEY, AUTO_INCREMENT</td>
+            <td>Unique identifier</td>
+        </tr>
+        <tr>
+            <td><code>service_id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>FOREIGN KEY, NOT NULL</td>
+            <td>Reference to services</td>
+        </tr>
+        <tr>
+            <td><code>customer_type</code></td>
+            <td>ENUM</td>
+            <td>NOT NULL</td>
+            <td>tenant, student, non_student</td>
+        </tr>
+        <tr>
+            <td><code>price</code></td>
+            <td>DECIMAL(8,2)</td>
+            <td>NOT NULL</td>
+            <td>Service price</td>
+        </tr>
+        <tr>
+            <td><code>created_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Record creation date</td>
+        </tr>
+        <tr>
+            <td><code>updated_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Last update timestamp</td>
+        </tr>
+    </table>
+    
+    <div class="info-box">
+        <strong>Business Rules:</strong>
+        <ul style="margin: 5px 0;">
+            <li>Unique constraint on (service_id, customer_type)</li>
+            <li>Different pricing tiers for different customer types</li>
+        </ul>
+    </div>
+    
+    <h2>2.13 Laundry Orders Table</h2>
+    <p>Tracks laundry service orders from tenants.</p>
+    
+    <table>
+        <tr>
+            <th>Column</th>
+            <th>Type</th>
+            <th>Constraints</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td><code>id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>PRIMARY KEY, AUTO_INCREMENT</td>
+            <td>Unique order identifier</td>
+        </tr>
+        <tr>
+            <td><code>tenant_id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>FOREIGN KEY, NOT NULL</td>
+            <td>Reference to tenants</td>
+        </tr>
+        <tr>
+            <td><code>order_date</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Order placement date/time</td>
+        </tr>
+        <tr>
+            <td><code>pickup_date</code></td>
+            <td>DATE</td>
+            <td>NOT NULL</td>
+            <td>Expected pickup date</td>
+        </tr>
+        <tr>
+            <td><code>status</code></td>
+            <td>VARCHAR(20)</td>
+            <td>DEFAULT 'pending'</td>
+            <td>pending, processing, ready, picked_up</td>
+        </tr>
+        <tr>
+            <td><code>notes</code></td>
+            <td>TEXT</td>
+            <td>NULLABLE</td>
+            <td>Special instructions</td>
+        </tr>
+        <tr>
+            <td><code>created_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Record creation date</td>
+        </tr>
+        <tr>
+            <td><code>updated_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Last update timestamp</td>
+        </tr>
+    </table>
+    
+    <h2>2.14 Order Items Table</h2>
+    <p>Line items for laundry orders.</p>
+    
+    <table>
+        <tr>
+            <th>Column</th>
+            <th>Type</th>
+            <th>Constraints</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td><code>id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>PRIMARY KEY, AUTO_INCREMENT</td>
+            <td>Unique identifier</td>
+        </tr>
+        <tr>
+            <td><code>laundry_order_id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>FOREIGN KEY, NOT NULL</td>
+            <td>Reference to laundry_orders</td>
+        </tr>
+        <tr>
+            <td><code>service_id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>FOREIGN KEY, NOT NULL</td>
+            <td>Reference to services</td>
+        </tr>
+        <tr>
+            <td><code>quantity</code></td>
+            <td>INT</td>
+            <td>NOT NULL</td>
+            <td>Number of loads</td>
+        </tr>
+        <tr>
+            <td><code>price</code></td>
+            <td>DECIMAL(8,2)</td>
+            <td>NOT NULL</td>
+            <td>Price per unit at time of order</td>
+        </tr>
+        <tr>
+            <td><code>subtotal</code></td>
+            <td>DECIMAL(10,2)</td>
+            <td>NOT NULL</td>
+            <td>Line total (quantity × price)</td>
+        </tr>
+        <tr>
+            <td><code>created_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Record creation date</td>
+        </tr>
+        <tr>
+            <td><code>updated_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Last update timestamp</td>
+        </tr>
+    </table>
+    
+    <h2>2.15 Settings Table</h2>
+    <p>Stores system configuration values with version history.</p>
+    
+    <table>
+        <tr>
+            <th>Column</th>
+            <th>Type</th>
+            <th>Constraints</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td><code>id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>PRIMARY KEY, AUTO_INCREMENT</td>
+            <td>Unique identifier</td>
+        </tr>
+        <tr>
+            <td><code>key</code></td>
+            <td>VARCHAR(100)</td>
+            <td>NOT NULL</td>
+            <td>Setting key name</td>
+        </tr>
+        <tr>
+            <td><code>value</code></td>
+            <td>TEXT</td>
+            <td>NOT NULL</td>
+            <td>Setting value</td>
+        </tr>
+        <tr>
+            <td><code>effective_from</code></td>
+            <td>DATE</td>
+            <td>NULLABLE</td>
+            <td>Date setting takes effect</td>
+        </tr>
+        <tr>
+            <td><code>set_by</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>FOREIGN KEY, NULLABLE</td>
+            <td>User who set the value</td>
+        </tr>
+        <tr>
+            <td><code>created_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Record creation date</td>
+        </tr>
+        <tr>
+            <td><code>updated_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Last update timestamp</td>
+        </tr>
+    </table>
+    
+    <div class="info-box">
+        <strong>Common Settings:</strong>
+        <ul style="margin: 5px 0;">
+            <li><strong>electricity_rate:</strong> Cost per kWh with effective date</li>
+            <li><strong>default_due_day:</strong> Standard payment due day (1-28)</li>
+            <li><strong>invoice_advance_days:</strong> Days before month-end to generate invoices</li>
+            <li><strong>overdue_grace_days:</strong> Days after due date before marking overdue</li>
+        </ul>
+    </div>
+    
+    <h2>2.16 Audit Logs Table</h2>
+    <p>Comprehensive audit trail of all system activities.</p>
+    
+    <table>
+        <tr>
+            <th>Column</th>
+            <th>Type</th>
+            <th>Constraints</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td><code>id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>PRIMARY KEY, AUTO_INCREMENT</td>
+            <td>Unique log identifier</td>
+        </tr>
+        <tr>
+            <td><code>user_id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>FOREIGN KEY, NULLABLE</td>
+            <td>User who performed action</td>
+        </tr>
+        <tr>
+            <td><code>action</code></td>
+            <td>VARCHAR(50)</td>
+            <td>NOT NULL</td>
+            <td>Action type: Created, Updated, Deleted, etc.</td>
+        </tr>
+        <tr>
+            <td><code>model_type</code></td>
+            <td>VARCHAR(100)</td>
+            <td>NOT NULL</td>
+            <td>Entity type affected</td>
+        </tr>
+        <tr>
+            <td><code>model_id</code></td>
+            <td>BIGINT UNSIGNED</td>
+            <td>NULLABLE</td>
+            <td>Entity ID affected</td>
+        </tr>
+        <tr>
+            <td><code>description</code></td>
+            <td>TEXT</td>
+            <td>NOT NULL</td>
+            <td>Human-readable description</td>
+        </tr>
+        <tr>
+            <td><code>ip_address</code></td>
+            <td>VARCHAR(45)</td>
+            <td>NULLABLE</td>
+            <td>User IP address</td>
+        </tr>
+        <tr>
+            <td><code>created_at</code></td>
+            <td>TIMESTAMP</td>
+            <td>NOT NULL</td>
+            <td>Action timestamp</td>
+        </tr>
+    </table>
+    
+    <div class="info-box">
+        <strong>Business Rules:</strong>
+        <ul style="margin: 5px 0;">
+            <li>Immutable records (no updates or deletes)</li>
+            <li>Complete trail of all significant system activities</li>
+            <li>Used for compliance, troubleshooting, and dispute resolution</li>
+        </ul>
+    </div>
+</div>
+
+<div class="page-break"></div>
+
+<!-- RELATIONSHIPS -->
+<div class="section">
+    <h1>3. Entity Relationships</h1>
+    
+    <h2>3.1 One-to-One Relationships</h2>
+    <ul>
+        <li><strong>Users ↔ Tenants:</strong> Each user can be one tenant, each tenant has one user account</li>
+    </ul>
+    
+    <h2>3.2 One-to-Many Relationships</h2>
+    <ul>
+        <li><strong>Rooms → Contracts:</strong> One room can have multiple contracts over time</li>
+        <li><strong>Contracts → Invoices:</strong> One contract generates monthly invoices</li>
+        <li><strong>Contracts → Deposit Entries:</strong> One contract has multiple deposit transactions</li>
+        <li><strong>Invoices → Tenant Payments:</strong> One invoice split into payments per tenant</li>
+        <li><strong>Invoices → Payments:</strong> One invoice can have multiple payment transactions</li>
+        <li><strong>Rooms → Meter Readings:</strong> One room has monthly readings</li>
+        <li><strong>Tenants → Laundry Orders:</strong> One tenant can place multiple orders</li>
+        <li><strong>Laundry Orders → Order Items:</strong> One order contains multiple service items</li>
+        <li><strong>Services → Service Prices:</strong> One service has prices for different customer types</li>
+        <li><strong>Users → Created Records:</strong> One user creates multiple contracts, invoices, etc.</li>
+    </ul>
+    
+    <h2>3.3 Many-to-Many Relationships</h2>
+    <ul>
+        <li><strong>Contracts ↔ Tenants:</strong> Multiple tenants can share one contract (junction: contract_tenants)</li>
+        <li><strong>Laundry Orders ↔ Services:</strong> One order can include multiple services (junction: order_items)</li>
+    </ul>
+    
+    <h2>3.4 Referential Integrity</h2>
+    <p>All foreign key relationships enforce cascading rules:</p>
+    <ul>
+        <li><strong>ON DELETE CASCADE:</strong> When parent record is deleted, child records are also deleted (e.g., deleting a contract deletes its invoices)</li>
+        <li><strong>ON DELETE SET NULL:</strong> When parent record is deleted, foreign key is set to NULL (e.g., deleting a user sets created_by to NULL)</li>
+    </ul>
+</div>
+
+<div class="page-break"></div>
+
+<!-- INDEXING STRATEGY -->
+<div class="section">
+    <h1>4. Indexing Strategy</h1>
+    
+    <h2>4.1 Primary Keys</h2>
+    <p>All tables use auto-incrementing BIGINT UNSIGNED primary keys for optimal performance.</p>
+    
+    <h2>4.2 Foreign Key Indexes</h2>
+    <p>All foreign key columns are automatically indexed for join performance.</p>
+    
+    <h2>4.3 Unique Indexes</h2>
+    <ul>
+        <li><code>users.email</code> - Unique email addresses</li>
+        <li><code>rooms.room_number</code> - Unique room numbers</li>
+        <li><code>invoices.invoice_number</code> - Unique invoice numbers</li>
+        <li><code>services.code</code> - Unique service codes</li>
+        <li><code>(tenant_payments.invoice_id, tenant_payments.tenant_id)</code> - One payment per tenant per invoice</li>
+        <li><code>(service_prices.service_id, service_prices.customer_type)</code> - One price per service per customer type</li>
+        <li><code>(meter_readings.room_id, meter_readings.reading_month)</code> - One reading per room per month</li>
+    </ul>
+    
+    <h2>4.4 Composite Indexes</h2>
+    <p>Composite indexes for common query patterns:</p>
+    <ul>
+        <li><code>(contracts.room_id, contracts.is_active)</code> - Find active contract for a room</li>
+        <li><code>(invoices.contract_id, invoices.billing_month)</code> - Find invoice for specific month</li>
+        <li><code>(invoices.status, invoices.due_date)</code> - Find unpaid invoices by due date</li>
+    </ul>
+</div>
+
+<div class="page-break"></div>
+
+<!-- BUSINESS LOGIC -->
+<div class="section">
+    <h1>5. Business Logic & Calculations</h1>
+    
+    <h2>5.1 Deposit Balance Calculation</h2>
+    <p><code>current_balance = SUM(collected) - SUM(deduction) - SUM(refund)</code></p>
+    <p>Where entries are filtered by <code>contract_id</code> and grouped by <code>type</code>.</p>
+    
+    <h2>5.2 Invoice Total Calculation</h2>
+    <p><code>total_amount = rent_amount + electricity_amount + carry_over_balance - credit_balance</code></p>
+    
+    <h2>5.3 Per-Tenant Share</h2>
+    <p><code>share_amount = total_amount ÷ tenant_count</code></p>
+    <p>Automatically calculated when invoice is generated based on number of active tenants in contract.</p>
+    
+    <h2>5.4 Electricity Billing</h2>
+    <p><code>electricity_amount = kwh_used × electricity_rate</code></p>
+    <p>Where <code>kwh_used = current_kwh - previous_kwh</code> from meter_readings.</p>
+    
+    <h2>5.5 Invoice Status Logic</h2>
+    <ul>
+        <li><strong>Pending:</strong> Not yet due, amount_paid = 0</li>
+        <li><strong>Partial:</strong> Some but not all tenants have paid</li>
+        <li><strong>Paid:</strong> All tenants have paid their full share</li>
+        <li><strong>Late:</strong> Past due date but within grace period</li>
+        <li><strong>Overdue:</strong> Past grace period, no payment</li>
+        <li><strong>Void:</strong> Cancelled (usually when contract is deactivated)</li>
+    </ul>
+    
+    <h2>5.6 Carry-Over Balance</h2>
+    <p>Unpaid balance from previous invoices is automatically added to the next invoice as <code>carry_over_balance</code>.</p>
+    
+    <h2>5.7 Credit Balance</h2>
+    <p>Overpayments are automatically applied as <code>credit_balance</code> to reduce the next invoice amount.</p>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+    <p><strong>Dormitory Management System</strong> | Database Design Document v1.0</p>
+    <p>September 2026 | Total Tables: 16 | Total Relationships: 20+</p>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,8 @@
+version: "2"
+authtoken: YOUR_AUTHTOKEN_HERE
+tunnels:
+  dorm:
+    proto: http
+    addr: 8000
+    # Free plan gets random subdomain
+    # Paid plan ($8/mo) allows custom domain: hostname: dorm.yourdomain.com
