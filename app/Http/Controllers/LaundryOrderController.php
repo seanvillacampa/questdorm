@@ -20,7 +20,7 @@ class LaundryOrderController extends Controller implements HasMiddleware
         return [
             'auth',
             new Middleware('can:viewAny,' . LaundryOrder::class, only: ['index']),
-            new Middleware('can:create,' . LaundryOrder::class, only: ['create', 'store']),
+            new Middleware('can:create,' . LaundryOrder::class, only: ['create', 'store', 'searchTenants']),
             new Middleware('can:view,order',   only: ['show']),
             new Middleware('can:update,order', only: ['edit', 'update']),
             new Middleware('can:delete,order', only: ['destroy']),
@@ -77,6 +77,44 @@ class LaundryOrderController extends Controller implements HasMiddleware
             'customerTypes' => Customer::TYPES,
             'inventory'     => $inventory,
         ]);
+    }
+
+    /**
+     * Search tenants by name for autocomplete.
+     */
+    public function searchTenants(Request $request)
+    {
+        $query = $request->string('q', '');
+        
+        if (strlen($query) < 2) {
+            return response()->json([]);
+        }
+
+        $tenants = \App\Models\Tenant::with(['user', 'contracts' => function ($q) {
+            $q->where('is_active', true)
+              ->where('status', 'active')
+              ->with('room');
+        }])
+        ->whereHas('user', function ($q) use ($query) {
+            $q->where('name', 'like', "%{$query}%")
+              ->orWhere('first_name', 'like', "%{$query}%")
+              ->orWhere('last_name', 'like', "%{$query}%");
+        })
+        ->limit(10)
+        ->get()
+        ->map(function ($tenant) {
+            $activeContract = $tenant->contracts->first();
+            $room = $activeContract?->room;
+            
+            return [
+                'id'         => $tenant->id,
+                'name'       => $tenant->user->name,
+                'room_no'    => $room?->room_number ?? '',
+                'contact_no' => $tenant->user->phone ?? '',
+            ];
+        });
+
+        return response()->json($tenants);
     }
 
     public function store(StoreLaundryOrderRequest $request)

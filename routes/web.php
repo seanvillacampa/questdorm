@@ -76,6 +76,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/staff/dashboard',  [DashboardController::class, 'show'])->name('staff.dashboard');
 
         // ── Laundry ──────────────────────────────────────────────────────
+        Route::get('laundry/search-tenants', [LaundryOrderController::class, 'searchTenants'])->name('laundry.search-tenants');
         Route::resource('laundry', LaundryOrderController::class)
             ->parameters(['laundry' => 'order']);
         // Redirect old laundry reports route to unified reports
@@ -159,6 +160,8 @@ Route::middleware('auth')->group(function () {
         Route::get('message',           [TenantPortalController::class, 'messageForm'])->name('message');
         Route::post('message',          [TenantPortalController::class, 'sendMessage'])->name('message.send');
         
+
+
         // Messages/Inbox
         Route::get('messages',          [TenantPortalController::class, 'messages'])->name('messages');
         Route::get('messages/{message}', [TenantPortalController::class, 'showMessage'])->name('messages.show');

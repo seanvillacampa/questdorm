@@ -73,11 +73,28 @@
                 <h2 class="text-sm font-semibold text-gray-900 mb-4">Customer Details</h2>
 
                 <div class="grid grid-cols-2 gap-4">
-                    <div>
+                    <div class="relative">
                         <label class="block text-xs font-medium text-gray-700 mb-1">Customer Name <span class="text-red-500">*</span></label>
-                        <input type="text" name="customer_name" value="{{ old('customer_name') }}"
+                        <input type="text" 
+                               name="customer_name" 
+                               id="customer_name"
+                               value="{{ old('customer_name') }}"
                                placeholder="e.g. Juan dela Cruz"
+                               autocomplete="off"
                                class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 @error('customer_name') border-red-400 @enderror">
+                        
+                        {{-- Autocomplete dropdown --}}
+                        <div id="tenant-autocomplete" class="hidden absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                            <div id="tenant-results" class="divide-y divide-gray-100"></div>
+                            <div id="tenant-loading" class="hidden p-3 text-sm text-gray-500 text-center">
+                                <svg class="inline w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Searching...
+                            </div>
+                            <div id="tenant-no-results" class="hidden p-3 text-sm text-gray-500 text-center">No tenants found</div>
+                        </div>
                     </div>
 
                     <div>
@@ -94,14 +111,20 @@
 
                     <div id="room-field">
                         <label class="block text-xs font-medium text-gray-700 mb-1">Room No. <span class="text-xs text-gray-400">(tenants only)</span></label>
-                        <input type="text" name="room_no" value="{{ old('room_no') }}"
+                        <input type="text" 
+                               name="room_no" 
+                               id="room_no"
+                               value="{{ old('room_no') }}"
                                placeholder="e.g. 201"
                                class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 @error('room_no') border-red-400 @enderror">
                     </div>
 
                     <div>
                         <label class="block text-xs font-medium text-gray-700 mb-1">Contact No. <span class="text-xs text-gray-400">(optional)</span></label>
-                        <input type="text" name="contact_no" value="{{ old('contact_no') }}"
+                        <input type="text" 
+                               name="contact_no" 
+                               id="contact_no"
+                               value="{{ old('contact_no') }}"
                                placeholder="e.g. 09xx xxx xxxx"
                                class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
@@ -233,14 +256,156 @@
 
         let itemIndex = 1;
 
+        // ── Tenant Autocomplete ──────────────────────────────────────────────
+        let searchTimeout = null;
+        const customerNameInput = document.getElementById('customer_name');
+        const customerTypeSelect = document.getElementById('customer_type');
+        const autocompleteDiv = document.getElementById('tenant-autocomplete');
+        const resultsDiv = document.getElementById('tenant-results');
+        const loadingDiv = document.getElementById('tenant-loading');
+        const noResultsDiv = document.getElementById('tenant-no-results');
+        const roomInput = document.getElementById('room_no');
+        const contactInput = document.getElementById('contact_no');
+
+        // Search tenants when typing in customer name (only if customer type is tenant)
+        customerNameInput.addEventListener('input', function() {
+            const query = this.value.trim();
+            
+            console.log('Input event fired. Query:', query, 'Customer type:', customerTypeSelect.value);
+            
+            // Only show autocomplete for tenant customer type
+            if (customerTypeSelect.value !== 'tenant') {
+                console.log('Not tenant type, hiding autocomplete');
+                hideAutocomplete();
+                return;
+            }
+
+            // Clear existing timeout
+            clearTimeout(searchTimeout);
+
+            // Minimum 2 characters to search
+            if (query.length < 2) {
+                console.log('Query too short, hiding autocomplete');
+                hideAutocomplete();
+                return;
+            }
+
+            // Show loading state
+            console.log('Showing loading state');
+            showLoading();
+
+            // Debounce search by 300ms
+            searchTimeout = setTimeout(() => {
+                const url = `{{ route('laundry.search-tenants') }}?q=${encodeURIComponent(query)}`;
+                console.log('Fetching from:', url);
+                
+                fetch(url)
+                    .then(response => {
+                        console.log('Response status:', response.status);
+                        return response.json();
+                    })
+                    .then(tenants => {
+                        console.log('Tenants received:', tenants);
+                        hideLoading();
+                        displayResults(tenants);
+                    })
+                    .catch(error => {
+                        console.error('Tenant search error:', error);
+                        hideLoading();
+                        hideAutocomplete();
+                    });
+            }, 300);
+        });
+
+        // Hide autocomplete when customer type changes
+        customerTypeSelect.addEventListener('change', function() {
+            hideAutocomplete();
+            // Clear fields if switching away from tenant
+            if (this.value !== 'tenant') {
+                roomInput.value = '';
+            }
+        });
+
+        // Hide autocomplete when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!customerNameInput.contains(e.target) && !autocompleteDiv.contains(e.target)) {
+                hideAutocomplete();
+            }
+        });
+
+        function showLoading() {
+            loadingDiv.classList.remove('hidden');
+            noResultsDiv.classList.add('hidden');
+            resultsDiv.innerHTML = '';
+            autocompleteDiv.classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            loadingDiv.classList.add('hidden');
+        }
+
+        function hideAutocomplete() {
+            autocompleteDiv.classList.add('hidden');
+            resultsDiv.innerHTML = '';
+        }
+
+        function displayResults(tenants) {
+            if (tenants.length === 0) {
+                noResultsDiv.classList.remove('hidden');
+                resultsDiv.innerHTML = '';
+                return;
+            }
+
+            noResultsDiv.classList.add('hidden');
+            resultsDiv.innerHTML = tenants.map(tenant => `
+                <button type="button" 
+                        class="tenant-result w-full text-left p-3 hover:bg-blue-50 transition-colors"
+                        data-name="${escapeHtml(tenant.name)}"
+                        data-room="${escapeHtml(tenant.room_no)}"
+                        data-contact="${escapeHtml(tenant.contact_no)}">
+                    <div class="font-medium text-sm text-gray-900">${escapeHtml(tenant.name)}</div>
+                    <div class="text-xs text-gray-500 mt-0.5">
+                        ${tenant.room_no ? `Room ${escapeHtml(tenant.room_no)}` : 'No active room'}
+                        ${tenant.contact_no ? ` • ${escapeHtml(tenant.contact_no)}` : ''}
+                    </div>
+                </button>
+            `).join('');
+
+            autocompleteDiv.classList.remove('hidden');
+
+            // Add click handlers to results
+            document.querySelectorAll('.tenant-result').forEach(button => {
+                button.addEventListener('click', function() {
+                    selectTenant(this.dataset);
+                });
+            });
+        }
+
+        function selectTenant(data) {
+            customerNameInput.value = data.name;
+            roomInput.value = data.room;
+            contactInput.value = data.contact;
+            hideAutocomplete();
+            
+            // Focus on next field (services section)
+            document.querySelector('.service-select')?.focus();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text || '';
+            return div.innerHTML;
+        }
+
+        // ── Room field visibility ────────────────────────────────────────────
+
         // Show/hide room field based on customer type
-        const customerTypeEl = document.getElementById('customer_type');
-        const roomField       = document.getElementById('room-field');
+        const roomField = document.getElementById('room-field');
 
         function toggleRoomField() {
-            roomField.style.display = customerTypeEl.value === 'tenant' ? '' : 'none';
+            roomField.style.display = customerTypeSelect.value === 'tenant' ? '' : 'none';
         }
-        customerTypeEl.addEventListener('change', toggleRoomField);
+        customerTypeSelect.addEventListener('change', toggleRoomField);
         toggleRoomField();
 
         // Sync payment method with status
@@ -283,7 +448,7 @@
 
         // Recalculate live total
         function recalc() {
-            const type = customerTypeEl.value;
+            const type = customerTypeSelect.value;
             let total  = 0;
 
             document.querySelectorAll('.item-row').forEach(function (row) {
@@ -303,7 +468,7 @@
         // Listen for changes on dynamically added rows
         document.getElementById('items-container').addEventListener('change', recalc);
         document.getElementById('items-container').addEventListener('input', recalc);
-        customerTypeEl.addEventListener('change', recalc);
+        customerTypeSelect.addEventListener('change', recalc);
     </script>
 
 </x-layouts.app>
