@@ -9,10 +9,9 @@ use Illuminate\Database\Eloquent\Model;
  *
  * Status is derived from tenantPayments:
  *   paid     — ALL tenants paid
- *   partial  — SOME tenants paid, others haven't (regardless of their status)
- *   late     — NO one paid, billing statement is within the grace period
- *   overdue  — NO one paid, grace period has ended
- *   pending  — NO one paid, due date not yet reached (billing statement just created)
+ *   partial  — SOME tenants paid, others haven't
+ *   overdue  — NO one paid, past grace period
+ *   pending  — NO one paid, not yet generated or due date not reached
  *   void     — cancelled
  */
 class Invoice extends Model

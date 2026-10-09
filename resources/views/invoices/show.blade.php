@@ -214,7 +214,6 @@
                             @if($tp->status !== 'paid')
                                 @php
                                     $pillCls = match($tp->status) {
-                                        'late'    => 'bg-yellow-100 text-yellow-700',
                                         'overdue' => 'bg-red-100 text-red-700',
                                         default   => 'bg-gray-100 text-gray-500',
                                     };

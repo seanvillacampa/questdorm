@@ -82,7 +82,6 @@
         $sCls = match($tp->status) {
           'paid'    => 'status-paid',
           'overdue' => 'status-overdue',
-          'late'    => 'status-overdue',
           'partial' => 'status-partial',
           default   => 'status-pending',
         };

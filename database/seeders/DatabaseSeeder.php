@@ -389,10 +389,6 @@ class DatabaseSeeder extends Seeder
                         $totalAmountPaid += $paidAmt;
                         $tpStatuses[]     = 'paid'; // partial counted as paid for invoice status
 
-                    } elseif ($scenario === 'late') {
-                        $tp->update(['status' => 'late']);
-                        $tpStatuses[] = 'late';
-
                     } elseif ($scenario === 'overdue') {
                         $tp->update(['status' => 'overdue']);
                         $tpStatuses[] = 'overdue';
@@ -405,7 +401,6 @@ class DatabaseSeeder extends Seeder
 
                 // ── Invoice status ────────────────────────────────────────
                 $paidCount    = collect($tpStatuses)->filter(fn($s)=>$s==='paid')->count();
-                $lateCount    = collect($tpStatuses)->filter(fn($s)=>$s==='late')->count();
                 $overdueCount = collect($tpStatuses)->filter(fn($s)=>$s==='overdue')->count();
                 $unpaid       = $occupancy - $paidCount;
 
@@ -413,8 +408,7 @@ class DatabaseSeeder extends Seeder
                     $paidCount === $occupancy      => 'paid',
                     $paidCount > 0                 => 'partial',
                     $overdueCount === $unpaid      => 'overdue',
-                    $lateCount === $unpaid         => 'late',
-                    ($lateCount+$overdueCount) > 0 => 'late',
+                    $overdueCount > 0              => 'partial',
                     default                        => 'pending',
                 };
 
@@ -726,8 +720,7 @@ class DatabaseSeeder extends Seeder
             return match(true) {
                 $seed < 25 => 'paid',       // 25% already paid
                 $seed < 60 => 'pending',    // 35% pending
-                $seed < 80 => 'late',       // 20% late
-                default   => 'overdue',     // 20% overdue
+                default   => 'overdue',     // 40% overdue
             };
         }
 
@@ -738,8 +731,7 @@ class DatabaseSeeder extends Seeder
                 $seed < 45 => 'paid',       // 45% paid
                 $seed < 60 => 'partial',    // 15% partial
                 $seed < 75 => 'pending',    // 15% still pending
-                $seed < 88 => 'late',       // 13% late
-                default   => 'overdue',     // 12% overdue
+                default   => 'overdue',     // 25% overdue
             };
         }
 
@@ -749,9 +741,8 @@ class DatabaseSeeder extends Seeder
             return match(true) {
                 $seed < 60 => 'paid',       // 60% paid
                 $seed < 75 => 'partial',    // 15% partial
-                $seed < 85 => 'late',       // 10% late
-                $seed < 95 => 'pending',    // 10% pending
-                default   => 'overdue',     // 5% overdue
+                $seed < 90 => 'pending',    // 15% pending
+                default   => 'overdue',     // 10% overdue
             };
         }
 
@@ -760,9 +751,8 @@ class DatabaseSeeder extends Seeder
         return match(true) {
             $seed < 75 => 'paid',       // 75% paid
             $seed < 88 => 'partial',    // 13% partial
-            $seed < 95 => 'late',       // 7% late (eventually paid)
-            $seed < 98 => 'pending',    // 3% still pending
-            default   => 'overdue',     // 2% overdue
+            $seed < 95 => 'pending',    // 7% still pending
+            default   => 'overdue',     // 5% overdue
         };
     }
 

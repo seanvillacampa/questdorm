@@ -52,13 +52,13 @@ foreach ($tenantsWithOverdue as $tenant) {
         // Check logic: once we see overdue, all previous should be overdue
         if ($tp->status === 'overdue') {
             $hasOverdue = true;
-        } elseif ($hasOverdue && in_array($tp->status, ['late', 'pending'])) {
-            $hadLateBeforeOverdue = true;
+        } elseif ($hasOverdue && in_array($tp->status, ['pending'])) {
+            $hadPendingBeforeOverdue = true;
         }
     }
     
-    if ($hadLateBeforeOverdue) {
-        echo "  ⚠️  WARNING: Found LATE status before OVERDUE - cascade not working!\n";
+    if ($hadPendingBeforeOverdue) {
+        echo "  ⚠️  WARNING: Found PENDING status before OVERDUE - cascade not working!\n";
     } else {
         echo "  ✓ Cascade working correctly\n";
     }

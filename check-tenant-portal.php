@@ -26,7 +26,7 @@ foreach ($tenants as $tenant) {
     $unpaidInvoice = \App\Models\Invoice::where('contract_id', $contract->id)
         ->whereHas('tenantPayments', function($q) use ($myTenantId) {
             $q->where('tenant_id', $myTenantId)
-              ->whereIn('status', ['pending', 'partial', 'late', 'partial_late', 'overdue', 'partial_overdue']);
+              ->whereIn('status', ['pending', 'partial', 'overdue']);
         })
         ->orderByDesc('billing_month')
         ->with(['tenantPayments.tenant.user', 'payments'])

@@ -312,10 +312,8 @@ class ComprehensiveDummyDataSeeder extends Seeder
                         $status = 'paid';
                     } elseif ($statusRand <= 85) {
                         $status = 'partial';
-                    } elseif ($statusRand <= 92) {
-                        $status = 'overdue';
                     } else {
-                        $status = 'late';
+                        $status = 'overdue';
                     }
                 } else {
                     // Future invoices

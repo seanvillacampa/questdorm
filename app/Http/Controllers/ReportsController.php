@@ -19,7 +19,7 @@ class ReportsController extends Controller
         // Status counts — include pending, partial as their own group
         $rawGroups = $monthInvoices->groupBy(function ($inv) {
             return match(true) {
-                in_array($inv->status, ['partial','partial_late','partial_overdue']) => 'partial',
+                in_array($inv->status, ['partial']) => 'partial',
                 default => $inv->status,
             };
         })->map->count();
@@ -28,7 +28,6 @@ class ReportsController extends Controller
             'paid'    => $rawGroups['paid']    ?? 0,
             'partial' => $rawGroups['partial'] ?? 0,
             'pending' => $rawGroups['pending'] ?? 0,
-            'late'    => $rawGroups['late']    ?? 0,
             'overdue' => $rawGroups['overdue'] ?? 0,
         ]);
 

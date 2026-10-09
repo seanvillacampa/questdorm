@@ -33,7 +33,7 @@
             <select name="status" onchange="this.form.submit()"
                     class="appearance-none bg-white border border-gray-200 rounded-lg pl-3 pr-8 py-1.5 text-sm text-gray-700 shadow-xs focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
                 <option value="">All statuses ({{ $statusCounts->sum() }})</option>
-                @foreach(['paid'=>'Paid','partial'=>'Partially paid','pending'=>'Pending','late'=>'Late','overdue'=>'Overdue'] as $val => $label)
+                @foreach(['paid'=>'Paid','partial'=>'Partially paid','pending'=>'Pending','overdue'=>'Overdue'] as $val => $label)
                     <option value="{{ $val }}" @selected($status === $val)>
                         {{ $label }} ({{ $statusCounts[$val] ?? 0 }})
                     </option>
