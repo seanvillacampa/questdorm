@@ -3,31 +3,45 @@ set -e
 
 echo "Starting QuestDorm application..."
 
-# Wait for database to be ready
-echo "Waiting for database connection..."
-php artisan tinker --execute="DB::connection()->getPdo();" 2>/dev/null || {
-    echo "Waiting for database..."
-    sleep 5
-}
-
 # Fix permissions at runtime (in case volumes are mounted)
 echo "Setting storage permissions..."
-chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache 2>/dev/null || true
+chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache 2>/dev/null || true
 
-# Run database migrations
-echo "Running database migrations..."
-php artisan migrate --force
+# Wait for database to be ready with retry logic
+echo "Waiting for database connection..."
+max_attempts=30
+attempt=0
+until php artisan migrate --force 2>/dev/null || [ $attempt -eq $max_attempts ]; do
+    attempt=$((attempt+1))
+    echo "Database not ready, waiting... (attempt $attempt/$max_attempts)"
+    sleep 2
+done
 
-# Cache configuration for performance
-echo "Caching configuration..."
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+if [ $attempt -eq $max_attempts ]; then
+    echo "ERROR: Could not connect to database after $max_attempts attempts"
+    echo "Starting Apache anyway (migrations can be run manually)..."
+else
+    echo "Database migrations completed successfully!"
+fi
+
+# Clear any existing caches
+echo "Clearing caches..."
+php artisan config:clear 2>/dev/null || true
+php artisan route:clear 2>/dev/null || true
+php artisan view:clear 2>/dev/null || true
+
+# Cache configuration for performance (only if migrations succeeded)
+if [ $attempt -lt $max_attempts ]; then
+    echo "Caching configuration..."
+    php artisan config:cache 2>/dev/null || true
+    php artisan route:cache 2>/dev/null || true
+    php artisan view:cache 2>/dev/null || true
+fi
 
 # Create storage link if it doesn't exist
 echo "Creating storage link..."
-php artisan storage:link || true
+php artisan storage:link 2>/dev/null || true
 
 echo "QuestDorm application started successfully!"
 

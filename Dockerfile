@@ -85,9 +85,9 @@ RUN mkdir -p \
 # Expose port
 EXPOSE 10000
 
-# Copy startup script
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+# Copy and setup startup script
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 
-# Start with entrypoint script
-CMD ["docker-entrypoint.sh"]
+# Use ENTRYPOINT instead of CMD for better script execution
+ENTRYPOINT ["/docker-entrypoint.sh"]
