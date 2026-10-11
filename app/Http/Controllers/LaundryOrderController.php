@@ -102,9 +102,10 @@ class LaundryOrderController extends Controller implements HasMiddleware
               ->with('room');
         }])
         ->whereHas('user', function ($q) use ($searchPattern) {
-            $q->whereRaw('LOWER(name) LIKE ?', [$searchPattern])
-              ->orWhereRaw('LOWER(first_name) LIKE ?', [$searchPattern])
-              ->orWhereRaw('LOWER(last_name) LIKE ?', [$searchPattern]);
+            $q->whereRaw('LOWER(first_name) LIKE ?', [$searchPattern])
+              ->orWhereRaw('LOWER(middle_name) LIKE ?', [$searchPattern])
+              ->orWhereRaw('LOWER(last_name) LIKE ?', [$searchPattern])
+              ->orWhereRaw('LOWER(CONCAT(first_name, " ", COALESCE(middle_name, ""), " ", last_name)) LIKE ?', [$searchPattern]);
         })
         ->limit(10)
         ->get()

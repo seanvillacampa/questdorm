@@ -35,7 +35,10 @@ class PaymentController extends Controller
                     $q2->whereRaw('LOWER(invoice_number) LIKE ?', [$searchPattern]);
                 })
                 ->orWhereHas('tenantPayment.tenant.user', function($q2) use ($searchPattern) {
-                    $q2->whereRaw('LOWER(name) LIKE ?', [$searchPattern]);
+                    $q2->whereRaw('LOWER(first_name) LIKE ?', [$searchPattern])
+                       ->orWhereRaw('LOWER(middle_name) LIKE ?', [$searchPattern])
+                       ->orWhereRaw('LOWER(last_name) LIKE ?', [$searchPattern])
+                       ->orWhereRaw('LOWER(CONCAT(first_name, " ", COALESCE(middle_name, ""), " ", last_name)) LIKE ?', [$searchPattern]);
                 })
                 ->orWhereRaw('LOWER(reference) LIKE ?', [$searchPattern]);
             });
