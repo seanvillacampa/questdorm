@@ -29,6 +29,64 @@ Route::get('/deploy/migrate', function () {
     }
 });
 
+Route::get('/deploy/migrate-specific', function () {
+    $deployKey = request()->query('key');
+    $expectedKey = env('DEPLOY_KEY', 'quest2026deploy');
+
+    if (app()->environment('production') && $deployKey !== $expectedKey) {
+        return '<h1>Access Denied</h1><p>Invalid or missing deploy key.</p>';
+    }
+
+    $results = [];
+
+    // Specific migrations to apply — add more here as needed
+    $pendingMigrations = [
+        '2026_10_11_183551_make_middle_name_nullable_in_users_table',
+    ];
+
+    foreach ($pendingMigrations as $migration) {
+        try {
+            $alreadyRun = \DB::table('migrations')->where('migration', $migration)->exists();
+            if ($alreadyRun) {
+                $results[] = "⏭️  {$migration} — already applied, skipped.";
+                continue;
+            }
+
+            Artisan::call('migrate', [
+                '--force' => true,
+                '--path'  => "database/migrations/{$migration}.php",
+            ]);
+            $output = trim(Artisan::output());
+            $results[] = "✅ {$migration} — {$output}";
+        } catch (\Exception $e) {
+            $results[] = "❌ {$migration} — Error: " . $e->getMessage();
+        }
+    }
+
+    $html = implode('<br><br>', array_map('htmlspecialchars', $results));
+    return "<h1>Migration Results</h1><p>{$html}</p><hr><p><a href='/deploy/status'>Back</a></p>";
+});
+
+Route::get('/deploy/seed-laundry', function () {
+    $deployKey = request()->query('key');
+    $expectedKey = env('DEPLOY_KEY', 'quest2026deploy');
+
+    if (app()->environment('production') && $deployKey !== $expectedKey) {
+        return '<h1>Access Denied</h1><p>Invalid or missing deploy key.</p>';
+    }
+
+    try {
+        Artisan::call('db:seed', [
+            '--class' => 'LaundrySampleDataSeeder',
+            '--force' => true,
+        ]);
+        $output = Artisan::output();
+        return '<h1>✅ Laundry Sample Data Seeded</h1><pre>' . htmlspecialchars($output) . '</pre><hr><p><a href="/deploy/status">Back</a></p>';
+    } catch (\Exception $e) {
+        return '<h1>❌ Seeder Error</h1><pre>' . htmlspecialchars($e->getMessage()) . '</pre>';
+    }
+});
+
 Route::get('/deploy/seed', function () {
     if (app()->environment('production')) {
         return 'Disabled in production. Use CLI instead.';
