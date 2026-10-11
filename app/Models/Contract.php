@@ -83,6 +83,14 @@ class Contract extends Model
         return $this->tenantDeposits->sum(fn($td) => $td->balance());
     }
 
+    /**
+     * Get the deposit required for this contract (from the room).
+     */
+    public function getDepositRequiredAttribute(): float
+    {
+        return $this->room?->deposit_required ?? 0;
+    }
+
     public function lastMeterReading()
     {
         return $this->hasOneThrough(

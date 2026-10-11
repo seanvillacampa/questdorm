@@ -81,6 +81,36 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
+        // Check if we should use the Quest Building SQL dump instead
+        $useQuestDump = env('SEED_WITH_QUEST_DUMP', false);
+        
+        if ($useQuestDump) {
+            $this->command->info('Using Quest Building SQL dump for seeding...');
+            $this->call(QuestBuildingSeeder::class);
+            
+            // Still seed laundry services and orders
+            $this->command->info('Seeding laundry services and orders...');
+            $owner = User::where('email', 'owner@dorm.test')->first();
+            $staff = User::where('email', 'staff@dorm.test')->first();
+            $staff2 = User::where('email', 'staff2@dorm.test')->first();
+            
+            if (!$owner || !$staff || !$staff2) {
+                $this->command->warn('Owner/staff users not found in Quest dump. Creating them...');
+                $this->createStaffUsers();
+                $owner = User::where('email', 'owner@dorm.test')->first();
+                $staff = User::where('email', 'staff@dorm.test')->first();
+                $staff2 = User::where('email', 'staff2@dorm.test')->first();
+            }
+            
+            $this->seedLaundryServices($owner);
+            
+            // Get tenant IDs from database for laundry orders
+            $allTenantIds = $this->getTenantIdsByRoom();
+            $this->seedLaundryOrders($staff, $staff2, $allTenantIds);
+            
+            return;
+        }
+        
         // ── 1. Full wipe ─────────────────────────────────────────────────
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
         foreach ([
@@ -767,5 +797,71 @@ class DatabaseSeeder extends Seeder
         if ($year >= 2026) return 12.50;
         if ($year === 2025 && $month >= 7) return 11.80;
         return 11.20;
+    }
+    
+    /**
+     * Create staff users for Quest Building dump integration
+     */
+    private function createStaffUsers(): void
+    {
+        Role::firstOrCreate(['name' => 'owner', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'employee', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'tenant', 'guard_name' => 'web']);
+        
+        $owner = User::firstOrCreate(
+            ['email' => 'owner@dorm.test'],
+            [
+                'name' => 'Rosa Dela Vega',
+                'phone' => '0917 000 0001',
+                'password' => Hash::make('password'),
+                'is_active' => true,
+                'last_login_at' => now()->subDays(1),
+            ]
+        );
+        $owner->assignRole('owner');
+
+        $staff = User::firstOrCreate(
+            ['email' => 'staff@dorm.test'],
+            [
+                'name' => 'Ben Lopez',
+                'phone' => '0917 000 0002',
+                'password' => Hash::make('password'),
+                'is_active' => true,
+                'last_login_at' => now()->subHours(3),
+            ]
+        );
+        $staff->assignRole('employee');
+
+        $staff2 = User::firstOrCreate(
+            ['email' => 'staff2@dorm.test'],
+            [
+                'name' => 'Ana Cruz',
+                'phone' => '0917 000 0003',
+                'password' => Hash::make('password'),
+                'is_active' => true,
+                'last_login_at' => now()->subDays(2),
+            ]
+        );
+        $staff2->assignRole('employee');
+    }
+    
+    /**
+     * Get tenant IDs grouped by room for Quest Building data
+     */
+    private function getTenantIdsByRoom(): array
+    {
+        $rooms = Room::with(['contracts.tenants'])->get();
+        $result = [];
+        
+        foreach ($rooms as $idx => $room) {
+            $contract = $room->contracts->first();
+            if ($contract) {
+                $result[$idx] = $contract->tenants->pluck('id')->toArray();
+            } else {
+                $result[$idx] = [];
+            }
+        }
+        
+        return $result;
     }
 }

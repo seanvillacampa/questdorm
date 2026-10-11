@@ -29,16 +29,7 @@ class RegisterController extends Controller
         $data = $request->validated();
 
         $user = DB::transaction(function () use ($data) {
-            // Combine names for the 'name' field
-            $nameParts = array_filter([
-                $data['first_name'],
-                $data['middle_name'] ?? null,
-                $data['last_name']
-            ]);
-            $fullName = implode(' ', $nameParts);
-            
             $user = User::create([
-                'name' => $fullName,
                 'first_name' => $data['first_name'],
                 'middle_name' => $data['middle_name'] ?? null,
                 'last_name' => $data['last_name'],

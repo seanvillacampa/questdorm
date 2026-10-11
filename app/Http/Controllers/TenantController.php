@@ -27,7 +27,7 @@ class TenantController extends Controller
                     $q->whereRaw('LOWER(first_name) LIKE ?', [$searchPattern])
                       ->orWhereRaw('LOWER(middle_name) LIKE ?', [$searchPattern])
                       ->orWhereRaw('LOWER(last_name) LIKE ?', [$searchPattern])
-                      ->orWhereRaw('LOWER(name) LIKE ?', [$searchPattern]);
+                      ->orWhereRaw('LOWER(CONCAT(first_name, " ", COALESCE(middle_name, ""), " ", last_name)) LIKE ?', [$searchPattern]);
                 });
             })
             ->orWhereHas('contracts.room', function($roomQuery) use ($searchPattern) {
@@ -85,16 +85,7 @@ class TenantController extends Controller
 
         // Create user + tenant inside transaction
         $user = DB::transaction(function () use ($data) {
-            // Combine names for the 'name' field
-            $nameParts = array_filter([
-                $data['first_name'],
-                $data['middle_name'] ?? null,
-                $data['last_name']
-            ]);
-            $fullName = implode(' ', $nameParts);
-            
             $user = User::create([
-                'name'        => $fullName,
                 'first_name' => $data['first_name'],
                 'middle_name' => $data['middle_name'] ?? null,
                 'last_name'   => $data['last_name'],

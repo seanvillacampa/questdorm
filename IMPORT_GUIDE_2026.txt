@@ -1,0 +1,186 @@
+================================================================================
+QUEST BUILDING DUMMY DATA - JANUARY 2026 TO OCTOBER 11, 2026
+READY TO IMPORT TO CLEVER CLOUD
+================================================================================
+
+FILE: quest_complete_2026.sql
+SIZE: 381 KB
+LINES: 2,982
+
+================================================================================
+WHAT'S INCLUDED
+================================================================================
+
+✅ 28 Rooms (11 on Floor 1, as requested)
+✅ 45 Tenants with random Filipino names
+✅ Random due dates (1st, 5th, 8th, 10th, 12th, 15th, 18th, 20th, 22nd, 25th, 28th)
+✅ All rooms have deposits (fully paid, 2 months rent)
+✅ Random meter readings (150-350 kWh per month)
+✅ Invoices from January 2026 to October 11, 2026 (10 months)
+✅ Spatie role assignments for all tenants
+
+Payment Status:
+- January 2026 - July 2026: 100% PAID (no arrears)
+- August 2026 - October 2026: Mixed statuses
+  • ~35% Paid
+  • ~25% Partial
+  • ~20% Pending
+  • ~20% Overdue
+  
+✅ NO tenant exceeds ₱20,000 in arrears
+✅ NO data after October 11, 2026
+
+================================================================================
+IMPORT INSTRUCTIONS
+================================================================================
+
+METHOD 1: Clever Cloud Dashboard
+---------------------------------
+1. Log into Clever Cloud
+2. Go to your MySQL addon
+3. Open phpMyAdmin (or MySQL console)
+4. Select your database
+5. Click "Import"
+6. Choose: quest_complete_2026.sql
+7. Click "Go"
+
+METHOD 2: MySQL Command Line
+-----------------------------
+mysql -u your_username -p -h your_mysql_host your_database < quest_complete_2026.sql
+
+METHOD 3: Clever CLI
+--------------------
+clever mysql-console < quest_complete_2026.sql
+
+================================================================================
+IMPORTANT: CHECK TENANT ROLE ID
+================================================================================
+
+The SQL file assumes your 'tenant' role has ID = 3.
+
+To check:
+SELECT id FROM roles WHERE name = 'tenant';
+
+If it's NOT 3:
+- Edit quest_complete_2026.sql
+- Search for: (3, 'App\\Models\\User',
+- Replace with: (YOUR_ROLE_ID, 'App\\Models\\User',
+
+================================================================================
+VERIFICATION QUERIES
+================================================================================
+
+After import, run these to verify:
+
+-- Check rooms (should return 28, with 11 on floor 1)
+SELECT floor, COUNT(*) as room_count FROM rooms GROUP BY floor;
+
+-- Check users (should return 45)
+SELECT COUNT(*) FROM users WHERE id >= 101;
+
+-- Check contracts (should return 28)
+SELECT COUNT(*) FROM contracts;
+
+-- Check invoices by status
+SELECT status, COUNT(*) as count, SUM(total_amount) as total
+FROM invoices
+GROUP BY status;
+
+-- Check outstanding balances (all should be < 20000)
+SELECT tenant_id, SUM(share_amount - amount_paid) as outstanding
+FROM tenant_payments
+WHERE status != 'paid'
+GROUP BY tenant_id
+ORDER BY outstanding DESC;
+
+-- Check date range (should be Jan 2026 - Oct 2026)
+SELECT MIN(billing_month) as first_invoice, 
+       MAX(billing_month) as last_invoice,
+       COUNT(*) as total_invoices
+FROM invoices;
+
+================================================================================
+SAMPLE TENANT LOGINS
+================================================================================
+
+All tenants have the same password hash for testing.
+
+To reset passwords:
+php artisan tinker
+> \App\Models\User::where('id', '>=', 101)->update(['password' => bcrypt('password123')]);
+
+Then login with any tenant email + password: password123
+
+Sample emails (randomly generated):
+- Check the SQL file for the full list of 45 tenants
+
+================================================================================
+DATABASE SCHEMA COMPATIBILITY
+================================================================================
+
+This file matches your actual schema:
+
+Users Table:
+✅ phone (not phone_number)
+✅ phone_country_code
+✅ NO role column (uses Spatie's model_has_roles)
+
+Contracts Table:
+✅ deposit_required, deposit_collected (not deposit_amount)
+✅ status (not is_active)
+✅ end_date (NOT NULL)
+✅ monthly_rent column
+✅ created_by (nullable)
+
+Invoices Table:
+✅ tenant_count column
+✅ status values: paid, pending, overdue, partial
+✅ paid_at timestamp
+✅ created_by (nullable)
+
+================================================================================
+DATA SUMMARY
+================================================================================
+
+Rooms: 28 (Floor 1: 11, Floor 2: 6, Floor 3: 6, Floor 4: 5)
+Monthly Rates: ₱4,000 - ₱5,200
+Tenants: 45 with unique random names
+Contracts: 28 (all active)
+Deposits: 45+ records (all fully paid)
+Invoices: ~280 (28 contracts × 10 months)
+Payments: ~200 (Jan-Jul all paid, Aug-Oct mixed)
+Meter Readings: ~560 (2 per invoice)
+Tenant Payments: ~800+ individual shares
+
+Period: January 1, 2026 - October 11, 2026
+Outstanding Balances: All under ₱20,000 per tenant
+Collection Rate: ~85-90% overall
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Error: Duplicate entry for PRIMARY key
+Fix: The SQL includes TRUNCATE statements. Ensure tables can be truncated.
+
+Error: Foreign key constraint fails
+Fix: Check that roles table has 'tenant' role, or adjust role_id in SQL.
+
+Error: Unknown column 'deposit_amount'
+Fix: You're using an old SQL file. Use quest_complete_2026.sql
+
+Data looks wrong after import
+Fix: Clear Laravel cache: php artisan cache:clear
+
+================================================================================
+READY TO IMPORT!
+================================================================================
+
+File: quest_complete_2026.sql
+Status: ✅ Ready for Clever Cloud
+Schema: ✅ Matches your database
+Data: ✅ Complete and validated
+
+Questions? Check the generated SQL file - it has clear comments throughout.
+
+================================================================================

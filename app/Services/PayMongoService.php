@@ -160,7 +160,7 @@ class PayMongoService
      *   data.attributes.data.attributes.source.type       = "gcash|maya|card|..."
      *   data.attributes.data.attributes.amount            = 12000  (centavos)
      *   data.attributes.data.attributes.description       = "..."
-     *   data.attributes.data.attributes.remarks           = "INV-..."
+     *   data.attributes.data.attributes.remarks           = "BILL-..."
      */
     public function parseWebhookEvent(array $body): array
     {

@@ -20,7 +20,7 @@ class AuditLogController extends Controller
                 $q->whereRaw('LOWER(description) LIKE ?', [$searchPattern])
                   ->orWhere('record_id', 'like', $searchPattern)
                   ->orWhereHas('user', function($u) use ($searchPattern) {
-                      $u->whereRaw('LOWER(name) LIKE ?', [$searchPattern]);
+                      $u->whereRaw('LOWER(CONCAT(first_name, " ", middle_name, " ", last_name)) LIKE ?', [$searchPattern]);
                   });
             });
         }
@@ -43,7 +43,7 @@ class AuditLogController extends Controller
 
         $logs       = $query->paginate(15)->withQueryString();
         $actions    = AuditLog::distinct()->orderBy('action')->pluck('action');
-        $staffUsers = \App\Models\User::role(['owner','employee'])->orderBy('name')->get();
+        $staffUsers = \App\Models\User::role(['owner','employee'])->orderBy('last_name')->orderBy('first_name')->get();
 
         return view('audit-logs.index', compact('logs', 'actions', 'staffUsers'));
     }

@@ -61,7 +61,7 @@ class Room extends Model
             ->join('users', 'users.id', '=', 'tenants.user_id')
             ->whereIn('contract_tenants.contract_id', $contractIds)
             ->whereNull('contract_tenants.left_on')
-            ->select('contract_tenants.contract_id', \DB::raw("GROUP_CONCAT(users.name ORDER BY users.name SEPARATOR ', ') as names"))
+            ->select('contract_tenants.contract_id', \DB::raw("GROUP_CONCAT(CONCAT(users.first_name, ' ', users.middle_name, ' ', users.last_name) ORDER BY users.last_name SEPARATOR ', ') as names"))
             ->groupBy('contract_tenants.contract_id')
             ->pluck('names', 'contract_id');
 

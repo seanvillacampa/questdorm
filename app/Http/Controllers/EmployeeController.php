@@ -27,19 +27,23 @@ class EmployeeController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
-            'phone'    => 'nullable|string|max:30',
-            'password' => 'required|string|min:8|confirmed',
-            'role'     => 'required|in:owner,employee',
+            'first_name'  => 'required|string|max:255',
+            'middle_name' => 'nullable|string|max:255',
+            'last_name'   => 'required|string|max:255',
+            'email'       => 'required|email|unique:users,email',
+            'phone'       => 'nullable|string|max:30',
+            'password'    => 'required|string|min:8|confirmed',
+            'role'        => 'required|in:owner,employee',
         ]);
 
         $user = User::create([
-            'name'      => $data['name'],
-            'email'     => $data['email'],
-            'phone'     => $data['phone'] ?? null,
-            'password'  => Hash::make($data['password']),
-            'is_active' => true,
+            'first_name'  => $data['first_name'],
+            'middle_name' => $data['middle_name'] ?? null,
+            'last_name'   => $data['last_name'],
+            'email'       => $data['email'],
+            'phone'       => $data['phone'] ?? null,
+            'password'    => Hash::make($data['password']),
+            'is_active'   => true,
         ]);
         $user->assignRole($data['role']);
 

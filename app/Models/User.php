@@ -25,7 +25,6 @@ class User extends Authenticatable
     protected string $guard_name = 'web';
 
     protected $fillable = [
-        'name',
         'first_name',
         'middle_name',
         'last_name',
@@ -54,22 +53,15 @@ class User extends Authenticatable
 
     /**
      * Accessor: return the full name by concatenating first, middle, last.
-     * Falls back to the 'name' column if the new fields are null.
      */
-    public function getNameAttribute($value)
+    public function getNameAttribute()
     {
-        // If first_name exists, build from parts
-        if (!empty($this->attributes['first_name'])) {
-            $parts = array_filter([
-                $this->attributes['first_name'] ?? '',
-                $this->attributes['middle_name'] ?? '',
-                $this->attributes['last_name'] ?? '',
-            ]);
-            return implode(' ', $parts);
-        }
-        
-        // Otherwise return the legacy 'name' column
-        return $value;
+        $parts = array_filter([
+            $this->first_name ?? '',
+            $this->middle_name ?? '',
+            $this->last_name ?? '',
+        ]);
+        return implode(' ', $parts);
     }
 
     /** Only present when this user is a tenant. */

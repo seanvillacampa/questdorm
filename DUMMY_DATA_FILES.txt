@@ -1,0 +1,81 @@
+================================================================================
+QUEST BUILDING DUMMY DATA - FILE PACKAGE
+Generated: October 11, 2026
+================================================================================
+
+MAIN FILES:
+-----------
+1. rental_management_complete.sql (937.72 KB, 8,910 lines)
+   → READY TO IMPORT - Complete SQL file with all dummy data
+   → Coverage: Jan 2025 - Oct 2026 (22 months)
+   → Includes: Settings, Rooms, Tenants, Contracts, Deposits, Invoices, Payments
+
+2. DUMMY_DATA_README.md
+   → Complete documentation with import instructions
+   → Data statistics and testing scenarios
+   → Troubleshooting guide
+
+3. validate_dummy_data.php
+   → Post-import validation script
+   → Checks data integrity, date ranges, outstanding balances
+   → Run: php validate_dummy_data.php
+
+GENERATION FILES (for reference/regeneration):
+----------------------------------------------
+4. generate_dummy_data.php
+   → PHP script that generated invoice/payment data
+   → Modify and rerun if you need different data patterns
+
+5. rental_management_dummy_data.sql (partial)
+   → Base structure: settings, rooms, users, tenants, contracts, deposits
+
+6. rental_management_dummy_data_invoices.sql (partial)
+   → Generated invoices, payments, meter readings
+
+================================================================================
+QUICK START:
+================================================================================
+
+1. Import the data:
+   mysql -u username -p database_name < rental_management_complete.sql
+
+2. Validate the import:
+   php validate_dummy_data.php
+
+3. Review the documentation:
+   Open DUMMY_DATA_README.md
+
+================================================================================
+DATA SPECIFICATIONS:
+================================================================================
+
+Rooms             : 28 (across 4 floors)
+Tenants           : 45
+Contracts         : 28 (all active)
+Deposits          : 55 (all fully paid)
+Invoices          : 569
+Payments          : 545
+Tenant Payments   : 2,983
+Meter Readings    : 1,138
+
+Date Range        : January 2025 - October 11, 2026
+Billing Period    : 22 months
+
+Payment Status:
+- Jan 2025 - Jul 2026: 100% PAID (~450 invoices)
+- Aug 2026 - Oct 2026: MIXED (~119 invoices)
+  • 40% Paid
+  • 25% Partial
+  • 20% Pending
+  • 15% Overdue
+
+Max Outstanding   : ₱20,000 per tenant (enforced)
+
+================================================================================
+FILE CHECKSUMS (for integrity verification):
+================================================================================
+
+To verify file integrity after download/transfer:
+certutil -hashfile rental_management_complete.sql SHA256
+
+================================================================================
