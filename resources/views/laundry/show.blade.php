@@ -125,14 +125,11 @@
                 </a>
             @endcan
             @can('delete', $order)
-                <form method="POST" action="{{ route('laundry.destroy', $order) }}"
-                      onsubmit="return confirm('Delete this transaction? This cannot be undone.')">
-                    @csrf @method('DELETE')
-                    <button type="submit"
-                            class="px-4 py-2 bg-red-50 text-red-600 text-sm font-medium rounded-lg hover:bg-red-100 transition-colors border border-red-200">
-                        Delete
-                    </button>
-                </form>
+                <button type="button"
+                        onclick="handleDeleteLaundryOrder({{ $order->id }}, '{{ $order->order_no }}')"
+                        class="px-4 py-2 bg-red-50 text-red-600 text-sm font-medium rounded-lg hover:bg-red-100 transition-colors border border-red-200">
+                    Delete
+                </button>
             @endcan
             <a href="{{ route('laundry.index') }}"
                class="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">
@@ -140,5 +137,30 @@
             </a>
         </div>
     </div>
+
+    @push('scripts')
+    <script>
+        function handleDeleteLaundryOrder(orderId, orderNo) {
+            window.showConfirm(
+                'Delete Laundry Transaction',
+                `Delete this transaction (${orderNo})? This cannot be undone.\n\nThis will permanently remove this laundry order.`,
+                () => {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/laundry/${orderId}`;
+                    
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    form.innerHTML = `
+                        <input type="hidden" name="_token" value="${csrfToken}" />
+                        <input type="hidden" name="_method" value="DELETE" />
+                    `;
+                    
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            );
+        }
+    </script>
+    @endpush
 
 </x-layouts.app>

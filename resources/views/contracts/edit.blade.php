@@ -133,16 +133,11 @@
                             </div>
                         </div>
                         
-                        <form method="POST" action="{{ route('contracts.remove-tenant', $contract) }}" 
-                              onsubmit="return confirm('Are you sure you want to remove {{ $tenant->user->name }} from this contract?\n\nThis will:\n• Void their unpaid invoices\n• Redistribute their share to remaining tenants\n• Mark them as having left the contract\n• Show no contract in their tenant portal\n• Free up one bed in the room\n\nThis action cannot be undone.')">
-                            @csrf
-                            @method('DELETE')
-                            <input type="hidden" name="tenant_id" value="{{ $tenant->id }}" />
-                            <button type="submit"
-                                    class="px-3 py-1.5 text-xs font-medium rounded-lg bg-red-100 text-red-700 hover:bg-red-200 transition-colors">
-                                Remove Tenant
-                            </button>
-                        </form>
+                        <button type="button"
+                                onclick="handleRemoveTenant({{ $tenant->id }}, '{{ $tenant->user->name }}')"
+                                class="px-3 py-1.5 text-xs font-medium rounded-lg bg-red-100 text-red-700 hover:bg-red-200 transition-colors">
+                            Remove Tenant
+                        </button>
                     </div>
                 @endforeach
             </div>
@@ -152,5 +147,82 @@
             </div>
         </div>
     </div>
+
+    @push('scripts')
+    <script>
+        function handleRemoveTenant(tenantId, tenantName) {
+            // First check for unpaid invoices via AJAX
+            fetch('{{ route('contracts.remove-tenant', $contract) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    tenant_id: tenantId,
+                    _method: 'DELETE'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    // Tenant has unpaid invoices
+                    const invoiceLinks = data.unpaid_invoices.map((id, index) => {
+                        return `<a href="/invoices/${id}" class="text-red-700 underline hover:text-red-800 font-medium">${data.invoice_numbers[index]}</a>`;
+                    }).join(', ');
+                    
+                    const plural = data.unpaid_invoices.length > 1;
+                    const htmlContent = `
+                        <p class="mb-3 text-red-700">
+                            <strong>${tenantName}</strong> has ${data.unpaid_invoices.length} outstanding unpaid billing ${plural ? 'statements' : 'statement'}:
+                        </p>
+                        <p class="mb-3 text-red-800 font-medium">
+                            ${invoiceLinks}
+                        </p>
+                        <p class="text-red-600 text-sm">
+                            The tenant must settle all outstanding bills before they can be removed from the contract.
+                        </p>
+                    `;
+                    
+                    window.showWarning(
+                        'Cannot Remove Tenant',
+                        null,
+                        htmlContent
+                    );
+                } else {
+                    // No unpaid invoices, proceed with confirmation
+                    window.showConfirm(
+                        'Remove Tenant from Contract',
+                        `Are you sure you want to remove <strong>${tenantName}</strong> from this contract?\n\nThis will:\n• Void their unpaid invoices\n• Redistribute their share to remaining tenants\n• Mark them as having left the contract\n• Show no contract in their tenant portal\n• Free up one bed in the room\n\nThis action cannot be undone.`,
+                        () => {
+                            // User confirmed, submit the form
+                            const form = document.createElement('form');
+                            form.method = 'POST';
+                            form.action = '{{ route('contracts.remove-tenant', $contract) }}';
+                            
+                            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                            form.innerHTML = `
+                                <input type="hidden" name="_token" value="${csrfToken}" />
+                                <input type="hidden" name="_method" value="DELETE" />
+                                <input type="hidden" name="tenant_id" value="${tenantId}" />
+                            `;
+                            
+                            document.body.appendChild(form);
+                            form.submit();
+                        }
+                    );
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                window.showError(
+                    'Error',
+                    'An unexpected error occurred. Please try again.'
+                );
+            });
+        }
+    </script>
+    @endpush
 
 </x-layouts.app>

@@ -195,16 +195,11 @@
                         @can('delete', App\Models\DetergentInventory::class)
                             <td class="px-5 py-3 text-right">
                                 @if ($log->isRestock())
-                                    <form method="POST"
-                                          action="{{ route('detergent.destroy', $log) }}"
-                                          onsubmit="return confirm('Delete this restock entry and reverse the stock?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                                class="text-xs text-red-500 hover:text-red-700 font-medium">
-                                            Delete
-                                        </button>
-                                    </form>
+                                    <button type="button"
+                                            onclick="handleDeleteDetergentRestock({{ $log->id }}, '{{ $log->created_at->format('M d, Y') }}', {{ $log->quantity }})"
+                                            class="text-xs text-red-500 hover:text-red-700 font-medium">
+                                        Delete
+                                    </button>
                                 @endif
                             </td>
                         @endcan
@@ -225,5 +220,30 @@
             </div>
         @endif
     </div>
+
+    @push('scripts')
+    <script>
+        function handleDeleteDetergentRestock(logId, date, quantity) {
+            window.showConfirm(
+                'Delete Restock Entry',
+                `Delete this restock entry from ${date}?\n\nThis will reverse ${quantity} bottle(s) from the stock count.`,
+                () => {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/detergent/${logId}`;
+                    
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    form.innerHTML = `
+                        <input type="hidden" name="_token" value="${csrfToken}" />
+                        <input type="hidden" name="_method" value="DELETE" />
+                    `;
+                    
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            );
+        }
+    </script>
+    @endpush
 
 </x-layouts.app>

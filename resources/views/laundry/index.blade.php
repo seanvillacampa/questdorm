@@ -202,12 +202,11 @@
                                        class="text-xs text-gray-500 hover:text-gray-700 font-medium">Edit</a>
                                 @endcan
                                 @can('delete', $order)
-                                    <form method="POST" action="{{ route('laundry.destroy', $order) }}"
-                                          onsubmit="return confirm('Delete {{ $order->order_no }}?')">
-                                        @csrf @method('DELETE')
-                                        <button type="submit"
-                                                class="text-xs text-red-400 hover:text-red-600 font-medium">Delete</button>
-                                    </form>
+                                    <button type="button"
+                                            onclick="handleDeleteLaundryOrder({{ $order->id }}, '{{ $order->order_no }}')"
+                                            class="text-xs text-red-400 hover:text-red-600 font-medium">
+                                        Delete
+                                    </button>
                                 @endcan
                             </div>
                         </td>
@@ -230,5 +229,30 @@
             </div>
         @endif
     </div>
+
+    @push('scripts')
+    <script>
+        function handleDeleteLaundryOrder(orderId, orderNo) {
+            window.showConfirm(
+                'Delete Laundry Order',
+                `Delete ${orderNo}?\n\nThis will permanently remove this laundry transaction.`,
+                () => {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/laundry/${orderId}`;
+                    
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    form.innerHTML = `
+                        <input type="hidden" name="_token" value="${csrfToken}" />
+                        <input type="hidden" name="_method" value="DELETE" />
+                    `;
+                    
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            );
+        }
+    </script>
+    @endpush
 
 </x-layouts.app>

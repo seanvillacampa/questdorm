@@ -494,6 +494,28 @@ class ContractController extends Controller
             return back()->withErrors(['error' => 'Cannot remove the last tenant. Please deactivate the contract instead.']);
         }
 
+        // Check for unpaid tenant payments
+        $unpaidPayments = TenantPayment::whereHas('invoice', function($query) use ($contract) {
+                $query->where('contract_id', $contract->id);
+            })
+            ->where('tenant_id', $tenant->id)
+            ->where('status', '!=', 'paid')
+            ->where('status', '!=', 'void')
+            ->with('invoice')
+            ->get();
+
+        if ($unpaidPayments->isNotEmpty()) {
+            $invoiceIds = $unpaidPayments->pluck('invoice.id')->unique()->toArray();
+            $invoiceNumbers = $unpaidPayments->pluck('invoice.invoice_number')->unique()->toArray();
+            
+            return response()->json([
+                'error' => true,
+                'message' => 'Cannot remove tenant with unpaid billing statements',
+                'unpaid_invoices' => $invoiceIds,
+                'invoice_numbers' => $invoiceNumbers,
+            ], 422);
+        }
+
         DB::transaction(function () use ($contract, $tenant) {
             // Mark tenant as left
             $contract->tenants()->updateExistingPivot($tenant->id, [

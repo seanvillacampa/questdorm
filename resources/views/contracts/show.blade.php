@@ -27,14 +27,11 @@
                 </a>
             @endif
             @if($contract->is_active)
-                <form method="POST" action="{{ route('contracts.deactivate', $contract) }}"
-                      onsubmit="return confirm('Deactivate this contract?\n\nThis will void all unpaid billing statements and mark Room {{ $contract->room->room_number }} as vacant.\nThis cannot be undone.')">
-                    @csrf @method('PATCH')
-                    <button type="submit"
-                            class="px-3.5 py-2 text-sm font-medium rounded-lg border border-red-200 text-red-600 bg-white hover:bg-red-50 transition-colors">
-                        Make inactive
-                    </button>
-                </form>
+                <button type="button"
+                        onclick="handleDeactivateContract({{ $contract->id }}, '{{ $contract->room->room_number }}')"
+                        class="px-3.5 py-2 text-sm font-medium rounded-lg border border-red-200 text-red-600 bg-white hover:bg-red-50 transition-colors">
+                    Make inactive
+                </button>
             @else
                 <span class="px-3.5 py-2 text-sm font-medium rounded-lg bg-gray-100 text-gray-400">Inactive</span>
             @endif
@@ -221,9 +218,9 @@
                                 @enderror
                             </div>
 
-                            <button type="submit"
-                                    class="w-full px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
-                                    onclick="return confirm('Deduct this amount from the selected tenant\'s deposit?\n\nThis will reduce their individual deposit balance.')">
+                            <button type="button"
+                                    onclick="handleDeductDeposit(event)"
+                                    class="w-full px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors">
                                 Record deduction
                             </button>
                         </form>
@@ -236,5 +233,60 @@
             </div>
         </div>
     </div>
+
+    @push('scripts')
+    <script>
+        function handleDeactivateContract(contractId, roomNumber) {
+            window.showConfirm(
+                'Deactivate Contract',
+                `Deactivate this contract?\n\nThis will void all unpaid billing statements and mark Room ${roomNumber} as vacant.\nThis cannot be undone.`,
+                () => {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/contracts/${contractId}/deactivate`;
+                    
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    form.innerHTML = `
+                        <input type="hidden" name="_token" value="${csrfToken}" />
+                        <input type="hidden" name="_method" value="PATCH" />
+                    `;
+                    
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            );
+        }
+
+        function handleDeductDeposit(event) {
+            const button = event.target;
+            const form = button.closest('form');
+            
+            // Get form values for the confirmation message
+            const tenantSelect = form.querySelector('select[name="tenant_id"]');
+            const amountInput = form.querySelector('input[name="amount"]');
+            
+            if (!tenantSelect.value) {
+                window.showWarning('Missing Information', 'Please select a tenant first.');
+                return;
+            }
+            
+            if (!amountInput.value || parseFloat(amountInput.value) <= 0) {
+                window.showWarning('Missing Information', 'Please enter a valid deduction amount.');
+                return;
+            }
+            
+            const tenantName = tenantSelect.options[tenantSelect.selectedIndex].text.split(' — ')[0];
+            const amount = parseFloat(amountInput.value).toFixed(2);
+            
+            window.showConfirm(
+                'Deduct from Deposit',
+                `Deduct ₱${amount} from ${tenantName}'s deposit?\n\nThis will reduce their individual deposit balance.`,
+                () => {
+                    form.submit();
+                }
+            );
+        }
+    </script>
+    @endpush
 
 </x-layouts.app>

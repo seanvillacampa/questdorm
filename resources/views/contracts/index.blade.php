@@ -66,13 +66,11 @@
                             <div class="flex items-center gap-3">
                                 <a href="{{ route('contracts.show', $contract) }}" class="text-xs font-medium text-blue-600 hover:underline">View</a>
                                 @if($contract->is_active)
-                                    <form method="POST" action="{{ route('contracts.deactivate', $contract) }}"
-                                          onsubmit="return confirm('Deactivate contract CT-{{ str_pad($contract->id,4,'0',STR_PAD_LEFT) }}?\n\nThis will:\n• Void all unpaid invoices\n• Mark Room {{ $contract->room->room_number }} as vacant\n\nThis cannot be undone.')">
-                                        @csrf @method('PATCH')
-                                        <button type="submit" class="text-xs font-medium text-red-500 hover:text-red-700 hover:underline">
-                                            Make inactive
-                                        </button>
-                                    </form>
+                                    <button type="button"
+                                            onclick="handleDeactivateContract({{ $contract->id }}, '{{ str_pad($contract->id,4,'0',STR_PAD_LEFT) }}', '{{ $contract->room->room_number }}')"
+                                            class="text-xs font-medium text-red-500 hover:text-red-700 hover:underline">
+                                        Make inactive
+                                    </button>
                                 @endif
                             </div>
                         </td>
@@ -87,5 +85,31 @@
             {{ $contracts->links('vendor.pagination.simple-tailwind') }}
         </div>
     </div>
+
+    @push('scripts')
+    <script>
+        function handleDeactivateContract(contractId, contractNumber, roomNumber) {
+            window.showConfirm(
+                'Deactivate Contract',
+                `Deactivate contract CT-${contractNumber}?\n\nThis will:\n• Void all unpaid invoices\n• Mark Room ${roomNumber} as vacant\n\nThis cannot be undone.`,
+                () => {
+                    // User confirmed, submit the form
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/contracts/${contractId}/deactivate`;
+                    
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    form.innerHTML = `
+                        <input type="hidden" name="_token" value="${csrfToken}" />
+                        <input type="hidden" name="_method" value="PATCH" />
+                    `;
+                    
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            );
+        }
+    </script>
+    @endpush
 
 </x-layouts.app>

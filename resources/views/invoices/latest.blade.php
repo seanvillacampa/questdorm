@@ -115,14 +115,11 @@
                         </td>
                         <td class="px-4 py-3">
                             @if($inv->status !== 'paid' && auth()->user()->hasRole('owner'))
-                                <form method="POST" action="{{ route('invoices.void', $inv) }}"
-                                      onsubmit="return confirm('Cancel billing statement {{ $inv->invoice_number }}?')">
-                                    @csrf
-                                    <button type="submit"
-                                            class="text-xs font-medium text-red-500 hover:text-red-700 hover:underline">
-                                        Cancel
-                                    </button>
-                                </form>
+                                <button type="button"
+                                        onclick="handleVoidInvoice({{ $inv->id }}, '{{ $inv->invoice_number }}')"
+                                        class="text-xs font-medium text-red-500 hover:text-red-700 hover:underline">
+                                    Cancel
+                                </button>
                             @else
                                 <span class="text-xs text-gray-300">—</span>
                             @endif
@@ -150,5 +147,27 @@
             {{ $invoices->links('vendor.pagination.simple-tailwind') }}
         </div>
     </div>
+
+    @push('scripts')
+    <script>
+        function handleVoidInvoice(invoiceId, invoiceNumber) {
+            window.showConfirm(
+                'Cancel Billing Statement',
+                `Cancel billing statement ${invoiceNumber}?\n\nThis will void the billing statement and all related tenant payments.`,
+                () => {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/invoices/${invoiceId}/void`;
+                    
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    form.innerHTML = `<input type="hidden" name="_token" value="${csrfToken}" />`;
+                    
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            );
+        }
+    </script>
+    @endpush
 
 </x-layouts.app>

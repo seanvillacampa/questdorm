@@ -284,14 +284,11 @@
             {{-- Void --}}
             @if($canVoid)
             <div class="bg-white rounded-xl border border-gray-200 shadow-xs p-4">
-                <form method="POST" action="{{ route('invoices.void', $invoice) }}">
-                    @csrf
-                    <button type="submit"
-                            onclick="return confirm('Void this invoice? This cannot be undone.')"
-                            class="w-full px-3.5 py-2 border border-red-200 text-red-600 text-sm font-medium rounded-lg hover:bg-red-50 transition-colors">
-                        Void invoice (owner only)
-                    </button>
-                </form>
+                <button type="button"
+                        onclick="handleVoidInvoice({{ $invoice->id }}, '{{ $invoice->invoice_number }}')"
+                        class="w-full px-3.5 py-2 border border-red-200 text-red-600 text-sm font-medium rounded-lg hover:bg-red-50 transition-colors">
+                    Void invoice (owner only)
+                </button>
             </div>
             @endif
 
@@ -311,5 +308,27 @@
             </div>
         </div>
     </div>
+
+    @push('scripts')
+    <script>
+        function handleVoidInvoice(invoiceId, invoiceNumber) {
+            window.showConfirm(
+                'Void Invoice',
+                `Void invoice ${invoiceNumber}? This cannot be undone.\n\nThis will void the billing statement and all related tenant payments.`,
+                () => {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/invoices/${invoiceId}/void`;
+                    
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    form.innerHTML = `<input type="hidden" name="_token" value="${csrfToken}" />`;
+                    
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            );
+        }
+    </script>
+    @endpush
 
 </x-layouts.app>

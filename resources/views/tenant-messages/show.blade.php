@@ -136,26 +136,47 @@
 
         {{-- Mark as Resolved Button --}}
         <div class="mt-4 bg-slate-50 rounded-xl border border-slate-200 px-6 py-4">
-            <form method="POST" action="{{ route('tenant-messages.resolve', $message) }}" onsubmit="return confirm('Mark this concern as resolved? This will close the conversation.');">
-                @csrf
-                <div class="flex items-center justify-between">
-                    <div class="text-sm text-slate-600">
-                        Has this concern been fully addressed?
-                    </div>
-                    <button type="submit" class="px-4 py-2 bg-green-600 text-white text-sm font-bold rounded-lg hover:bg-green-700 transition flex items-center gap-2">
-                        <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                            <path d="M22 4L12 14.01l-3-3"/>
-                        </svg>
-                        Mark as Resolved
-                    </button>
+            <div class="flex items-center justify-between">
+                <div class="text-sm text-slate-600">
+                    Has this concern been fully addressed?
                 </div>
-            </form>
+                <button type="button"
+                        onclick="handleResolveMessage({{ $message->id }})"
+                        class="px-4 py-2 bg-green-600 text-white text-sm font-bold rounded-lg hover:bg-green-700 transition flex items-center gap-2">
+                    <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                        <path d="M22 4L12 14.01l-3-3"/>
+                    </svg>
+                    Mark as Resolved
+                </button>
+            </div>
         </div>
     @else
         <div class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-center text-sm text-slate-600">
             This conversation has been resolved and is now closed.
         </div>
     @endunless
+
+    @push('scripts')
+    <script>
+        function handleResolveMessage(messageId) {
+            window.showConfirm(
+                'Mark as Resolved',
+                'Mark this concern as resolved? This will close the conversation.',
+                () => {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/tenant-messages/${messageId}/resolve`;
+                    
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    form.innerHTML = `<input type="hidden" name="_token" value="${csrfToken}" />`;
+                    
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            );
+        }
+    </script>
+    @endpush
 
 </x-layouts.app>

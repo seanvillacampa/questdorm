@@ -118,5 +118,8 @@
         </div>
     </div>
     @stack('scripts')
+    
+    <!-- Global Popup Component -->
+    <x-popup />
 </body>
 </html>
