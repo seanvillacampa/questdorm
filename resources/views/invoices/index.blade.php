@@ -120,12 +120,15 @@
                 <tbody class="divide-y divide-gray-50">
                     @forelse($allInvoices as $inv)
                         @php
-                            $graceDays   = \App\Models\Setting::billingRules()['overdue_grace_days'];
+                            $graceDays    = \App\Models\Setting::billingRules()['overdue_grace_days'];
                             $daysUntilDue = now()->startOfDay()->diffInDays($inv->due_date->startOfDay(), false);
-                            $dueDateCls  = match(true) {
-                                $inv->status === 'overdue'                                                  => 'text-red-600 font-semibold',
-                                in_array($inv->status, ['pending','partial']) && $daysUntilDue <= $graceDays => 'text-orange-500 font-semibold',
-                                default                                                                     => 'text-gray-500',
+                            // Date-based coloring — works even when scheduler hasn't run
+                            // paid/void: no highlight | past due date: red | within grace window: orange | future: gray
+                            $dueDateCls = match(true) {
+                                in_array($inv->status, ['paid','void'])                                        => 'text-gray-400',
+                                $daysUntilDue < 0                                                              => 'text-red-600 font-semibold',
+                                $daysUntilDue <= $graceDays                                                    => 'text-orange-500 font-semibold',
+                                default                                                                        => 'text-gray-500',
                             };
                         @endphp
                         <tr class="{{ $inv->status === 'void' ? 'opacity-50 bg-gray-50' : 'hover:bg-gray-50' }} transition-colors">
@@ -187,10 +190,12 @@
                             $displayStatus  = ucwords(str_replace('_',' ',$inv->status));
                             $graceDays      = \App\Models\Setting::billingRules()['overdue_grace_days'];
                             $daysUntilDue   = now()->startOfDay()->diffInDays($inv->due_date->startOfDay(), false);
-                            $dueDateCls     = match(true) {
-                                $inv->status === 'overdue'                                                      => 'text-red-600 font-semibold',
-                                in_array($inv->status, ['pending','partial']) && $daysUntilDue <= $graceDays    => 'text-orange-500 font-semibold',
-                                default                                                                         => 'text-gray-500',
+                            // Date-based coloring — works even when scheduler hasn't run
+                            $dueDateCls = match(true) {
+                                in_array($inv->status, ['paid','void'])   => 'text-gray-400',
+                                $daysUntilDue < 0                         => 'text-red-600 font-semibold',
+                                $daysUntilDue <= $graceDays               => 'text-orange-500 font-semibold',
+                                default                                   => 'text-gray-500',
                             };
                         @endphp
                         <tr class="hover:bg-gray-50 transition-colors">

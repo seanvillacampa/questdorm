@@ -224,11 +224,14 @@
                                                 $status = 'has_message';
                                             } else {
                                                 $invStatus = $invoice?->status;
-                                                if ($invStatus && in_array($invStatus, ['pending','partial'])) {
+                                                if ($invStatus && !in_array($invStatus, ['paid','void'])) {
+                                                    // Date-based override — works even if scheduler hasn't run
                                                     $graceDays    = \App\Models\Setting::billingRules()['overdue_grace_days'];
                                                     $daysUntilDue = now()->startOfDay()->diffInDays($invoice->due_date->startOfDay(), false);
-                                                    if ($daysUntilDue <= $graceDays) {
-                                                        $invStatus = 'due_soon';
+                                                    if ($daysUntilDue < 0) {
+                                                        $invStatus = 'overdue';   // past due → red
+                                                    } elseif ($daysUntilDue <= $graceDays) {
+                                                        $invStatus = 'due_soon';  // within grace → orange
                                                     }
                                                 }
                                                 $status = $invStatus
