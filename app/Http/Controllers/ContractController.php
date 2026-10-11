@@ -303,7 +303,15 @@ class ContractController extends Controller
 
     public function show(Contract $contract)
     {
-        $contract->load(['room', 'tenants.user', 'invoices.tenantPayments.tenant.user', 'createdBy', 'depositEntries.recordedBy']);
+        $contract->load([
+            'room', 
+            'tenants' => function($query) {
+                $query->wherePivot('left_on', null)->with('user');
+            },
+            'invoices.tenantPayments.tenant.user', 
+            'createdBy', 
+            'depositEntries.recordedBy'
+        ]);
 
         $tenantCount   = $contract->tenants->count();
         $rentPerTenant = $tenantCount > 0

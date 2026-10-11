@@ -14,9 +14,18 @@ class TenantPortalController extends Controller
 {
     private function activeContract(): ?Contract
     {
-        return Auth::user()->tenant?->contracts()
-            ->where('status', 'active')
-            ->with(['room', 'tenants.user'])
+        $tenant = Auth::user()->tenant;
+        
+        if (!$tenant) {
+            return null;
+        }
+        
+        return $tenant->contracts()
+            ->where('is_active', true)
+            ->wherePivot('left_on', null)
+            ->with(['room', 'tenants' => function($query) {
+                $query->wherePivot('left_on', null)->with('user');
+            }])
             ->first();
     }
 
