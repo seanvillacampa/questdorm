@@ -115,6 +115,42 @@
                 </button>
             </div>
         </form>
+
+        {{-- Tenant Management Section --}}
+        <div class="mt-8 border-t border-gray-200 pt-6">
+            <h3 class="text-md font-semibold text-gray-900 mb-4">Manage Tenants</h3>
+            
+            <div class="space-y-3">
+                @foreach($contract->tenants as $tenant)
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-sm font-semibold">
+                                {{ strtoupper(substr($tenant->user->name, 0, 1)) }}
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-900">{{ $tenant->user->name }}</p>
+                                <p class="text-xs text-gray-500">{{ $tenant->user->email }}</p>
+                            </div>
+                        </div>
+                        
+                        <form method="POST" action="{{ route('contracts.remove-tenant', $contract) }}" 
+                              onsubmit="return confirm('Remove {{ $tenant->user->name }} from this contract? This will update all future billing statements.')">
+                            @csrf
+                            @method('DELETE')
+                            <input type="hidden" name="tenant_id" value="{{ $tenant->id }}" />
+                            <button type="submit"
+                                    class="px-3 py-1.5 text-xs font-medium rounded-lg bg-red-100 text-red-700 hover:bg-red-200 transition-colors">
+                                Remove Tenant
+                            </button>
+                        </form>
+                    </div>
+                @endforeach
+            </div>
+
+            <div class="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
+                <strong>Note:</strong> Removing a tenant will void their unpaid invoices and update the room's occupancy status. This action cannot be undone.
+            </div>
+        </div>
     </div>
 
 </x-layouts.app>

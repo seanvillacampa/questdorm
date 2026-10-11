@@ -326,4 +326,103 @@ class ContractController extends Controller
         return redirect()->route('contracts.show', $contract)
             ->with('success', "Deducted ₱" . number_format($data['amount'], 2) . " from {$tenant->user->name}'s deposit. Their remaining balance: ₱" . number_format($tenantDeposit->balance(), 2));
     }
+
+    /**
+     * Remove a tenant from a contract.
+     * This will:
+     * - Detach the tenant from the contract
+     * - Void unpaid invoices for that tenant
+     * - Update room occupancy count
+     * - Recalculate future billing statements
+     */
+    public function removeTenant(Request $request, Contract $contract)
+    {
+        $data = $request->validate([
+            'tenant_id' => 'required|exists:tenants,id',
+        ]);
+
+        $tenant = Tenant::findOrFail($data['tenant_id']);
+        
+        // Check if tenant is part of this contract
+        if (!$contract->tenants->contains($tenant->id)) {
+            return back()->withErrors(['error' => 'Tenant is not part of this contract.']);
+        }
+
+        // Check if this is the last tenant
+        if ($contract->tenants->count() <= 1) {
+            return back()->withErrors(['error' => 'Cannot remove the last tenant. Please deactivate the contract instead.']);
+        }
+
+        DB::transaction(function () use ($contract, $tenant) {
+            // Mark tenant as left
+            $contract->tenants()->updateExistingPivot($tenant->id, [
+                'left_on' => now(),
+            ]);
+
+            // Void unpaid tenant payments for this tenant
+            $unpaidTenantPayments = TenantPayment::whereHas('invoice', function($q) use ($contract) {
+                $q->where('contract_id', $contract->id);
+            })
+            ->where('tenant_id', $tenant->id)
+            ->whereNotIn('status', ['paid', 'void'])
+            ->get();
+
+            foreach ($unpaidTenantPayments as $tp) {
+                $tp->update(['status' => 'void']);
+                
+                // Update invoice tenant_count and recalculate totals
+                $invoice = $tp->invoice;
+                $activeTenants = $contract->tenants()->wherePivot('left_on', null)->count();
+                
+                if ($activeTenants > 0 && $invoice->status !== 'void') {
+                    // Recalculate the invoice for remaining tenants
+                    $newTenantCount = $activeTenants;
+                    $rentPerTenant = round($invoice->rent_amount / $newTenantCount, 2);
+                    $elecPerTenant = round($invoice->electricity_amount / $newTenantCount, 2);
+                    
+                    $invoice->update([
+                        'tenant_count' => $newTenantCount,
+                    ]);
+                    
+                    // Update remaining active tenant payments
+                    TenantPayment::where('invoice_id', $invoice->id)
+                        ->whereIn('tenant_id', $contract->tenants()->wherePivot('left_on', null)->pluck('tenants.id'))
+                        ->update([
+                            'share_amount' => $rentPerTenant + $elecPerTenant,
+                        ]);
+                }
+            }
+
+            // Update room occupancy status
+            $room = $contract->room;
+            $remainingTenants = $contract->tenants()->wherePivot('left_on', null)->count();
+            $capacity = (int) $room->capacity;
+            
+            if ($remainingTenants === 0) {
+                $room->update(['status' => 'vacant']);
+            } elseif ($remainingTenants < $capacity) {
+                $room->update(['status' => 'occupied']);
+            }
+
+            AuditLog::record('Removed Tenant', 'Contract', $contract->id,
+                "Removed {$tenant->user->name} from contract. {$remainingTenants} tenant(s) remaining.");
+        });
+
+        $remainingTenants = $contract->tenants()->wherePivot('left_on', null)->count();
+        $room = $contract->room;
+        $capacity = (int) $room->capacity;
+        $bedsAvailable = $capacity - $remainingTenants;
+        
+        $occupancyText = "{$remainingTenants}/{$capacity} occupied";
+        $availabilityText = $bedsAvailable > 0 
+            ? ($bedsAvailable === 1 
+                ? "1 bed is available" 
+                : "{$bedsAvailable} beds are available")
+            : "room is full";
+
+        $message = "Contract CT-" . str_pad($contract->id, 4, '0', STR_PAD_LEFT) 
+                 . " updated successfully. {$tenant->user->name} has left. {$availabilityText} ({$occupancyText}).";
+
+        return redirect()->route('contracts.edit', $contract)->with('success', $message);
+    }
 }

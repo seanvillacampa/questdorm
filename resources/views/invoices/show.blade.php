@@ -14,9 +14,10 @@
                 {{ $invoice->tenant_count }} tenant(s)
             </p>
         </div>
-        <button class="px-3.5 py-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50">
+        <a href="{{ route('invoices.pdf', $invoice) }}" 
+           class="px-3.5 py-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50">
             Download PDF
-        </button>
+        </a>
     </div>
 
     <div class="grid grid-cols-[1fr_300px] gap-4 items-start">

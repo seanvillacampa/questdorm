@@ -19,7 +19,7 @@
     <form method="GET" class="mb-4">
         <div class="flex items-center gap-2 bg-gray-100 rounded-md px-3 py-1.5 max-w-xs">
             <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search name, email or room"
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name or room"
                    class="bg-transparent text-xs text-gray-600 placeholder-gray-400 outline-none w-full" />
         </div>
     </form>

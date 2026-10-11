@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class InvoiceController extends Controller
 {
@@ -222,6 +223,23 @@ class InvoiceController extends Controller
         ]);
         $canVoid = Auth::user()->hasRole('owner') && $invoice->status !== 'void';
         return view('invoices.show', compact('invoice', 'canVoid'));
+    }
+
+    // ── Download PDF ─────────────────────────────────────────────────────
+
+    public function downloadPdf(Invoice $invoice)
+    {
+        $invoice->load([
+            'contract.room',
+            'contract.tenants.user',
+            'tenantPayments.tenant.user',
+            'payments.tenantPayment.tenant.user',
+        ]);
+
+        $pdf = Pdf::loadView('invoices.pdf', compact('invoice'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->download("Billing-Statement-{$invoice->invoice_number}.pdf");
     }
 
     // ── Generate ─────────────────────────────────────────────────────────

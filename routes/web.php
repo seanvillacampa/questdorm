@@ -100,11 +100,13 @@ Route::middleware('auth')->group(function () {
         Route::resource('contracts', ContractController::class)->only(['index','create','store','show','edit','update']);
         Route::patch('contracts/{contract}/deactivate', [ContractController::class, 'deactivate'])->name('contracts.deactivate');
         Route::post('contracts/{contract}/deduct-deposit', [ContractController::class, 'deductDeposit'])->name('contracts.deduct-deposit');
+        Route::delete('contracts/{contract}/remove-tenant', [ContractController::class, 'removeTenant'])->name('contracts.remove-tenant');
 
         // Invoices
         Route::get('invoices',                  [InvoiceController::class, 'index'])->name('invoices.index');
         Route::get('invoices/latest',           [InvoiceController::class, 'latest'])->name('invoices.latest');
         Route::get('invoices/{invoice}',        [InvoiceController::class, 'show'])->name('invoices.show');
+        Route::get('invoices/{invoice}/pdf',    [InvoiceController::class, 'downloadPdf'])->name('invoices.pdf');
         Route::post('invoices/generate',        [InvoiceController::class, 'generate'])->name('invoices.generate');
         Route::post('invoices/cancel',          [InvoiceController::class, 'cancel'])->name('invoices.cancel');
         Route::post('invoices/{invoice}/void',  [InvoiceController::class, 'void'])->name('invoices.void')

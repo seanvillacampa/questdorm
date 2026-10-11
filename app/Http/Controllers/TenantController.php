@@ -22,12 +22,16 @@ class TenantController extends Controller
 
         if ($request->filled('search')) {
             $s = '%'.$request->search.'%';
-            $query->where(fn ($q) =>
+            $query->where(function ($q) use ($s) {
                 $q->where('users.first_name', 'like', $s)
                   ->orWhere('users.middle_name', 'like', $s)
                   ->orWhere('users.last_name', 'like', $s)
-                  ->orWhereHas('contracts.room', fn($r) => $r->where('room_number', 'like', $s))
-            );
+                  ->orWhereHas('contracts', function($contractQuery) use ($s) {
+                      $contractQuery->whereHas('room', function($roomQuery) use ($s) {
+                          $roomQuery->where('room_number', 'like', $s);
+                      });
+                  });
+            });
         }
 
         $tenants = $query->orderBy('users.first_name')->paginate(10)->withQueryString();
