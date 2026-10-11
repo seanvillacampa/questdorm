@@ -1,8 +1,28 @@
 <x-layouts.app :title="'Dashboard — Quest Building'">
     <style>
-        /* Custom scrollbar for horizontal room scroll */
-        .overflow-x-auto::-webkit-scrollbar {
-            display: none;
+        /* Custom styled scrollbar for horizontal room scroll */
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 8px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #e5e7eb; /* Grey background */
+            border-radius: 4px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #10b981; /* Green color matching system */
+            border-radius: 4px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #059669; /* Darker green on hover */
+        }
+        
+        /* Firefox scrollbar styling */
+        .custom-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: #10b981 #e5e7eb; /* Green thumb, grey track */
         }
         
         /* Prevent text selection during drag */
@@ -182,8 +202,8 @@
                                 <div class="mb-3 text-xs font-bold text-slate-500">Floor {{ $floor }}</div>
                                 
                                 <div id="floor-{{ $floor }}-scroll" 
-                                     class="overflow-x-auto pb-2 scroll-smooth cursor-grab active:cursor-grabbing" 
-                                     style="scrollbar-width: none; -ms-overflow-style: none;">
+                                     class="overflow-x-auto scroll-smooth cursor-grab active:cursor-grabbing custom-scrollbar" 
+                                     style="padding-bottom: 12px;">
                                     <div class="flex gap-2 min-w-min">
                                         @foreach($floorRooms as $room)
                                         @php
