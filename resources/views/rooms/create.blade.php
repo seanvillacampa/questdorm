@@ -30,19 +30,12 @@
                 @error('capacity') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">Monthly rate (₱)</label>
-                    <input type="number" name="monthly_rate" value="{{ old('monthly_rate') }}" step="0.01" min="0"
-                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required />
-                    @error('monthly_rate') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">Deposit required (₱)</label>
-                    <input type="number" name="deposit_required" value="{{ old('deposit_required', 0) }}" step="0.01" min="0"
-                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required />
-                    @error('deposit_required') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
-                </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Monthly rate (₱)</label>
+                <input type="number" name="monthly_rate" value="{{ old('monthly_rate') }}" step="0.01" min="0"
+                       class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                @error('monthly_rate') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                <p class="mt-1 text-xs text-gray-500">Deposit will be calculated automatically based on owner settings (deposit months × monthly rate)</p>
             </div>
 
             <div>

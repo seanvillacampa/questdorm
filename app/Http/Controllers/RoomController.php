@@ -53,7 +53,6 @@ class RoomController extends Controller
             'floor'             => 'required|integer|min:1|max:20',
             'capacity'          => 'required|integer|min:1|max:20',
             'monthly_rate'      => 'required|numeric|min:0',
-            'deposit_required'  => 'required|numeric|min:0',
             'meter_number'      => [
                 'nullable', 'string', 'max:30',
                 \Illuminate\Validation\Rule::unique('rooms', 'meter_number'),
@@ -61,16 +60,21 @@ class RoomController extends Controller
             'is_airconditioned' => 'nullable|boolean',
         ]);
 
+        // Calculate deposit_required based on owner settings
+        $billingRules = \App\Models\Setting::billingRules();
+        $depositMonths = $billingRules['deposit_months'];
+        $data['deposit_required'] = $data['monthly_rate'] * $depositMonths;
+
         // New rooms are always vacant
         $data['status']            = 'vacant';
         $data['is_airconditioned'] = $request->boolean('is_airconditioned');
 
         $room = Room::create($data);
 
-        AuditLog::record('Created', 'Room', $room->id, "Room {$room->room_number} added (vacant)");
+        AuditLog::record('Created', 'Room', $room->id, "Room {$room->room_number} added (vacant). Deposit: ₱" . number_format($data['deposit_required'], 2) . " ({$depositMonths} months)");
 
         return redirect()->route('rooms.index')
-            ->with('success', "Room {$room->room_number} created.");
+            ->with('success', "Room {$room->room_number} created. Deposit set to ₱" . number_format($data['deposit_required'], 2) . " ({$depositMonths} month deposit).");
     }
 
     public function edit(Room $room)
@@ -91,7 +95,6 @@ class RoomController extends Controller
             'floor'             => 'required|integer|min:1|max:20',
             'capacity'          => 'required|integer|min:1|max:20',
             'monthly_rate'      => 'required|numeric|min:0',
-            'deposit_required'  => 'required|numeric|min:0',
             'meter_number'      => [
                 'nullable', 'string', 'max:30',
                 \Illuminate\Validation\Rule::unique('rooms', 'meter_number')->ignore($room->id),
@@ -99,6 +102,11 @@ class RoomController extends Controller
             'status'            => 'required|in:vacant,occupied,maintenance',
             'is_airconditioned' => 'nullable|boolean',
         ]);
+
+        // Recalculate deposit_required based on owner settings if monthly_rate changed
+        $billingRules = \App\Models\Setting::billingRules();
+        $depositMonths = $billingRules['deposit_months'];
+        $data['deposit_required'] = $data['monthly_rate'] * $depositMonths;
 
         $data['is_airconditioned'] = $request->boolean('is_airconditioned');
         $oldStatus = $room->status;
