@@ -1,0 +1,97 @@
+# Save as: .github/workflows/db-backup.yml
+#
+# Daily MySQL backup: Clever Cloud -> gzip -> encrypt -> Google Drive
+# Keeps ~7 daily, ~4 weekly, ~3 monthly copies.
+#
+# Restore later with:
+#   gpg --batch --passphrase "YOUR_PASSPHRASE" -d backup.sql.gz.gpg | gunzip | mysql -h HOST -P PORT -u USER -p DBNAME
+ 
+name: Database Backup
+ 
+on:
+  schedule:
+    # 18:00 UTC = 02:00 Philippine time (UTC+8)
+    - cron: "0 18 * * *"
+  workflow_dispatch: # lets you run it manually from the Actions tab
+ 
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+ 
+    env:
+      DB_HOST: ${{ secrets.DB_HOST }}
+      DB_PORT: ${{ secrets.DB_PORT }}
+      DB_NAME: ${{ secrets.DB_NAME }}
+      DB_USER: ${{ secrets.DB_USER }}
+      MYSQL_PWD: ${{ secrets.DB_PASSWORD }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+      # rclone remote "gdrive" configured entirely through env vars
+      RCLONE_CONFIG_GDRIVE_TYPE: drive
+      RCLONE_CONFIG_GDRIVE_SCOPE: drive
+      RCLONE_CONFIG_GDRIVE_TOKEN: ${{ secrets.RCLONE_DRIVE_TOKEN }}
+      RCLONE_CONFIG_GDRIVE_ROOT_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+ 
+    steps:
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mysql-client rclone gnupg
+ 
+      - name: Dump database
+        run: |
+          STAMP=$(TZ=Asia/Manila date +%Y-%m-%d_%H-%M)
+          echo "FILE=dorm-backup_${STAMP}.sql.gz.gpg" >> "$GITHUB_ENV"
+ 
+          mysqldump \
+            --host="$DB_HOST" --port="${DB_PORT:-3306}" --user="$DB_USER" \
+            --single-transaction --quick --routines --triggers \
+            --no-tablespaces --set-gtid-purged=OFF --column-statistics=0 \
+            "$DB_NAME" > dump.sql
+ 
+          # Sanity checks: the dump must not be empty or truncated
+          test -s dump.sql
+          grep -q "CREATE TABLE" dump.sql
+          tail -n 5 dump.sql | grep -q "Dump completed"
+ 
+          gzip -9 dump.sql
+ 
+      - name: Encrypt backup
+        run: |
+          gpg --batch --yes --symmetric --cipher-algo AES256 \
+            --passphrase "$BACKUP_PASSPHRASE" \
+            --output "$FILE" dump.sql.gz
+          ls -lh "$FILE"
+ 
+      - name: Upload to Google Drive (daily, plus weekly/monthly copies)
+        run: |
+          rclone copy "$FILE" gdrive:daily/ -v
+ 
+          # Sunday (Philippine time) -> weekly copy
+          if [ "$(TZ=Asia/Manila date +%u)" = "7" ]; then
+            rclone copy "$FILE" gdrive:weekly/ -v
+          fi
+ 
+          # 1st of the month (Philippine time) -> monthly copy
+          if [ "$(TZ=Asia/Manila date +%d)" = "01" ]; then
+            rclone copy "$FILE" gdrive:monthly/ -v
+          fi
+ 
+      - name: Delete old backups (retention)
+        run: |
+          # --drive-use-trash=false deletes permanently so Drive storage is freed
+          rclone delete gdrive:daily   --min-age 7d  --drive-use-trash=false -v
+          rclone delete gdrive:weekly  --min-age 28d --drive-use-trash=false -v
+          rclone delete gdrive:monthly --min-age 90d --drive-use-trash=false -v
+ 
+      - name: Notify on failure (optional Telegram)
+        if: failure()
+        env:
+          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ -n "$TG_TOKEN" ] && [ -n "$TG_CHAT" ]; then
+            curl -s "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+              -d chat_id="$TG_CHAT" \
+              -d text="Dorm DB backup FAILED: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          fi
