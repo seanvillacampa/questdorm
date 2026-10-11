@@ -47,8 +47,8 @@
                     <th class="px-4 py-3 text-left">Floor</th>
                     <th class="px-4 py-3 text-left">Capacity</th>
                     <th class="px-4 py-3 text-left">Monthly rate</th>
+                    <th class="px-4 py-3 text-left">Current Contract</th>
                     <th class="px-4 py-3 text-left">Meter no.</th>
-                    <th class="px-4 py-3 text-left">Status</th>
                     <th class="px-4 py-3 text-left">Actions</th>
                 </tr>
             </thead>
@@ -64,8 +64,17 @@
                             <span class="font-medium {{ $currentTenants > 0 ? 'text-gray-900' : 'text-gray-400' }}">{{ $currentTenants }}</span><span class="text-gray-400">/{{ $room->capacity }}</span>
                         </td>
                         <td class="px-4 py-3 text-gray-900">₱{{ number_format($room->monthly_rate, 2) }}</td>
+                        <td class="px-4 py-3">
+                            @if($room->activeContract)
+                                <a href="{{ route('contracts.show', $room->activeContract) }}" 
+                                   class="text-blue-600 hover:underline font-medium">
+                                    CT-{{ str_pad($room->activeContract->id, 4, '0', STR_PAD_LEFT) }}
+                                </a>
+                            @else
+                                <span class="text-gray-400">—</span>
+                            @endif
+                        </td>
                         <td class="px-4 py-3 text-gray-500">{{ $room->meter_number ?? '—' }}</td>
-                        <td class="px-4 py-3"><x-status-badge :status="$room->status" /></td>
                         <td class="px-4 py-3">
                             <a href="{{ route('rooms.edit', $room) }}" class="text-xs font-medium text-blue-600 hover:underline">Edit</a>
                         </td>

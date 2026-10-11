@@ -19,14 +19,24 @@
                 <label class="block text-xs font-medium text-gray-700 mb-1">Room</label>
                 <select name="room_id" x-model="roomId" @change="updateRent()"
                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                    <option value="">Select a vacant room…</option>
+                    <option value="">Select a room…</option>
                     @foreach($rooms as $room)
+                        @php
+                            $existingContract = $room->activeContract;
+                            $currentTenants = $existingContract ? $existingContract->activeTenants->count() : 0;
+                            $availableBeds = $room->capacity - $currentTenants;
+                            $roomLabel = "Room {$room->room_number} · Floor {$room->floor} · ₱" . number_format($room->monthly_rate, 2) . "/mo · {$room->capacity} bed(s)";
+                            if ($existingContract) {
+                                $contractId = 'CT-' . str_pad($existingContract->id, 4, '0', STR_PAD_LEFT);
+                                $roomLabel .= " ({$contractId} - {$availableBeds} bed(s) available)";
+                            }
+                        @endphp
                         <option value="{{ $room->id }}"
                                 data-rate="{{ $room->monthly_rate }}"
                                 data-deposit="{{ $room->deposit_required ?? 0 }}"
-                                data-capacity="{{ $room->capacity }}"
+                                data-capacity="{{ $availableBeds > 0 ? $availableBeds : $room->capacity }}"
                                 @selected(old('room_id')==$room->id)>
-                            Room {{ $room->room_number }} · Floor {{ $room->floor }} · ₱{{ number_format($room->monthly_rate,2) }}/mo · {{ $room->capacity }} bed(s)
+                            {{ $roomLabel }}
                         </option>
                     @endforeach
                 </select>

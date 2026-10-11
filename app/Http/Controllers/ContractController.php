@@ -38,11 +38,28 @@ class ContractController extends Controller
 
     public function create()
     {
-        $rooms   = Room::where('status', 'vacant')->orderBy('room_number')->get();
+        // Get vacant rooms
+        $vacantRooms = Room::where('status', 'vacant')->orderBy('room_number')->get();
+        
+        // Get rooms with available beds (occupied but not full)
+        $roomsWithSpace = Room::where('status', 'occupied')
+            ->whereHas('activeContract')
+            ->with('activeContract.activeTenants')
+            ->get()
+            ->filter(function($room) {
+                $currentTenants = $room->activeContract->activeTenants->count();
+                return $currentTenants < $room->capacity;
+            })
+            ->sortBy('room_number');
+        
+        // Merge both collections
+        $rooms = $vacantRooms->concat($roomsWithSpace)->sortBy('room_number');
+        
         $tenants = Tenant::with('user')
-            ->whereDoesntHave('contracts', fn ($q) => $q->where('is_active', true))
+            ->whereDoesntHave('contracts', fn ($q) => $q->where('is_active', true)->whereNull('left_on'))
             ->get()
             ->sortBy('user.name');
+            
         return view('contracts.create', compact('rooms', 'tenants'));
     }
 
@@ -56,8 +73,15 @@ class ContractController extends Controller
             'due_day'          => 'required|integer|min:1|max:28',
         ]);
 
-        $room = Room::findOrFail($data['room_id']);
+        $room = Room::with('activeContract.activeTenants')->findOrFail($data['room_id']);
+        $existingContract = $room->activeContract;
 
+        // Check if room already has an active contract (adding tenants to existing contract)
+        if ($existingContract) {
+            return $this->addTenantsToExistingContract($request, $existingContract, $data);
+        }
+
+        // Otherwise, create a new contract
         if (count($data['tenant_ids']) > (int) $room->capacity) {
             return back()->withErrors([
                 'tenant_ids' => "Room {$room->room_number} has a capacity of {$room->capacity}. You selected " . count($data['tenant_ids']) . " tenant(s).",
@@ -170,6 +194,110 @@ class ContractController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withErrors(['error' => 'Failed to create contract: ' . $e->getMessage()])->withInput();
+        }
+    }
+
+    /**
+     * Add tenants to an existing contract (when room has available beds)
+     */
+    private function addTenantsToExistingContract(Request $request, Contract $contract, array $data)
+    {
+        $room = $contract->room;
+        $currentTenantCount = $contract->activeTenants->count();
+        $newTenantCount = count($data['tenant_ids']);
+        $totalTenants = $currentTenantCount + $newTenantCount;
+
+        // Check capacity
+        if ($totalTenants > (int) $room->capacity) {
+            return back()->withErrors([
+                'tenant_ids' => "Room {$room->room_number} has {$currentTenantCount} tenant(s) and capacity for {$room->capacity}. You're trying to add {$newTenantCount} more, which exceeds the limit.",
+            ])->withInput();
+        }
+
+        DB::beginTransaction();
+        try {
+            // Attach new tenants to existing contract
+            $contract->tenants()->attach(
+                collect($data['tenant_ids'])->mapWithKeys(fn ($tid) => [
+                    $tid => ['joined_on' => $data['start_date'], 'left_on' => null],
+                ])->toArray()
+            );
+
+            // Get billing rules
+            $billingRules = \App\Models\Setting::billingRules();
+            $depositMonths = $billingRules['deposit_months'];
+            
+            $monthlyRent = $room->monthly_rate;
+            $totalDepositRequired = $monthlyRent * $depositMonths;
+            $depositPerTenant = round($totalDepositRequired / $newTenantCount, 2);
+
+            // Create TenantDeposit records for new tenants
+            foreach ($data['tenant_ids'] as $tenantId) {
+                \App\Models\TenantDeposit::create([
+                    'contract_id'     => $contract->id,
+                    'tenant_id'       => $tenantId,
+                    'amount_required' => $depositPerTenant,
+                    'amount_paid'     => 0,
+                    'amount_deducted' => 0,
+                    'amount_refunded' => 0,
+                ]);
+            }
+
+            // Update all unpaid invoices to reflect new tenant count and redistribute shares
+            $unpaidInvoices = Invoice::where('contract_id', $contract->id)
+                ->whereNotIn('status', ['paid', 'void'])
+                ->get();
+
+            foreach ($unpaidInvoices as $invoice) {
+                $rentPerTenant = round($invoice->rent_amount / $totalTenants, 2);
+                $elecPerTenant = round($invoice->electricity_amount / $totalTenants, 2);
+                $newShareAmount = $rentPerTenant + $elecPerTenant;
+
+                // Update invoice tenant count
+                $invoice->update(['tenant_count' => $totalTenants]);
+
+                // Update existing tenant payment shares
+                TenantPayment::where('invoice_id', $invoice->id)
+                    ->whereNotIn('status', ['void'])
+                    ->update(['share_amount' => $newShareAmount]);
+
+                // Create tenant payment records for new tenants
+                foreach ($data['tenant_ids'] as $tenantId) {
+                    TenantPayment::create([
+                        'invoice_id'          => $invoice->id,
+                        'tenant_id'           => $tenantId,
+                        'share_amount'        => $newShareAmount + $depositPerTenant,
+                        'carry_over_balance'  => 0,
+                        'amount_paid'         => 0,
+                        'status'              => 'pending',
+                        'method'              => null,
+                        'paid_at'             => null,
+                    ]);
+                }
+            }
+
+            // Get tenant names for message
+            $tenantNames = Tenant::whereIn('id', $data['tenant_ids'])
+                ->with('user')
+                ->get()
+                ->pluck('user.name')
+                ->join(', ');
+
+            AuditLog::record('Added Tenants', 'Contract', $contract->id,
+                "Added {$newTenantCount} tenant(s) ({$tenantNames}) to existing contract CT-" . str_pad($contract->id, 4, '0', STR_PAD_LEFT) . " for Room {$room->room_number}. Shares redistributed for unpaid invoices.");
+
+            DB::commit();
+
+            $contractId = 'CT-' . str_pad($contract->id, 4, '0', STR_PAD_LEFT);
+            $message = "{$tenantNames} " . ($newTenantCount === 1 ? 'has' : 'have') . " been added to existing {$contractId} in Room {$room->room_number}. "
+                     . "The new " . ($newTenantCount === 1 ? 'tenant' : 'tenants') . " will contribute to the monthly rent and deposit. "
+                     . "All unpaid bills have been recalculated to include " . ($newTenantCount === 1 ? 'them' : 'all ' . $totalTenants . ' tenants') . ".";
+
+            return redirect()->route('contracts.show', $contract)->with('success', $message);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors(['error' => 'Failed to add tenants to contract: ' . $e->getMessage()])->withInput();
         }
     }
 
