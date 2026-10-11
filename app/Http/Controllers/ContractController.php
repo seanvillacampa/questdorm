@@ -134,10 +134,10 @@ class ContractController extends Controller
             // Create first billing statement with advance rent + deposit
             $startDate = \Carbon\Carbon::parse($data['start_date']);
             $billingMonth = $startDate->format('Y-m');
-            $dueDate = $startDate->copy()->day($data['due_day']);
+            $dueDate = $startDate->copy()->day((int) $data['due_day']);
             
             // If start date is after due day, set due date to next month
-            if ($startDate->day > $data['due_day']) {
+            if ($startDate->day > (int) $data['due_day']) {
                 $dueDate->addMonth();
             }
             
