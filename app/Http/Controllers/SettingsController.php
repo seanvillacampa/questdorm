@@ -46,15 +46,16 @@ class SettingsController extends Controller
     {
         $data = $request->validate([
             'invoice_advance_days' => 'required|integer|min:1|max:14',
-            'default_due_day'      => 'required|integer|min:1|max:28',
             'overdue_grace_days'   => 'required|integer|min:1',
+            'deposit_months'       => 'required|integer|min:1|max:6',
+            'advance_months'       => 'required|integer|min:0|max:3',
         ]);
 
         foreach ($data as $key => $value) {
             Setting::updateOrCreateSimple($key, $value);
         }
 
-        AuditLog::record('Updated', 'Setting', null, 'Billing rules updated');
+        AuditLog::record('Updated', 'Setting', null, 'Billing rules updated: ' . $data['advance_months'] . ' month(s) advance, ' . $data['deposit_months'] . ' month(s) deposit');
 
         return back()->with('success', 'Billing rules saved.');
     }

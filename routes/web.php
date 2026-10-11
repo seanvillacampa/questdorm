@@ -97,7 +97,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('tenants', TenantController::class)->only(['index','create','store','show']);
 
         // Contracts
-        Route::resource('contracts', ContractController::class)->only(['index','create','store','show']);
+        Route::resource('contracts', ContractController::class)->only(['index','create','store','show','edit','update']);
         Route::patch('contracts/{contract}/deactivate', [ContractController::class, 'deactivate'])->name('contracts.deactivate');
         Route::post('contracts/{contract}/deduct-deposit', [ContractController::class, 'deductDeposit'])->name('contracts.deduct-deposit');
 

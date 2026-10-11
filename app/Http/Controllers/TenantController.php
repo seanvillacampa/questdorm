@@ -26,8 +26,7 @@ class TenantController extends Controller
                 $q->where('users.first_name', 'like', $s)
                   ->orWhere('users.middle_name', 'like', $s)
                   ->orWhere('users.last_name', 'like', $s)
-                  ->orWhere('users.email', 'like', $s)
-                  ->orWhere('users.phone', 'like', $s)
+                  ->orWhereHas('contracts.room', fn($r) => $r->where('room_number', 'like', $s))
             );
         }
 

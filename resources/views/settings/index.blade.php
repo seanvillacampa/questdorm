@@ -52,7 +52,7 @@
         {{-- Billing rules --}}
         <div class="bg-white rounded-xl border border-gray-200 shadow-xs p-5">
             <h2 class="text-sm font-semibold text-gray-900 mb-1">Billing rules</h2>
-            <p class="text-xs text-gray-400 mb-4">Controls when billing statements are generated and when they become late or overdue.</p>
+            <p class="text-xs text-gray-400 mb-4">Controls when billing statements are generated and deposit/advance requirements for new contracts.</p>
             <form id="billing-form" method="POST" action="{{ route('settings.billing') }}" class="space-y-4">
                 @csrf
                 <div>
@@ -67,14 +67,25 @@
                         e.g. 3 = invoice created 3 days before due date. Tenants are emailed the moment it's created.
                     </p>
                 </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">Default due day (1–28)</label>
-                    <input type="number" name="default_due_day"
-                           value="{{ $billingRules['default_due_day'] }}" min="1" max="28"
-                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                    <p class="text-[11px] text-gray-400 mt-1">
-                        Day of the month rent is due. Can be overridden per contract.
-                    </p>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Advance months required</label>
+                        <input type="number" name="advance_months"
+                               value="{{ $billingRules['advance_months'] }}" min="0" max="3"
+                               class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                        <p class="text-[11px] text-gray-400 mt-1">
+                            Number of months rent to collect upfront (typically 1)
+                        </p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Deposit months required</label>
+                        <input type="number" name="deposit_months"
+                               value="{{ $billingRules['deposit_months'] }}" min="1" max="6"
+                               class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                        <p class="text-[11px] text-gray-400 mt-1">
+                            Security deposit in months of rent (typically 2)
+                        </p>
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">
@@ -84,7 +95,7 @@
                            value="{{ $billingRules['overdue_grace_days'] }}" min="1"
                            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     <p class="text-[11px] text-gray-400 mt-1">
-                        Invoice is <strong>Late</strong> during this period. After it ends, invoice becomes <strong>Overdue</strong> and the owner is alerted.
+                        After grace period ends, unpaid invoices become <strong>Overdue</strong> and owner is alerted.
                     </p>
                 </div>
             </form>

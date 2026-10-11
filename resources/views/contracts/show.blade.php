@@ -19,18 +19,26 @@
             <x-page-header title="Contract CT-{{ str_pad($contract->id,4,'0',STR_PAD_LEFT) }}"
                 badge="Owner + Employee" subtitle="Room {{ $contract->room->room_number }}" />
         </div>
-        @if($contract->is_active)
-            <form method="POST" action="{{ route('contracts.deactivate', $contract) }}"
-                  onsubmit="return confirm('Deactivate this contract?\n\nThis will void all unpaid billing statements and mark Room {{ $contract->room->room_number }} as vacant.\nThis cannot be undone.')">
-                @csrf @method('PATCH')
-                <button type="submit"
-                        class="px-3.5 py-2 text-sm font-medium rounded-lg border border-red-200 text-red-600 bg-white hover:bg-red-50 transition-colors">
-                    Make inactive
-                </button>
-            </form>
-        @else
-            <span class="px-3.5 py-2 text-sm font-medium rounded-lg bg-gray-100 text-gray-400">Inactive</span>
-        @endif
+        <div class="flex items-center gap-2">
+            @if($contract->is_active && auth()->user()->hasRole('owner'))
+                <a href="{{ route('contracts.edit', $contract) }}"
+                   class="px-3.5 py-2 text-sm font-medium rounded-lg border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                    Edit Contract
+                </a>
+            @endif
+            @if($contract->is_active)
+                <form method="POST" action="{{ route('contracts.deactivate', $contract) }}"
+                      onsubmit="return confirm('Deactivate this contract?\n\nThis will void all unpaid billing statements and mark Room {{ $contract->room->room_number }} as vacant.\nThis cannot be undone.')">
+                    @csrf @method('PATCH')
+                    <button type="submit"
+                            class="px-3.5 py-2 text-sm font-medium rounded-lg border border-red-200 text-red-600 bg-white hover:bg-red-50 transition-colors">
+                        Make inactive
+                    </button>
+                </form>
+            @else
+                <span class="px-3.5 py-2 text-sm font-medium rounded-lg bg-gray-100 text-gray-400">Inactive</span>
+            @endif
+        </div>
     </div>
 
     <div class="grid grid-cols-[1fr_280px] gap-4">

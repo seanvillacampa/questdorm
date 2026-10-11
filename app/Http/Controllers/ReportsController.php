@@ -47,16 +47,18 @@ class ReportsController extends Controller
             $trendValues[] = (float) ($trend->get($m)?->collected ?? 0);
         }
 
-        // Top arrears
-        $topArrears = Invoice::where('billing_month', $month)
-            ->where('status', '!=', 'void')
+        // Top arrears - show per-tenant unpaid balances
+        $topArrears = \App\Models\TenantPayment::whereHas('invoice', function($q) use ($month) {
+                $q->where('billing_month', $month)
+                  ->where('status', '!=', 'void');
+            })
             ->whereNotIn('status', ['paid'])
-            ->with(['contract.room', 'contract.tenants.user'])
+            ->with(['tenant.user', 'invoice.contract.room'])
             ->get()
-            ->map(fn ($inv) => [
-                'name'    => $inv->contract->tenants->first()?->user->name ?? '—',
-                'room'    => $inv->contract->room->room_number ?? '—',
-                'balance' => $inv->balanceDue(),
+            ->map(fn ($tp) => [
+                'name'    => $tp->tenant->user->name ?? '—',
+                'room'    => $tp->invoice->contract->room->room_number ?? '—',
+                'balance' => $tp->balanceDue(),
             ])
             ->sortByDesc('balance')
             ->take(5)

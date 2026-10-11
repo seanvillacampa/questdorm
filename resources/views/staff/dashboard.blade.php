@@ -205,7 +205,7 @@
                                             } else {
                                                 $status = $invoice?->status
                                                     ?? ($room->status === 'maintenance' ? 'maintenance'
-                                                        : ($room->status === 'occupied'  ? 'pending' : 'vacant'));
+                                                        : ($room->status === 'occupied'  ? 'occupied' : 'vacant'));
                                             }
 
                                             // Color scheme: orange=message alert, green=paid, yellow=partial, red=overdue, grey=pending
@@ -216,6 +216,7 @@
                                                 'overdue' => 'bg-red-50 border-red-200',
                                                 'pending' => 'bg-gray-50 border-gray-200',
                                                 'maintenance' => 'bg-blue-50 border-blue-200',
+                                                'occupied' => 'bg-gray-50 border-gray-200',
                                                 'vacant' => 'bg-slate-100 border-slate-200',
                                                 default => 'bg-slate-100 border-slate-200',
                                             };
@@ -227,6 +228,7 @@
                                                 'overdue' => 'text-red-800',
                                                 'pending' => 'text-gray-700',
                                                 'maintenance' => 'text-blue-800',
+                                                'occupied' => 'text-gray-700',
                                                 default => 'text-slate-600',
                                             };
                                             
@@ -237,9 +239,14 @@
                                                 'overdue' => 'Overdue',
                                                 'pending' => 'Pending',
                                                 'maintenance' => 'Maintenance',
+                                                'occupied' => 'Occupied',
                                                 'vacant' => 'Vacant',
-                                                default => 'No billing statement',
+                                                default => 'Unknown',
                                             };
+                                            
+                                            // Determine if card should be clickable
+                                            $isClickable = in_array($status, ['partial', 'overdue', 'paid', 'pending']) && $invoice;
+                                            $clickUrl = $isClickable ? route('invoices.show', $invoice->id) : null;
                                             
                                             // Get all tenant names
                                             $tenants = $room->activeContract?->tenants ?? collect();
@@ -247,7 +254,11 @@
                                             $capacityDisplay = $currentTenants . '/' . $room->capacity;
                                         @endphp
 
+                                        @if($isClickable)
+                                        <a href="{{ $clickUrl }}" class="block rounded-xl border-2 {{ $cardCls }} p-3 relative overflow-visible w-36 shrink-0 hover:shadow-md transition-shadow cursor-pointer">
+                                        @else
                                         <div class="rounded-xl border-2 {{ $cardCls }} p-3 relative overflow-visible w-36 shrink-0">
+                                        @endif
                                             {{-- Room Number Row --}}
                                             <div class="flex items-center justify-between pb-2 border-b border-slate-200">
                                                 <div class="text-xs font-extrabold {{ $numCls }}">{{ $room->room_number }}</div>
@@ -286,7 +297,11 @@
                                                     <div class="h-6"></div>
                                                 @endif
                                             </div>
+                                        @if($isClickable)
+                                        </a>
+                                        @else
                                         </div>
+                                        @endif
                                         @endforeach
                                     </div>
                                 </div>
