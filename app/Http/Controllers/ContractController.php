@@ -21,11 +21,15 @@ class ContractController extends Controller
             ->orderByDesc('created_at');
 
         if ($request->filled('search')) {
-            $s = '%'.$request->search.'%';
-            $query->where(fn ($q) =>
-                $q->whereRaw("LPAD(id, 4, '0') LIKE ?", [$s])
-                  ->orWhereHas('room', fn ($r) => $r->where('room_number', 'like', $s))
-            );
+            $search = strtolower($request->search);
+            $searchPattern = '%'.$search.'%';
+            
+            $query->where(function ($q) use ($searchPattern) {
+                $q->whereRaw("LPAD(id, 4, '0') LIKE ?", [$searchPattern])
+                  ->orWhereHas('room', function($r) use ($searchPattern) {
+                      $r->whereRaw('LOWER(room_number) LIKE ?', [$searchPattern]);
+                  });
+            });
         }
 
         $contracts = $query->paginate(10)->withQueryString();

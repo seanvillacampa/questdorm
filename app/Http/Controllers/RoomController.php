@@ -19,7 +19,9 @@ class RoomController extends Controller
             ->orderBy('room_number');
 
         if ($request->filled('search')) {
-            $query->where('room_number', 'like', '%'.$request->search.'%');
+            $search = strtolower($request->search);
+            $searchPattern = '%'.$search.'%';
+            $query->whereRaw('LOWER(room_number) LIKE ?', [$searchPattern]);
         }
         if ($request->filled('floor') && $request->floor !== 'all') {
             $query->where('floor', $request->floor);

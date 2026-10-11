@@ -16,7 +16,7 @@ class PaymentController extends Controller
 {
     public function index(Request $request)
     {
-        $search = $request->get('search');
+        $search = strtolower($request->get('search'));
         $method = $request->get('method');
         
         $query = Payment::with([
@@ -29,14 +29,15 @@ class PaymentController extends Controller
         
         // Search by invoice number, tenant name, or reference
         if ($search) {
-            $query->where(function($q) use ($search) {
-                $q->whereHas('invoice', function($q2) use ($search) {
-                    $q2->where('invoice_number', 'like', "%{$search}%");
+            $searchPattern = '%'.$search.'%';
+            $query->where(function($q) use ($searchPattern) {
+                $q->whereHas('invoice', function($q2) use ($searchPattern) {
+                    $q2->whereRaw('LOWER(invoice_number) LIKE ?', [$searchPattern]);
                 })
-                ->orWhereHas('tenantPayment.tenant.user', function($q2) use ($search) {
-                    $q2->where('name', 'like', "%{$search}%");
+                ->orWhereHas('tenantPayment.tenant.user', function($q2) use ($searchPattern) {
+                    $q2->whereRaw('LOWER(name) LIKE ?', [$searchPattern]);
                 })
-                ->orWhere('reference', 'like', "%{$search}%");
+                ->orWhereRaw('LOWER(reference) LIKE ?', [$searchPattern]);
             });
         }
         

@@ -31,10 +31,14 @@ class LaundryOrderController extends Controller implements HasMiddleware
     {
         $orders = LaundryOrder::with(['customer', 'items.service', 'recorder'])
             ->when($request->filled('search'), function ($query) use ($request) {
-                $search = $request->string('search');
-                $query->where(function ($q) use ($search) {
-                    $q->where('order_no', 'like', "%{$search}%")
-                      ->orWhereHas('customer', fn ($c) => $c->where('name', 'like', "%{$search}%"));
+                $search = strtolower($request->string('search'));
+                $searchPattern = '%'.$search.'%';
+                
+                $query->where(function ($q) use ($searchPattern) {
+                    $q->whereRaw('LOWER(order_no) LIKE ?', [$searchPattern])
+                      ->orWhereHas('customer', function($c) use ($searchPattern) {
+                          $c->whereRaw('LOWER(name) LIKE ?', [$searchPattern]);
+                      });
                 });
             })
             ->when($request->filled('status'), fn ($q) => $q->where('payment_status', $request->status))
@@ -84,21 +88,23 @@ class LaundryOrderController extends Controller implements HasMiddleware
      */
     public function searchTenants(Request $request)
     {
-        $query = $request->string('q', '');
+        $query = strtolower($request->string('q', ''));
         
         if (strlen($query) < 2) {
             return response()->json([]);
         }
+
+        $searchPattern = '%'.$query.'%';
 
         $tenants = \App\Models\Tenant::with(['user', 'contracts' => function ($q) {
             $q->where('is_active', true)
               ->where('status', 'active')
               ->with('room');
         }])
-        ->whereHas('user', function ($q) use ($query) {
-            $q->where('name', 'like', "%{$query}%")
-              ->orWhere('first_name', 'like', "%{$query}%")
-              ->orWhere('last_name', 'like', "%{$query}%");
+        ->whereHas('user', function ($q) use ($searchPattern) {
+            $q->whereRaw('LOWER(name) LIKE ?', [$searchPattern])
+              ->orWhereRaw('LOWER(first_name) LIKE ?', [$searchPattern])
+              ->orWhereRaw('LOWER(last_name) LIKE ?', [$searchPattern]);
         })
         ->limit(10)
         ->get()

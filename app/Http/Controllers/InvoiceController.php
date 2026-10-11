@@ -19,7 +19,7 @@ class InvoiceController extends Controller
 
     public function latest(Request $request)
     {
-        $search = $request->get('search', '');
+        $search = strtolower($request->get('search', ''));
         $status = $request->get('status', '');
         $month  = $request->get('month', '');
 
@@ -28,11 +28,13 @@ class InvoiceController extends Controller
             ->orderByDesc('created_at'); // always newest first
 
         if ($search) {
-            $query->where(fn ($q) =>
-                $q->where('invoice_number', 'like', "%{$search}%")
-                  ->orWhereHas('contract.room', fn ($r) =>
-                      $r->where('room_number', 'like', "%{$search}%"))
-            );
+            $searchPattern = '%'.$search.'%';
+            $query->where(function ($q) use ($searchPattern) {
+                $q->whereRaw('LOWER(invoice_number) LIKE ?', [$searchPattern])
+                  ->orWhereHas('contract.room', function($r) use ($searchPattern) {
+                      $r->whereRaw('LOWER(room_number) LIKE ?', [$searchPattern]);
+                  });
+            });
         }
 
         if ($status) {
@@ -155,7 +157,7 @@ class InvoiceController extends Controller
         $month     = $request->get('month', now()->format('Y-m'));
         $activeTab = $request->get('tab', 'all'); // kept for manage tab only
         $status    = $request->get('status', '');  // filter value
-        $search    = $request->get('search', '');
+        $search    = strtolower($request->get('search', ''));
 
         $query = Invoice::with(['contract.room', 'contract.tenants.user', 'tenantPayments.tenant.user'])
             ->where('status', '!=', 'void')
@@ -163,11 +165,13 @@ class InvoiceController extends Controller
 
         // If search is active, search across ALL months, not just the selected month
         if ($search) {
-            $query->where(fn ($q) =>
-                $q->where('invoice_number', 'like', "%{$search}%")
-                  ->orWhereHas('contract.room', fn ($r) =>
-                      $r->where('room_number', 'like', "%{$search}%"))
-            );
+            $searchPattern = '%'.$search.'%';
+            $query->where(function ($q) use ($searchPattern) {
+                $q->whereRaw('LOWER(invoice_number) LIKE ?', [$searchPattern])
+                  ->orWhereHas('contract.room', function($r) use ($searchPattern) {
+                      $r->whereRaw('LOWER(room_number) LIKE ?', [$searchPattern]);
+                  });
+            });
             // Don't filter by month when searching
         } else {
             // Only filter by month when NOT searching

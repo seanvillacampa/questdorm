@@ -13,12 +13,16 @@ class AuditLogController extends Controller
             ->orderByDesc('created_at');
 
         if ($request->filled('search')) {
-            $s = '%'.$request->search.'%';
-            $query->where(fn ($q) =>
-                $q->where('description', 'like', $s)
-                  ->orWhere('record_id', 'like', $s)
-                  ->orWhereHas('user', fn ($u) => $u->where('name', 'like', $s))
-            );
+            $search = strtolower($request->search);
+            $searchPattern = '%'.$search.'%';
+            
+            $query->where(function ($q) use ($searchPattern) {
+                $q->whereRaw('LOWER(description) LIKE ?', [$searchPattern])
+                  ->orWhere('record_id', 'like', $searchPattern)
+                  ->orWhereHas('user', function($u) use ($searchPattern) {
+                      $u->whereRaw('LOWER(name) LIKE ?', [$searchPattern]);
+                  });
+            });
         }
         if ($request->filled('action') && $request->action !== 'all') {
             $query->where('action', $request->action);

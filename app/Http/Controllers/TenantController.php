@@ -16,25 +16,26 @@ class TenantController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Tenant::with(['user', 'contracts.room'])
-            ->join('users', 'users.id', '=', 'tenants.user_id')
-            ->select('tenants.*');
+        $query = Tenant::with(['user', 'contracts.room']);
 
         if ($request->filled('search')) {
-            $s = '%'.$request->search.'%';
-            $query->where(function ($q) use ($s) {
-                $q->where('users.first_name', 'like', $s)
-                  ->orWhere('users.middle_name', 'like', $s)
-                  ->orWhere('users.last_name', 'like', $s)
-                  ->orWhereHas('contracts', function($contractQuery) use ($s) {
-                      $contractQuery->whereHas('room', function($roomQuery) use ($s) {
-                          $roomQuery->where('room_number', 'like', $s);
-                      });
-                  });
+            $search = strtolower($request->search);
+            $searchPattern = '%'.$search.'%';
+            
+            $query->whereHas('user', function($userQuery) use ($searchPattern) {
+                $userQuery->where(function($q) use ($searchPattern) {
+                    $q->whereRaw('LOWER(first_name) LIKE ?', [$searchPattern])
+                      ->orWhereRaw('LOWER(middle_name) LIKE ?', [$searchPattern])
+                      ->orWhereRaw('LOWER(last_name) LIKE ?', [$searchPattern])
+                      ->orWhereRaw('LOWER(name) LIKE ?', [$searchPattern]);
+                });
+            })
+            ->orWhereHas('contracts.room', function($roomQuery) use ($searchPattern) {
+                $roomQuery->whereRaw('LOWER(room_number) LIKE ?', [$searchPattern]);
             });
         }
 
-        $tenants = $query->orderBy('users.first_name')->paginate(10)->withQueryString();
+        $tenants = $query->orderBy('id')->paginate(10)->withQueryString();
 
         return view('tenants.index', compact('tenants'));
     }
