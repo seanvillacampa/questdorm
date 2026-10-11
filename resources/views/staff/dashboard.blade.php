@@ -223,7 +223,15 @@
                                             if ($hasUnresolvedMessages) {
                                                 $status = 'has_message';
                                             } else {
-                                                $status = $invoice?->status
+                                                $invStatus = $invoice?->status;
+                                                if ($invStatus && in_array($invStatus, ['pending','partial'])) {
+                                                    $graceDays    = \App\Models\Setting::billingRules()['overdue_grace_days'];
+                                                    $daysUntilDue = now()->startOfDay()->diffInDays($invoice->due_date->startOfDay(), false);
+                                                    if ($daysUntilDue <= $graceDays) {
+                                                        $invStatus = 'due_soon';
+                                                    }
+                                                }
+                                                $status = $invStatus
                                                     ?? ($room->status === 'maintenance' ? 'maintenance'
                                                         : ($room->status === 'occupied'  ? 'occupied' : 'vacant'));
                                             }
@@ -234,6 +242,7 @@
                                                 'paid' => 'bg-green-50 border-green-200',
                                                 'partial' => 'bg-yellow-50 border-yellow-200',
                                                 'overdue' => 'bg-red-50 border-red-200',
+                                                'due_soon' => 'bg-orange-50 border-orange-300',
                                                 'pending' => 'bg-gray-50 border-gray-200',
                                                 'maintenance' => 'bg-blue-50 border-blue-200',
                                                 'occupied' => 'bg-gray-50 border-gray-200',
@@ -246,6 +255,7 @@
                                                 'paid' => 'text-green-800',
                                                 'partial' => 'text-yellow-800',
                                                 'overdue' => 'text-red-800',
+                                                'due_soon' => 'text-orange-800',
                                                 'pending' => 'text-gray-700',
                                                 'maintenance' => 'text-blue-800',
                                                 'occupied' => 'text-gray-700',
@@ -257,6 +267,7 @@
                                                 'paid' => 'Paid',
                                                 'partial' => 'Partial',
                                                 'overdue' => 'Overdue',
+                                                'due_soon' => 'Due Soon',
                                                 'pending' => 'Pending',
                                                 'maintenance' => 'Maintenance',
                                                 'occupied' => 'Occupied',
@@ -265,7 +276,7 @@
                                             };
                                             
                                             // Determine if card should be clickable
-                                            $isClickable = in_array($status, ['partial', 'overdue', 'paid', 'pending']) && $invoice;
+                                            $isClickable = in_array($status, ['partial', 'overdue', 'paid', 'pending', 'due_soon']) && $invoice;
                                             $clickUrl = $isClickable ? route('invoices.show', $invoice->id) : null;
                                             
                                             // Get all active tenant names (exclude those who left)

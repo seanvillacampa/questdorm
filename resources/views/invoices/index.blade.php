@@ -119,6 +119,15 @@
                 </thead>
                 <tbody class="divide-y divide-gray-50">
                     @forelse($allInvoices as $inv)
+                        @php
+                            $graceDays   = \App\Models\Setting::billingRules()['overdue_grace_days'];
+                            $daysUntilDue = now()->startOfDay()->diffInDays($inv->due_date->startOfDay(), false);
+                            $dueDateCls  = match(true) {
+                                $inv->status === 'overdue'                                                  => 'text-red-600 font-semibold',
+                                in_array($inv->status, ['pending','partial']) && $daysUntilDue <= $graceDays => 'text-orange-500 font-semibold',
+                                default                                                                     => 'text-gray-500',
+                            };
+                        @endphp
                         <tr class="{{ $inv->status === 'void' ? 'opacity-50 bg-gray-50' : 'hover:bg-gray-50' }} transition-colors">
                             <td class="px-4 py-3">
                                 <a href="{{ route('invoices.show', $inv) }}" class="text-blue-600 font-medium hover:underline">
@@ -127,7 +136,7 @@
                             </td>
                             <td class="px-4 py-3 font-semibold text-gray-900">{{ $inv->contract->room->room_number }}</td>
                             <td class="px-4 py-3 text-xs text-gray-500">{{ $inv->tenant_count }}</td>
-                            <td class="px-4 py-3 text-gray-500 text-xs">{{ $inv->due_date->format('M d') }}</td>
+                            <td class="px-4 py-3 text-xs {{ $dueDateCls }}">{{ $inv->due_date->format('M d') }}</td>
                             <td class="px-4 py-3 text-right font-medium text-gray-900">₱{{ number_format($inv->total_amount,2) }}</td>
                             <td class="px-4 py-3 text-right text-green-600 text-xs">{{ $inv->amount_paid > 0 ? '₱'.number_format($inv->amount_paid,2) : '—' }}</td>
                             <td class="px-4 py-3">
@@ -175,7 +184,14 @@
                 <tbody class="divide-y divide-gray-50">
                     @forelse($invoices as $inv)
                         @php
-                            $displayStatus = ucwords(str_replace('_',' ',$inv->status));
+                            $displayStatus  = ucwords(str_replace('_',' ',$inv->status));
+                            $graceDays      = \App\Models\Setting::billingRules()['overdue_grace_days'];
+                            $daysUntilDue   = now()->startOfDay()->diffInDays($inv->due_date->startOfDay(), false);
+                            $dueDateCls     = match(true) {
+                                $inv->status === 'overdue'                                                      => 'text-red-600 font-semibold',
+                                in_array($inv->status, ['pending','partial']) && $daysUntilDue <= $graceDays    => 'text-orange-500 font-semibold',
+                                default                                                                         => 'text-gray-500',
+                            };
                         @endphp
                         <tr class="hover:bg-gray-50 transition-colors">
                             <td class="px-4 py-3">
@@ -184,7 +200,7 @@
                                 </a>
                             </td>
                             <td class="px-4 py-3 font-semibold text-gray-900">{{ $inv->contract->room->room_number }}</td>
-                            <td class="px-4 py-3 text-gray-500">{{ $inv->due_date->format('M d, Y') }}</td>
+                            <td class="px-4 py-3 {{ $dueDateCls }}">{{ $inv->due_date->format('M d, Y') }}</td>
                             <td class="px-4 py-3 text-right text-gray-900">₱{{ number_format($inv->rent_amount,2) }}</td>
                             <td class="px-4 py-3 text-right text-gray-900">₱{{ number_format($inv->electricity_amount,2) }}</td>
                             <td class="px-4 py-3 text-right font-semibold text-gray-900">₱{{ number_format($inv->total_amount,2) }}</td>
