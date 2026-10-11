@@ -164,7 +164,16 @@
                     _method: 'DELETE'
                 })
             })
-            .then(response => response.json())
+            .then(response => {
+                // Check if response is JSON (error case) or redirect (success case)
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    return response.json();
+                } else {
+                    // Non-JSON response means no unpaid invoices, show confirmation
+                    return { error: false };
+                }
+            })
             .then(data => {
                 if (data.error) {
                     // Tenant has unpaid invoices
