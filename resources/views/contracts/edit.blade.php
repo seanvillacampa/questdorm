@@ -178,24 +178,29 @@
                 if (data.error) {
                     // Tenant has unpaid invoices
                     const invoiceLinks = data.unpaid_invoices.map((id, index) => {
-                        return `<a href="/invoices/${id}" class="text-red-700 underline hover:text-red-800 font-medium">${data.invoice_numbers[index]}</a>`;
+                        return `<a href="/invoices/${id}" class="text-amber-700 underline hover:text-amber-900 font-semibold">${data.invoice_numbers[index]}</a>`;
                     }).join(', ');
                     
                     const plural = data.unpaid_invoices.length > 1;
                     const htmlContent = `
-                        <p class="mb-3 text-red-700">
-                            <strong>${tenantName}</strong> has ${data.unpaid_invoices.length} outstanding unpaid billing ${plural ? 'statements' : 'statement'}:
-                        </p>
-                        <p class="mb-3 text-red-800 font-medium">
-                            ${invoiceLinks}
-                        </p>
-                        <p class="text-red-600 text-sm">
-                            The tenant must settle all outstanding bills before they can be removed from the contract.
-                        </p>
+                        <div class="space-y-3 text-sm">
+                            <p class="text-gray-700 leading-relaxed">
+                                <strong class="text-gray-900">${tenantName}</strong> cannot be removed from this contract at this time due to ${data.unpaid_invoices.length} outstanding ${plural ? 'billing statements' : 'billing statement'} with unpaid balances.
+                            </p>
+                            <div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                                <p class="text-xs font-semibold text-amber-800 mb-2">Outstanding ${plural ? 'Statements' : 'Statement'}:</p>
+                                <p class="text-sm text-amber-900">
+                                    ${invoiceLinks}
+                                </p>
+                            </div>
+                            <p class="text-xs text-gray-600 leading-relaxed">
+                                <strong>Required Action:</strong> The tenant must settle all outstanding billing statements before removal from the contract can proceed. Please ensure all payments are received and processed, then try removing the tenant again.
+                            </p>
+                        </div>
                     `;
                     
                     window.showWarning(
-                        'Cannot Remove Tenant',
+                        'Tenant Removal Restricted',
                         null,
                         htmlContent
                     );
