@@ -187,6 +187,11 @@ class ContractController extends Controller
     {
         abort_if(!$contract->is_active, 422, 'Cannot edit inactive contract.');
         
+        // Load only active tenants (those who haven't left)
+        $contract->load(['tenants' => function($query) {
+            $query->wherePivot('left_on', null)->with('user');
+        }, 'room']);
+        
         return view('contracts.edit', compact('contract'));
     }
 
@@ -333,7 +338,7 @@ class ContractController extends Controller
      * - Detach the tenant from the contract
      * - Void unpaid invoices for that tenant
      * - Update room occupancy count
-     * - Recalculate future billing statements
+     * - Recalculate future billing statements and redistribute shares
      */
     public function removeTenant(Request $request, Contract $contract)
     {
@@ -349,7 +354,11 @@ class ContractController extends Controller
         }
 
         // Check if this is the last tenant
-        if ($contract->tenants->count() <= 1) {
+        $currentActiveTenants = $contract->tenants()
+            ->wherePivot('left_on', null)
+            ->count();
+            
+        if ($currentActiveTenants <= 1) {
             return back()->withErrors(['error' => 'Cannot remove the last tenant. Please deactivate the contract instead.']);
         }
 
@@ -359,56 +368,67 @@ class ContractController extends Controller
                 'left_on' => now(),
             ]);
 
-            // Void unpaid tenant payments for this tenant
-            $unpaidTenantPayments = TenantPayment::whereHas('invoice', function($q) use ($contract) {
-                $q->where('contract_id', $contract->id);
-            })
-            ->where('tenant_id', $tenant->id)
-            ->whereNotIn('status', ['paid', 'void'])
-            ->get();
+            // Get remaining active tenant IDs (after marking this one as left)
+            $remainingTenantIds = $contract->tenants()
+                ->wherePivot('left_on', null)
+                ->pluck('tenants.id')
+                ->toArray();
+            
+            $newTenantCount = count($remainingTenantIds);
 
-            foreach ($unpaidTenantPayments as $tp) {
-                $tp->update(['status' => 'void']);
-                
-                // Update invoice tenant_count and recalculate totals
-                $invoice = $tp->invoice;
-                $activeTenants = $contract->tenants()->wherePivot('left_on', null)->count();
-                
-                if ($activeTenants > 0 && $invoice->status !== 'void') {
-                    // Recalculate the invoice for remaining tenants
-                    $newTenantCount = $activeTenants;
+            // Find all unpaid invoices for this contract
+            $unpaidInvoices = Invoice::where('contract_id', $contract->id)
+                ->whereNotIn('status', ['paid', 'void'])
+                ->get();
+
+            foreach ($unpaidInvoices as $invoice) {
+                // Void the removed tenant's payment record
+                TenantPayment::where('invoice_id', $invoice->id)
+                    ->where('tenant_id', $tenant->id)
+                    ->whereNotIn('status', ['paid'])
+                    ->update(['status' => 'void']);
+
+                // Recalculate share amounts for remaining tenants
+                if ($newTenantCount > 0) {
                     $rentPerTenant = round($invoice->rent_amount / $newTenantCount, 2);
                     $elecPerTenant = round($invoice->electricity_amount / $newTenantCount, 2);
+                    $newShareAmount = $rentPerTenant + $elecPerTenant;
                     
+                    // Update invoice tenant count
                     $invoice->update([
                         'tenant_count' => $newTenantCount,
                     ]);
                     
-                    // Update remaining active tenant payments
-                    TenantPayment::where('invoice_id', $invoice->id)
-                        ->whereIn('tenant_id', $contract->tenants()->wherePivot('left_on', null)->pluck('tenants.id'))
-                        ->update([
-                            'share_amount' => $rentPerTenant + $elecPerTenant,
-                        ]);
+                    // Update share amounts for all remaining active tenants
+                    foreach ($remainingTenantIds as $remainingTenantId) {
+                        TenantPayment::where('invoice_id', $invoice->id)
+                            ->where('tenant_id', $remainingTenantId)
+                            ->whereNotIn('status', ['void'])
+                            ->update(['share_amount' => $newShareAmount]);
+                    }
                 }
             }
 
             // Update room occupancy status
             $room = $contract->room;
-            $remainingTenants = $contract->tenants()->wherePivot('left_on', null)->count();
             $capacity = (int) $room->capacity;
             
-            if ($remainingTenants === 0) {
+            if ($newTenantCount === 0) {
                 $room->update(['status' => 'vacant']);
-            } elseif ($remainingTenants < $capacity) {
+            } elseif ($newTenantCount < $capacity) {
                 $room->update(['status' => 'occupied']);
             }
 
             AuditLog::record('Removed Tenant', 'Contract', $contract->id,
-                "Removed {$tenant->user->name} from contract. {$remainingTenants} tenant(s) remaining.");
+                "Removed {$tenant->user->name} from contract. {$newTenantCount} tenant(s) remaining. Shares recalculated for unpaid invoices.");
         });
 
-        $remainingTenants = $contract->tenants()->wherePivot('left_on', null)->count();
+        // Reload contract to get fresh data
+        $contract->refresh();
+        
+        $remainingTenants = $contract->tenants()
+            ->wherePivot('left_on', null)
+            ->count();
         $room = $contract->room;
         $capacity = (int) $room->capacity;
         $bedsAvailable = $capacity - $remainingTenants;
