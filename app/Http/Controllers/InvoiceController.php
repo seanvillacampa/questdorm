@@ -159,6 +159,11 @@ class InvoiceController extends Controller
         $status    = $request->get('status', '');  // filter value
         $search    = strtolower($request->get('search', ''));
 
+        // ── Auto-recompute stale statuses for the viewed month ─────────
+        // Runs only for the current/viewed month, keeps page loads fast.
+        // Handles environments where the scheduler isn't running (e.g. Render free tier).
+        $this->recomputeMonthStatuses($month);
+
         $query = Invoice::with(['contract.room', 'contract.tenants.user', 'tenantPayments.tenant.user'])
             ->where('status', '!=', 'void')
             ->orderBy('invoice_number');
@@ -401,5 +406,24 @@ class InvoiceController extends Controller
 
         AuditLog::record('Voided', 'Invoice', $invoice->id, "status: {$old} → void");
         return back()->with('success', "Billing Statement {$invoice->invoice_number} voided.");
+    }
+
+    // ── Auto-recompute stale statuses ─────────────────────────────────
+    // Called on every invoice index load for the viewed month.
+    // Recomputes only unpaid invoices whose due date has already passed,
+    // so the status column and filter counts stay accurate even when
+    // the scheduler (invoices:process-statuses) isn't running.
+
+    private function recomputeMonthStatuses(string $month): void
+    {
+        $stale = Invoice::with('tenantPayments')
+            ->where('billing_month', $month)
+            ->whereNotIn('status', ['paid', 'void'])
+            ->where('due_date', '<', now()->startOfDay())
+            ->get();
+
+        foreach ($stale as $invoice) {
+            $invoice->recomputeStatus();
+        }
     }
 }

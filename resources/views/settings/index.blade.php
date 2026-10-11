@@ -102,6 +102,29 @@
         </div>
     </div>
 
+    {{-- Resync billing statement statuses --}}
+    <div class="bg-white rounded-xl border border-gray-200 shadow-xs p-5 mt-4">
+        <div class="flex items-start justify-between gap-4">
+            <div>
+                <h2 class="text-sm font-semibold text-gray-900">Resync billing statement statuses</h2>
+                <p class="text-xs text-gray-400 mt-1">
+                    Forces all unpaid billing statements to recompute their status (pending → overdue) based on
+                    the current date and grace period. Run this if statuses look stale or the scheduler isn't running.
+                </p>
+            </div>
+            <form method="POST" action="{{ route('settings.resync-statuses') }}" class="shrink-0">
+                @csrf
+                <button type="submit"
+                        class="flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors shadow-xs">
+                    <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    Resync now
+                </button>
+            </form>
+        </div>
+    </div>
+
     {{-- PayMongo configuration status --}}
     <div class="bg-white rounded-xl border border-gray-200 shadow-xs p-5 mt-4">
         <div class="flex items-center justify-between mb-3">

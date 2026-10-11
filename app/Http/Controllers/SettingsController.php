@@ -59,4 +59,21 @@ class SettingsController extends Controller
 
         return back()->with('success', 'Billing rules saved.');
     }
+
+    public function resyncStatuses()
+    {
+        $invoices = \App\Models\Invoice::with('tenantPayments')
+            ->whereNotIn('status', ['void'])
+            ->get();
+
+        $count = $invoices->count();
+
+        foreach ($invoices as $invoice) {
+            $invoice->recomputeStatus();
+        }
+
+        AuditLog::record('Resynced', 'Invoice', null, "Manually resynced statuses for {$count} billing statement(s).");
+
+        return back()->with('success', "Resynced statuses for {$count} billing statement(s).");
+    }
 }

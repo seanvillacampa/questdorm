@@ -145,6 +145,7 @@ Route::middleware('auth')->group(function () {
         Route::get('settings',                  [SettingsController::class, 'index'])->name('settings.index');
         Route::post('settings/rate',            [SettingsController::class, 'storeRate'])->name('settings.rate');
         Route::post('settings/billing',         [SettingsController::class, 'storeBilling'])->name('settings.billing');
+        Route::post('settings/resync-statuses', [SettingsController::class, 'resyncStatuses'])->name('settings.resync-statuses');
 
         Route::get('audit-logs',                [AuditLogController::class, 'index'])->name('audit-logs.index');
         Route::get('email-notifications',       [\App\Http\Controllers\EmailNotificationController::class, 'index'])->name('email-notifications.index');
