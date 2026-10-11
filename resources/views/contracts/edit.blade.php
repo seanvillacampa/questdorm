@@ -39,7 +39,7 @@
                 </div>
                 <div>
                     <span class="text-gray-500">Tenants:</span>
-                    <span class="ml-2 font-medium">{{ $contract->tenants->count() }}</span>
+                    <span class="ml-2 font-medium">{{ $contract->tenants->where('pivot.left_on', null)->count() }}</span>
                 </div>
             </div>
         </div>

@@ -74,10 +74,13 @@ class DashboardController extends Controller
         $collectedThisMonth = $monthInvoices->sum('amount_paid');
         $overdueCount       = $monthInvoices->where('status', 'overdue')->count();
         
-        // Active tenants (those with active contracts)
-        $activeTenantsCount = Contract::where('status', 'active')
-            ->distinct('id')
-            ->count();
+        // Active tenants (those with active contracts and haven't left)
+        $activeTenantsCount = DB::table('contract_tenants')
+            ->join('contracts', 'contract_tenants.contract_id', '=', 'contracts.id')
+            ->where('contracts.is_active', true)
+            ->whereNull('contract_tenants.left_on')
+            ->distinct()
+            ->count('contract_tenants.tenant_id');
 
         // ── Recent tenant messages (unresolved) ────────────────────────────
         $recentMessages = \App\Models\TenantMessage::with(['tenant.user', 'room'])

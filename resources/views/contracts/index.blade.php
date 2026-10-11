@@ -39,7 +39,7 @@
             <tbody class="divide-y divide-gray-50">
                 @forelse($contracts as $contract)
                     @php
-                        $tenantCount   = $contract->tenants->count();
+                        $tenantCount   = $contract->activeTenants->count();
                         $rentPerTenant = $tenantCount > 0
                             ? round($contract->room->monthly_rate / $tenantCount, 2)
                             : $contract->room->monthly_rate;

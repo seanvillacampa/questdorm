@@ -17,7 +17,7 @@ class ContractController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Contract::with(['room', 'tenants.user'])
+        $query = Contract::with(['room', 'activeTenants.user'])
             ->orderByDesc('created_at');
 
         if ($request->filled('search')) {
