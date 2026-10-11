@@ -183,24 +183,51 @@
                     
                     const plural = data.unpaid_invoices.length > 1;
                     const htmlContent = `
-                        <div class="space-y-3 text-sm">
-                            <p class="text-gray-700 leading-relaxed">
-                                <strong class="text-gray-900">${tenantName}</strong> cannot be removed from this contract at this time due to ${data.unpaid_invoices.length} outstanding ${plural ? 'billing statements' : 'billing statement'} with unpaid balances.
-                            </p>
-                            <div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                                <p class="text-xs font-semibold text-amber-800 mb-2">Outstanding ${plural ? 'Statements' : 'Statement'}:</p>
-                                <p class="text-sm text-amber-900">
+                        <div class="space-y-4 text-sm">
+                            <div class="flex items-start gap-3">
+                                <div class="flex-shrink-0 w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="text-gray-900 font-semibold mb-1">Tenant Removal Not Permitted</h4>
+                                    <p class="text-gray-600 leading-relaxed">
+                                        <strong class="text-gray-900">${tenantName}</strong> cannot be removed from this contract due to ${data.unpaid_invoices.length} outstanding ${plural ? 'billing statements' : 'billing statement'} with unpaid balances.
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                                <p class="text-xs font-semibold text-amber-900 uppercase tracking-wide mb-2">Unpaid ${plural ? 'Statements' : 'Statement'}:</p>
+                                <p class="text-sm text-amber-900 font-medium">
                                     ${invoiceLinks}
                                 </p>
                             </div>
-                            <p class="text-xs text-gray-600 leading-relaxed">
-                                <strong>Required Action:</strong> The tenant must settle all outstanding billing statements before removal from the contract can proceed. Please ensure all payments are received and processed, then try removing the tenant again.
+                            
+                            <div class="bg-blue-50 border-l-4 border-blue-400 p-3">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-xs text-blue-800 leading-relaxed">
+                                            <strong class="font-semibold">Required Action:</strong> All outstanding balances must be fully settled before tenant removal can proceed. Please ensure all payments are received, processed, and reflected in the billing statements above.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <p class="text-xs text-gray-500 italic">
+                                This restriction ensures financial accountability and protects both the property management and remaining tenants from unresolved payment obligations.
                             </p>
                         </div>
                     `;
                     
                     window.showWarning(
-                        'Tenant Removal Restricted',
+                        'Action Restricted: Unpaid Bills',
                         null,
                         htmlContent
                     );
