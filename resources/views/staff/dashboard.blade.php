@@ -248,8 +248,8 @@
                                             $isClickable = in_array($status, ['partial', 'overdue', 'paid', 'pending']) && $invoice;
                                             $clickUrl = $isClickable ? route('invoices.show', $invoice->id) : null;
                                             
-                                            // Get all tenant names
-                                            $tenants = $room->activeContract?->tenants ?? collect();
+                                            // Get all active tenant names (exclude those who left)
+                                            $tenants = $room->activeContract?->activeTenants ?? collect();
                                             $currentTenants = $tenants->count();
                                             $capacityDisplay = $currentTenants . '/' . $room->capacity;
                                         @endphp

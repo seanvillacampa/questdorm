@@ -43,6 +43,17 @@ class Contract extends Model
             ->withTimestamps();
     }
 
+    /**
+     * Get only active tenants (those who haven't left).
+     */
+    public function activeTenants()
+    {
+        return $this->belongsToMany(Tenant::class, 'contract_tenants')
+            ->wherePivot('left_on', null)
+            ->withPivot(['joined_on', 'left_on'])
+            ->withTimestamps();
+    }
+
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by');

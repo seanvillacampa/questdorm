@@ -59,7 +59,7 @@
                         <td class="px-4 py-3 text-gray-600">{{ $room->floor }}</td>
                         <td class="px-4 py-3 text-gray-600">
                             @php
-                                $currentTenants = $room->activeContract?->tenants->count() ?? 0;
+                                $currentTenants = $room->activeContract?->activeTenants->count() ?? 0;
                             @endphp
                             <span class="font-medium {{ $currentTenants > 0 ? 'text-gray-900' : 'text-gray-400' }}">{{ $currentTenants }}</span><span class="text-gray-400">/{{ $room->capacity }}</span>
                         </td>

@@ -14,7 +14,7 @@ class RoomController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Room::with('activeContract.tenants.user')
+        $query = Room::with('activeContract.activeTenants.user')
             ->orderByRaw('CAST(room_number AS UNSIGNED)')
             ->orderBy('room_number');
 

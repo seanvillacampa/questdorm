@@ -134,7 +134,7 @@
                         </div>
                         
                         <form method="POST" action="{{ route('contracts.remove-tenant', $contract) }}" 
-                              onsubmit="return confirm('Remove {{ $tenant->user->name }} from this contract? This will update all future billing statements.')">
+                              onsubmit="return confirm('Are you sure you want to remove {{ $tenant->user->name }} from this contract?\n\nThis will:\n• Void their unpaid invoices\n• Redistribute their share to remaining tenants\n• Mark them as having left the contract\n• Show no contract in their tenant portal\n• Free up one bed in the room\n\nThis action cannot be undone.')">
                             @csrf
                             @method('DELETE')
                             <input type="hidden" name="tenant_id" value="{{ $tenant->id }}" />

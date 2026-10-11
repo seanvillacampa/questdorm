@@ -444,8 +444,9 @@ class ContractController extends Controller
                 : "{$bedsAvailable} beds are available")
             : "room is full";
 
-        $message = "Contract CT-" . str_pad($contract->id, 4, '0', STR_PAD_LEFT) 
-                 . " updated successfully. {$tenant->user->name} has left. {$availabilityText} ({$occupancyText}).";
+        $message = "{$tenant->user->name} has been removed from Contract CT-" . str_pad($contract->id, 4, '0', STR_PAD_LEFT) 
+                 . ". The tenant's portal will show no active contract, and their unpaid bills have been redistributed to the remaining tenants. "
+                 . "Room {$room->room_number}: {$availabilityText} ({$occupancyText}).";
 
         return redirect()->route('contracts.edit', $contract)->with('success', $message);
     }
