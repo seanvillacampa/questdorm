@@ -7,6 +7,7 @@ use App\Models\DepositEntry;
 use App\Models\Invoice;
 use App\Models\Room;
 use App\Models\Tenant;
+use App\Models\TenantDeposit;
 use App\Models\TenantPayment;
 use App\Models\AuditLog;
 use Illuminate\Http\Request;
@@ -303,6 +304,9 @@ class ContractController extends Controller
 
     public function show(Contract $contract)
     {
+        // Auto-fix deposits for paid first invoices
+        $this->autoFixDeposits($contract);
+        
         $contract->load([
             'room',
             'activeTenants.user',
@@ -319,6 +323,33 @@ class ContractController extends Controller
         $depositBalance = $contract->depositBalance();
 
         return view('contracts.show', compact('contract', 'rentPerTenant', 'depositBalance'));
+    }
+    
+    /**
+     * Auto-fix deposit records for paid first invoices
+     */
+    private function autoFixDeposits(Contract $contract)
+    {
+        $firstInvoice = $contract->invoices()->orderBy('billing_month')->first();
+        
+        if (!$firstInvoice) {
+            return;
+        }
+        
+        // Check if any tenant deposits need fixing
+        $needsFixing = false;
+        foreach ($firstInvoice->tenantPayments as $tp) {
+            if ($tp->status === 'paid') {
+                $deposit = TenantDeposit::where('contract_id', $contract->id)
+                    ->where('tenant_id', $tp->tenant_id)
+                    ->first();
+                
+                if ($deposit && $deposit->amount_paid < $deposit->amount_required) {
+                    $needsFixing = true;
+                    $deposit->update(['amount_paid' => $deposit->amount_required]);
+                }
+            }
+        }
     }
 
     public function edit(Contract $contract)

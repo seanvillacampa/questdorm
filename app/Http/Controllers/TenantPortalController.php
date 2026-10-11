@@ -114,6 +114,9 @@ class TenantPortalController extends Controller
         $myTenantId = Auth::user()->tenant?->id;
 
         if ($contract) {
+            // Auto-fix deposit if needed
+            $this->autoFixDeposit($contract, $myTenantId);
+            
             $entries = DepositEntry::where('contract_id', $contract->id)
                 ->orderBy('date')
                 ->get();
@@ -129,6 +132,39 @@ class TenantPortalController extends Controller
         }
 
         return view('tenant.deposit', compact('contract', 'entries', 'depositBalance', 'myDeposit'));
+    }
+    
+    /**
+     * Auto-fix deposit record if first invoice is paid but deposit shows unpaid
+     */
+    private function autoFixDeposit($contract, $tenantId)
+    {
+        if (!$contract || !$tenantId) {
+            return;
+        }
+        
+        $firstInvoice = $contract->invoices()->orderBy('billing_month')->first();
+        
+        if (!$firstInvoice) {
+            return;
+        }
+        
+        // Check if this tenant paid their share of the first invoice
+        $tenantPayment = TenantPayment::where('invoice_id', $firstInvoice->id)
+            ->where('tenant_id', $tenantId)
+            ->where('status', 'paid')
+            ->first();
+        
+        if ($tenantPayment) {
+            // Update deposit if needed
+            $deposit = \App\Models\TenantDeposit::where('contract_id', $contract->id)
+                ->where('tenant_id', $tenantId)
+                ->first();
+            
+            if ($deposit && $deposit->amount_paid < $deposit->amount_required) {
+                $deposit->update(['amount_paid' => $deposit->amount_required]);
+            }
+        }
     }
 
     public function contract()
