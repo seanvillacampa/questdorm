@@ -84,33 +84,46 @@ class TenantController extends Controller
         }
 
         // Create user + tenant inside transaction
-        $user = DB::transaction(function () use ($data) {
-            $user = User::create([
-                'first_name' => $data['first_name'],
-                'middle_name' => $data['middle_name'] ?? null,
-                'last_name'   => $data['last_name'],
-                'email'     => $data['email'],
-                'phone'     => $data['phone'] ?? null,
-                'phone_country_code' => $data['phone_country_code'] ?? '+63',
-                'password'  => Hash::make(\Illuminate\Support\Str::random(16)),
-                'is_active' => true,
-            ]);
-            $user->assignRole('tenant');
+        try {
+            $user = DB::transaction(function () use ($data) {
+                $user = User::create([
+                    'first_name'         => $data['first_name'],
+                    'middle_name'        => $data['middle_name'] ?: null,
+                    'last_name'          => $data['last_name'],
+                    'email'              => $data['email'],
+                    'phone'              => $data['phone'] ?? null,
+                    'phone_country_code' => $data['phone_country_code'] ?? '+63',
+                    'password'           => Hash::make(\Illuminate\Support\Str::random(16)),
+                    'is_active'          => true,
+                ]);
+                $user->assignRole('tenant');
 
-            $tenant = Tenant::create([
-                'user_id'         => $user->id,
-                'birthdate'       => $data['birthdate'] ?? null,
-                'id_type'         => $data['id_type'] ?? null,
-                'id_number'       => $data['id_number'] ?? null,
-                'emergency_name'  => $data['emergency_name'] ?? null,
-                'emergency_phone' => $data['emergency_phone'] ?? null,
-            ]);
+                $tenant = Tenant::create([
+                    'user_id'         => $user->id,
+                    'birthdate'       => $data['birthdate'] ?? null,
+                    'id_type'         => $data['id_type'] ?? null,
+                    'id_number'       => $data['id_number'] ?? null,
+                    'emergency_name'  => $data['emergency_name'] ?? null,
+                    'emergency_phone' => $data['emergency_phone'] ?? null,
+                ]);
 
-            AuditLog::record('Created', 'Tenant', $tenant->id,
-                "New tenant {$user->name} ({$user->email})");
+                AuditLog::record('Created', 'Tenant', $tenant->id,
+                    "New tenant {$user->name} ({$user->email})");
 
-            return $user;
-        });
+                return $user;
+            });
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Catch duplicate email or NOT NULL constraint violations gracefully
+            if ($e->getCode() === '23000') {
+                if (str_contains($e->getMessage(), 'users_email_unique') || str_contains($e->getMessage(), 'Duplicate entry')) {
+                    return back()->withErrors(['email' => 'This email address is already registered.'])->withInput();
+                }
+                if (str_contains($e->getMessage(), 'middle_name') && str_contains($e->getMessage(), 'cannot be null')) {
+                    return back()->withErrors(['middle_name' => 'Middle name is required by the database. Please enter N/A if not applicable.'])->withInput();
+                }
+            }
+            throw $e; // re-throw unexpected DB errors
+        }
 
         // Send activation email OUTSIDE the transaction so a mail failure
         // doesn't roll back the user record. Log any failure clearly.
