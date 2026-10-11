@@ -426,6 +426,8 @@ class QuestBuildingSeeder extends Seeder
         
         // First, determine payment patterns per contract (room)
         // Each contract gets a payment pattern that's chronologically consistent
+        // Jan-Jul 2026: All PAID
+        // Aug-Oct 2026: Random statuses with chronological logic
         $contractPaymentPatterns = [];
         
         for ($roomId = 1; $roomId <= 28; $roomId++) {
@@ -433,6 +435,13 @@ class QuestBuildingSeeder extends Seeder
             $hasUnpaid = false; // Track if we've hit an unpaid month
             
             foreach ($months as $monthIndex => $month) {
+                // Months 0-6 are Jan-Jul 2026: ALL PAID
+                if ($monthIndex <= 6) {
+                    $pattern[$monthIndex] = ['status' => 'paid', 'paid_percentage' => 100];
+                    continue;
+                }
+                
+                // Months 7-9 are Aug-Oct 2026: Random with chronological logic
                 if ($hasUnpaid) {
                     // Once we have an unpaid month, all future months must be unpaid
                     $pattern[$monthIndex] = ['status' => 'pending', 'paid_percentage' => 0];
@@ -440,20 +449,20 @@ class QuestBuildingSeeder extends Seeder
                     // Before hitting unpaid, assign status with weighted randomness
                     $rand = rand(1, 100);
                     
-                    if ($rand <= 75) {
-                        // 75% fully paid
+                    if ($rand <= 60) {
+                        // 60% fully paid
                         $pattern[$monthIndex] = ['status' => 'paid', 'paid_percentage' => 100];
-                    } elseif ($rand <= 88) {
-                        // 13% partial - this creates unpaid balance
-                        $paidPercent = rand(30, 80);
+                    } elseif ($rand <= 75) {
+                        // 15% partial - this creates unpaid balance, future months unpaid
+                        $paidPercent = rand(30, 70);
                         $pattern[$monthIndex] = ['status' => 'partial', 'paid_percentage' => $paidPercent];
                         $hasUnpaid = true; // Future months will be unpaid
-                    } elseif ($rand <= 94) {
-                        // 6% pending - this creates unpaid balance
+                    } elseif ($rand <= 90) {
+                        // 15% pending - this creates unpaid balance, future months unpaid
                         $pattern[$monthIndex] = ['status' => 'pending', 'paid_percentage' => 0];
                         $hasUnpaid = true;
                     } else {
-                        // 6% overdue - this creates unpaid balance
+                        // 10% overdue - this creates unpaid balance, future months unpaid
                         $pattern[$monthIndex] = ['status' => 'overdue', 'paid_percentage' => 0];
                         $hasUnpaid = true;
                     }
@@ -542,22 +551,43 @@ class QuestBuildingSeeder extends Seeder
                     'updated_at' => $invoiceCreatedAt->format('Y-m-d H:i:s')
                 ]);
                 
-                // Create tenant payments
+                // Create tenant payments with carry-over logic
                 $shareAmount = $totalAmount / $tenantCount;
                 $shareAmountPaid = $amountPaid / $tenantCount;
                 
-                // Carry over is the unpaid portion of this invoice
-                $carryOver = $shareAmount - $shareAmountPaid;
-                
-                foreach ($tenantIds as $tenantId) {
+                foreach ($tenantIds as $tenantIndex => $tenantId) {
+                    // Calculate carry-over from previous month
+                    $carryOverBalance = 0;
+                    if ($monthIndex > 0) {
+                        // Get the invoice ID from the previous month for the same room
+                        // Invoices are created sequentially: Room 1 all months, then Room 2 all months, etc.
+                        // So previous month's invoice = current invoice - 1
+                        $prevInvoiceId = $invoiceId - 1;
+                        
+                        // Get previous month's tenant payment for this specific tenant
+                        $prevTenantPayment = TenantPayment::where('invoice_id', $prevInvoiceId)
+                            ->where('tenant_id', $tenantId)
+                            ->first();
+                        
+                        if ($prevTenantPayment) {
+                            // Calculate unpaid balance from previous month
+                            $prevBalance = $prevTenantPayment->share_amount - $prevTenantPayment->amount_paid;
+                            
+                            if ($prevBalance > 0) {
+                                // Carry over = previous month's unpaid balance + previous carry-over
+                                $carryOverBalance = $prevBalance + $prevTenantPayment->carry_over_balance;
+                            }
+                        }
+                    }
+                    
                     TenantPayment::create([
                         'id' => $tenantPaymentId++,
                         'invoice_id' => $invoiceId,
                         'tenant_id' => $tenantId,
                         'share_amount' => round($shareAmount, 2),
                         'amount_paid' => round($shareAmountPaid, 2),
+                        'carry_over_balance' => round($carryOverBalance, 2),
                         'status' => $status,
-                        'carry_over_balance' => round($carryOver, 2),
                         'created_at' => $billingMonth->format('Y-m-d H:i:s'),
                         'updated_at' => now()
                     ]);

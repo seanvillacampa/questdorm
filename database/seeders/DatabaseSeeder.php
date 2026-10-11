@@ -811,7 +811,9 @@ class DatabaseSeeder extends Seeder
         $owner = User::firstOrCreate(
             ['email' => 'owner@dorm.test'],
             [
-                'name' => 'Rosa Dela Vega',
+                'first_name' => 'Rosa',
+                'middle_name' => 'Dela',
+                'last_name' => 'Vega',
                 'phone' => '0917 000 0001',
                 'password' => Hash::make('password'),
                 'is_active' => true,
@@ -823,7 +825,9 @@ class DatabaseSeeder extends Seeder
         $staff = User::firstOrCreate(
             ['email' => 'staff@dorm.test'],
             [
-                'name' => 'Ben Lopez',
+                'first_name' => 'Ben',
+                'middle_name' => null,
+                'last_name' => 'Lopez',
                 'phone' => '0917 000 0002',
                 'password' => Hash::make('password'),
                 'is_active' => true,
@@ -835,7 +839,9 @@ class DatabaseSeeder extends Seeder
         $staff2 = User::firstOrCreate(
             ['email' => 'staff2@dorm.test'],
             [
-                'name' => 'Ana Cruz',
+                'first_name' => 'Ana',
+                'middle_name' => null,
+                'last_name' => 'Cruz',
                 'phone' => '0917 000 0003',
                 'password' => Hash::make('password'),
                 'is_active' => true,
