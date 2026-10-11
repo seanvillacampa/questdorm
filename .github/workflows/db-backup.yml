@@ -79,6 +79,11 @@ jobs:
  
       - name: Delete old backups (retention)
         run: |
+          # Make sure all three folders exist so cleanup never fails on a missing one
+          for d in daily weekly monthly; do
+            rclone mkdir "gdrive:$d"
+          done
+
           # --drive-use-trash=false deletes permanently so Drive storage is freed
           rclone delete gdrive:daily   --min-age 7d  --drive-use-trash=false -v
           rclone delete gdrive:weekly  --min-age 28d --drive-use-trash=false -v
