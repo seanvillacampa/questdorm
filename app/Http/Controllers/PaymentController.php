@@ -96,6 +96,32 @@ class PaymentController extends Controller
                     'paid_at'     => $tpStatus === 'paid' ? now() : $tenantPay->paid_at,
                 ]);
                 
+                // ── If this is the first invoice and tenant fully paid, update their deposit record
+                if ($tpStatus === 'paid') {
+                    $contract = $invoice->contract;
+                    $firstInvoice = \App\Models\Invoice::where('contract_id', $contract->id)
+                        ->orderBy('billing_month')
+                        ->first();
+                    
+                    if ($firstInvoice && $firstInvoice->id === $invoice->id) {
+                        // This is the first invoice - update tenant deposit
+                        $tenantDeposit = \App\Models\TenantDeposit::where('contract_id', $contract->id)
+                            ->where('tenant_id', $tenantPay->tenant_id)
+                            ->first();
+                        
+                        if ($tenantDeposit && $tenantDeposit->amount_paid < $tenantDeposit->amount_required) {
+                            $tenantDeposit->update([
+                                'amount_paid' => $tenantDeposit->amount_required,
+                            ]);
+                            
+                            Log::info('First invoice paid: Updated tenant deposit', [
+                                'tenant_id' => $tenantPay->tenant_id,
+                                'deposit_paid' => $tenantDeposit->amount_required,
+                            ]);
+                        }
+                    }
+                }
+                
                 // ── Cascade payment backwards if tenant fully paid their share
                 // and this invoice had carry_over_balance
                 if ($tpStatus === 'paid' && ($invoice->carry_over_balance ?? 0) > 0) {
