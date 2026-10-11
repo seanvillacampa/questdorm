@@ -57,7 +57,7 @@
                     <dt class="text-gray-400">Room rate</dt>
                     <dd class="text-gray-900">₱{{ number_format($contract->room->monthly_rate,2) }}/month</dd>
                     <dt class="text-gray-400">Tenants</dt>
-                    <dd class="text-gray-900">{{ $contract->tenants->count() }}</dd>
+                    <dd class="text-gray-900">{{ $contract->activeTenants->count() }}</dd>
                     <dt class="text-gray-400">Per tenant</dt>
                     <dd class="font-semibold text-gray-900">₱{{ number_format($rentPerTenant,2) }}/month</dd>
                     <dt class="text-gray-400">Due day</dt>
@@ -73,7 +73,7 @@
 
             <div class="bg-white rounded-xl border border-gray-200 shadow-xs p-4">
                 <h2 class="text-sm font-semibold text-gray-900 mb-3">Tenants</h2>
-                @foreach($contract->tenants as $t)
+                @foreach($contract->activeTenants as $t)
                     @php
                         $tenantDeposit = $t->deposits()->where('contract_id', $contract->id)->first();
                         $depositRequired = $tenantDeposit ? $tenantDeposit->amount_required : 0;

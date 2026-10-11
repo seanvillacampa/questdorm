@@ -23,9 +23,7 @@ class TenantPortalController extends Controller
         return $tenant->contracts()
             ->where('is_active', true)
             ->wherePivot('left_on', null)
-            ->with(['room', 'tenants' => function($query) {
-                $query->wherePivot('left_on', null)->with('user');
-            }])
+            ->with(['room', 'activeTenants.user'])
             ->first();
     }
 
