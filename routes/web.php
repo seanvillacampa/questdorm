@@ -171,6 +171,6 @@ Route::middleware('auth')->group(function () {
         Route::post('messages/{message}/reply', [TenantPortalController::class, 'replyToMessage'])->name('messages.reply');
         
         Route::post('pay/{invoice}',    [PayMongoController::class, 'createLink'])->name('pay');
-        Route::get('payment-return',    [TenantPortalController::class, 'paymentReturn'])->name('tenant.payment-return');
+        Route::get('payment-return',    [TenantPortalController::class, 'paymentReturn'])->name('payment-return');
     });
 });
