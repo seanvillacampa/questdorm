@@ -32,16 +32,54 @@ class TenantPortalController extends Controller
         return redirect()->route('tenant.bill');
     }
 
+    public function paymentReturn()
+    {
+        $contract   = $this->activeContract();
+        $myTenantId = Auth::user()->tenant?->id;
+        $isPaid     = false;
+
+        if ($contract && $myTenantId) {
+            // Recompute statuses so we reflect the latest payment
+            Invoice::where('contract_id', $contract->id)
+                ->whereNotIn('status', ['paid', 'void'])
+                ->with('tenantPayments')
+                ->get()
+                ->each(fn ($inv) => $inv->recomputeStatus());
+
+            // Check if this tenant's latest invoice is now paid
+            $latestPayment = \App\Models\TenantPayment::where('tenant_id', $myTenantId)
+                ->whereHas('invoice', fn ($q) => $q->where('contract_id', $contract->id))
+                ->orderByDesc('invoice_id')
+                ->first();
+
+            $isPaid = $latestPayment?->status === 'paid';
+        }
+
+        return view('tenant.payment-return', compact('isPaid'));
+    }
+
     public function bill()
     {
         $contract = $this->activeContract();
         $invoice  = null;
-        $myPayment = null; // TenantPayment row for this tenant
+        $myPayment = null;
         $reading  = null;
 
         if ($contract) {
             $myTenantId = Auth::user()->tenant?->id;
-            
+
+            // ── Auto-recompute stale statuses for this contract ───────────
+            // Handles cases where the PayMongo webhook was delayed or missed.
+            // Only touches past-due unpaid invoices — fast and safe.
+            if ($myTenantId) {
+                Invoice::where('contract_id', $contract->id)
+                    ->whereNotIn('status', ['paid', 'void'])
+                    ->where('due_date', '<', now()->startOfDay())
+                    ->with('tenantPayments')
+                    ->get()
+                    ->each(fn ($inv) => $inv->recomputeStatus());
+            }
+
             // First, try to get an unpaid invoice for the current tenant
             if ($myTenantId) {
                 $unpaidInvoice = Invoice::where('contract_id', $contract->id)
@@ -55,12 +93,12 @@ class TenantPortalController extends Controller
                         'payments',
                     ])
                     ->first();
-                
+
                 if ($unpaidInvoice) {
                     $invoice = $unpaidInvoice;
                 }
             }
-            
+
             // If no unpaid invoice, show current month's invoice (if exists)
             if (!$invoice) {
                 $invoice = Invoice::where('contract_id', $contract->id)
@@ -75,8 +113,7 @@ class TenantPortalController extends Controller
             if ($invoice) {
                 $myPayment = $invoice->tenantPayments
                     ->firstWhere('tenant_id', $myTenantId);
-                
-                // Get meter reading for the invoice's billing month
+
                 $reading = MeterReading::where('room_id', $contract->room_id)
                     ->where('reading_month', $invoice->billing_month)
                     ->first();

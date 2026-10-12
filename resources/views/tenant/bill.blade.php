@@ -108,13 +108,20 @@
                             @error('pay')
                                 <div class="mt-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">{{ $message }}</div>
                             @enderror
-                            <form method="POST" action="{{ route('tenant.pay', $invoice) }}" class="mt-4">
+                            <form method="POST" action="{{ route('tenant.pay', $invoice) }}" class="mt-4" target="_blank">
                                 @csrf
                                 <button type="submit" class="w-full rounded-xl bg-[#145d4b] px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#104f3f]">
                                     Pay ₱{{ number_format($myBalance, 2) }}
                                 </button>
                             </form>
                             <p class="mt-2 text-center text-[11px] text-slate-400">GCash · Maya · Card · QR Ph</p>
+                            <a href="{{ route('tenant.payment-return') }}"
+                               class="mt-3 flex items-center justify-center gap-1.5 text-xs font-medium text-slate-500 hover:text-[#145d4b] transition">
+                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                Already paid? Check payment status
+                            </a>
                         @else
                             <div class="mt-4 flex items-center justify-center gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
                                 <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>

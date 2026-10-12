@@ -34,6 +34,7 @@ class PayMongoService
             throw new \RuntimeException('Amount too small for PayMongo (minimum ₱20).');
         }
 
+        // Remove unsupported redirect from payment links (PayMongo /v1/links don't support redirect)
         $payload = [
             'data' => [
                 'attributes' => [
@@ -41,10 +42,6 @@ class PayMongoService
                     'currency'    => 'PHP',
                     'description' => $description ?: "Billing Statement {$invoice->invoice_number}",
                     'remarks'     => $invoice->invoice_number,
-                    'redirect'    => [
-                        'success' => url('/my/bill'),
-                        'failed'  => url('/my/bill'),
-                    ],
                 ],
             ],
         ];
