@@ -162,12 +162,15 @@ class TenantController extends Controller
 
     public function destroy(Tenant $tenant)
     {
-        // Check if tenant has any active contracts
-        $hasActiveContract = $tenant->contracts()->where('status', 'active')->exists();
+        // Check if tenant is currently active in any contract (left_on is null)
+        $hasActiveContract = DB::table('contract_tenants')
+            ->where('tenant_id', $tenant->id)
+            ->whereNull('left_on')
+            ->exists();
         
         if ($hasActiveContract) {
             return redirect()->route('tenants.show', $tenant)
-                ->with('error', 'Cannot delete tenant with active contracts. Remove them from the contract first.');
+                ->with('error', 'Cannot delete tenant who is currently in an active contract. Remove them from the contract first.');
         }
 
         DB::beginTransaction();

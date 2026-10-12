@@ -34,14 +34,51 @@
             {{-- Contracts --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-xs p-4">
                 <h2 class="text-sm font-semibold text-gray-900 mb-3">Contracts</h2>
-                @forelse($tenant->contracts as $contract)
+                @php
+                    // Get contracts with tenant's active status in each contract
+                    $contractsList = $tenant->contracts->map(function($contract) use ($tenant) {
+                        $pivot = $contract->tenants->where('id', $tenant->id)->first()?->pivot;
+                        return [
+                            'contract' => $contract,
+                            'joined_on' => $pivot?->joined_on,
+                            'left_on' => $pivot?->left_on,
+                            'is_active_in_contract' => $pivot && is_null($pivot->left_on),
+                        ];
+                    })->sortByDesc('contract.start_date');
+                @endphp
+                
+                @forelse($contractsList as $item)
+                    @php
+                        $contract = $item['contract'];
+                        $joinedOn = $item['joined_on'];
+                        $leftOn = $item['left_on'];
+                        $isActiveInContract = $item['is_active_in_contract'];
+                        
+                        // Determine display status
+                        if ($isActiveInContract) {
+                            $displayStatus = $contract->status; // Show contract status (active/inactive)
+                        } else {
+                            $displayStatus = 'left'; // Tenant left this contract
+                        }
+                        
+                        // Date range display
+                        $dateRange = ($joinedOn ? \Carbon\Carbon::parse($joinedOn)->format('M d, Y') : $contract->start_date->format('M d, Y'));
+                        if ($leftOn) {
+                            $dateRange .= ' – ' . \Carbon\Carbon::parse($leftOn)->format('M d, Y');
+                        } elseif ($contract->end_date) {
+                            $dateRange .= ' – ' . $contract->end_date->format('M d, Y');
+                        } else {
+                            $dateRange .= ' – Open-ended';
+                        }
+                    @endphp
+                    
                     <div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
                         <div>
                             <p class="text-sm font-medium text-gray-900">Room {{ $contract->room->room_number }}</p>
-                            <p class="text-xs text-gray-400">{{ $contract->start_date->format('M d, Y') }} – {{ $contract->end_date ? $contract->end_date->format('M d, Y') : 'Open-ended' }}</p>
+                            <p class="text-xs text-gray-400">{{ $dateRange }}</p>
                         </div>
                         <div class="flex items-center gap-2">
-                            <x-status-badge :status="$contract->status" />
+                            <x-status-badge :status="$displayStatus" />
                             <a href="{{ route('contracts.show', $contract) }}" class="text-xs text-blue-600 hover:underline">View</a>
                         </div>
                     </div>
@@ -65,7 +102,11 @@
 
             {{-- Delete tenant --}}
             @php
-                $hasActiveContract = $tenant->contracts()->where('status', 'active')->exists();
+                // Check if tenant is currently active in ANY contract (left_on is null)
+                $hasActiveContract = DB::table('contract_tenants')
+                    ->where('tenant_id', $tenant->id)
+                    ->whereNull('left_on')
+                    ->exists();
             @endphp
             
             <div class="bg-white rounded-xl border border-gray-200 shadow-xs p-4">
