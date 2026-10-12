@@ -87,7 +87,8 @@ class PaymentController extends Controller
             // Update the specific TenantPayment row
             if ($tenantPay) {
                 $newTpPaid = $tenantPay->amount_paid + $data['amount'];
-                $tpStatus  = $newTpPaid >= $tenantPay->share_amount ? 'paid' : $tenantPay->status;
+                // Paid when amount covers share + carry_over (totalOwed)
+                $tpStatus  = $newTpPaid >= $tenantPay->totalOwed() ? 'paid' : $tenantPay->status;
 
                 $tenantPay->update([
                     'amount_paid' => $newTpPaid,
@@ -95,67 +96,31 @@ class PaymentController extends Controller
                     'method'      => $data['method'],
                     'paid_at'     => $tpStatus === 'paid' ? now() : $tenantPay->paid_at,
                 ]);
-                
-                // ── If this is the first invoice and tenant fully paid, update their deposit record
+
+                // ── If this is the first invoice and tenant fully paid, update deposit
                 if ($tpStatus === 'paid') {
-                    $contract = $invoice->contract;
+                    $contract     = $invoice->contract;
                     $firstInvoice = \App\Models\Invoice::where('contract_id', $contract->id)
                         ->orderBy('billing_month')
                         ->first();
-                    
+
                     if ($firstInvoice && $firstInvoice->id === $invoice->id) {
-                        // This is the first invoice - update tenant deposit
                         $tenantDeposit = \App\Models\TenantDeposit::where('contract_id', $contract->id)
                             ->where('tenant_id', $tenantPay->tenant_id)
                             ->first();
-                        
+
                         if ($tenantDeposit && $tenantDeposit->amount_paid < $tenantDeposit->amount_required) {
-                            $tenantDeposit->update([
-                                'amount_paid' => $tenantDeposit->amount_required,
-                            ]);
-                            
+                            $tenantDeposit->update(['amount_paid' => $tenantDeposit->amount_required]);
                             Log::info('First invoice paid: Updated tenant deposit', [
-                                'tenant_id' => $tenantPay->tenant_id,
+                                'tenant_id'    => $tenantPay->tenant_id,
                                 'deposit_paid' => $tenantDeposit->amount_required,
                             ]);
                         }
                     }
-                }
-                
-                // ── Cascade payment backwards if tenant fully paid their share
-                // and this invoice had carry_over_balance
-                if ($tpStatus === 'paid' && ($invoice->carry_over_balance ?? 0) > 0) {
-                    // Get all older unpaid invoices for this contract
-                    $olderInvoices = Invoice::where('contract_id', $invoice->contract_id)
-                        ->where('billing_month', '<', $invoice->billing_month)
-                        ->whereNotIn('status', ['paid', 'void'])
-                        ->orderBy('billing_month')
-                        ->get();
-                    
-                    foreach ($olderInvoices as $oldInv) {
-                        // Find this tenant's payment record for the old invoice
-                        $oldTenantPay = TenantPayment::where('invoice_id', $oldInv->id)
-                            ->where('tenant_id', $tenantPay->tenant_id)
-                            ->whereIn('status', ['pending', 'partial', 'late', 'partial_late', 'overdue', 'partial_overdue'])
-                            ->first();
-                        
-                        if ($oldTenantPay) {
-                            $oldTenantPay->update([
-                                'amount_paid' => $oldTenantPay->totalOwed(), // share + carry_over
-                                'status'      => 'paid',
-                                'method'      => $data['method'],
-                                'paid_at'     => now(),
-                            ]);
-                            
-                            // Recompute the old invoice status
-                            $oldInv->refresh();
-                            $oldInv->recomputeStatus();
-                            
-                            Log::info('Manual payment: Cascaded to older billing statement', [
-                                'old_invoice' => $oldInv->invoice_number,
-                                'tenant_id'   => $tenantPay->tenant_id,
-                            ]);
-                        }
+
+                    // ── Cascade to older invoices via the model method (single source of truth)
+                    if (($invoice->carry_over_balance ?? 0) > 0) {
+                        $invoice->cascadePaymentToOlderInvoices($tenantPay->tenant_id, $data['method']);
                     }
                 }
 

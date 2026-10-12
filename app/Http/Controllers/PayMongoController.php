@@ -190,42 +190,10 @@ class PayMongoController extends Controller
                     'method'      => $method,
                     'paid_at'     => now(),
                 ]);
-                
-                // ── Cascade payment backwards: if this invoice had carry_over_balance,
-                // mark all previous unpaid invoices for this tenant as paid too
+
+                // ── Cascade to older invoices via the model method (single source of truth)
                 if (($invoice->carry_over_balance ?? 0) > 0) {
-                    // Get all older unpaid invoices for this contract
-                    $olderInvoices = \App\Models\Invoice::where('contract_id', $invoice->contract_id)
-                        ->where('billing_month', '<', $invoice->billing_month)
-                        ->whereNotIn('status', ['paid', 'void'])
-                        ->orderBy('billing_month')
-                        ->get();
-                    
-                    foreach ($olderInvoices as $oldInv) {
-                        // Find this tenant's payment record for the old invoice
-                        $oldTenantPay = \App\Models\TenantPayment::where('invoice_id', $oldInv->id)
-                            ->where('tenant_id', $tenantPay->tenant_id)
-                            ->whereIn('status', ['pending', 'partial', 'late', 'partial_late', 'overdue', 'partial_overdue'])
-                            ->first();
-                        
-                        if ($oldTenantPay) {
-                            $oldTenantPay->update([
-                                'amount_paid' => $oldTenantPay->share_amount,
-                                'status'      => 'paid',
-                                'method'      => $method,
-                                'paid_at'     => now(),
-                            ]);
-                            
-                            // Recompute the old invoice status
-                            $oldInv->refresh();
-                            $oldInv->recomputeStatus();
-                            
-                            Log::info('PayMongo: Cascaded payment to older billing statement', [
-                                'old_invoice' => $oldInv->invoice_number,
-                                'tenant_id'   => $tenantPay->tenant_id,
-                            ]);
-                        }
-                    }
+                    $invoice->cascadePaymentToOlderInvoices($tenantPay->tenant_id, $method);
                 }
             }
 

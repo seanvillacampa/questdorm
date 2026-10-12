@@ -302,16 +302,14 @@ class InvoiceController extends Controller
                     $totalCredit = 0.0;
                     
                     foreach ($allPreviousPayments as $prevPayment) {
-                        $balance = $prevPayment->balanceDue();
-                        
-                        if ($balance > 0) {
-                            $accumulatedBalance += $balance;
-                        } else {
-                            // Check for overpayment credit
-                            $tenantTotal = $prevPayment->totalOwed();
-                            if ($prevPayment->amount_paid > $tenantTotal) {
-                                $totalCredit += ($prevPayment->amount_paid - $tenantTotal);
-                            }
+                        // Use share_amount - amount_paid (base debt only).
+                        // DO NOT use balanceDue() — it includes carry_over_balance
+                        // which would double-count carry-overs rolled into later months.
+                        $baseDebt = $prevPayment->share_amount - $prevPayment->amount_paid;
+                        if ($baseDebt > 0) {
+                            $accumulatedBalance += $baseDebt;
+                        } elseif ($baseDebt < 0) {
+                            $totalCredit += abs($baseDebt);
                         }
                     }
                     
