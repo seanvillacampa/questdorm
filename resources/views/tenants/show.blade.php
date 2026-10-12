@@ -25,7 +25,6 @@
                     <dt class="text-gray-400">Name</dt>        <dd class="text-gray-900">{{ $tenant->user->name }}</dd>
                     <dt class="text-gray-400">Email</dt>       <dd class="text-gray-900">{{ $tenant->user->email }}</dd>
                     <dt class="text-gray-400">Phone</dt>       <dd class="text-gray-900">{{ $tenant->user->phone ?? '—' }}</dd>
-                    <dt class="text-gray-400">Status</dt>      <dd><x-status-badge :status="$tenant->user->is_active ? 'active' : 'disabled'" /></dd>
                     <dt class="text-gray-400">Birthdate</dt>   <dd class="text-gray-900">{{ $tenant->birthdate?->format('M d, Y') ?? '—' }}</dd>
                     <dt class="text-gray-400">ID</dt>          <dd class="text-gray-900">{{ $tenant->id_type ? $tenant->id_type.' · '.$tenant->id_number : '—' }}</dd>
                 </dl>
