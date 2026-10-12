@@ -101,10 +101,13 @@
 
             {{-- Delete tenant --}}
             @php
-                // Check if tenant is currently active in ANY contract (left_on is null)
+                // Cannot delete if tenant is currently active in ANY contract:
+                // Either left_on is null AND the contract itself is still active
                 $hasActiveContract = DB::table('contract_tenants')
-                    ->where('tenant_id', $tenant->id)
-                    ->whereNull('left_on')
+                    ->join('contracts', 'contract_tenants.contract_id', '=', 'contracts.id')
+                    ->where('contract_tenants.tenant_id', $tenant->id)
+                    ->whereNull('contract_tenants.left_on')
+                    ->where('contracts.is_active', true)
                     ->exists();
             @endphp
             

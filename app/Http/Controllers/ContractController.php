@@ -441,6 +441,15 @@ class ContractController extends Controller
             // Mark room as vacant
             $contract->room->update(['status' => 'vacant']);
 
+            // Set left_on for all tenants still active in this contract
+            $contract->tenants()
+                ->wherePivot('left_on', null)
+                ->each(function ($tenant) use ($contract) {
+                    $contract->tenants()->updateExistingPivot($tenant->id, [
+                        'left_on' => now(),
+                    ]);
+                });
+
             // Deactivate contract
             $contract->update([
                 'is_active' => false,
