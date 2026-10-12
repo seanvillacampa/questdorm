@@ -141,7 +141,7 @@ class PaymentController extends Controller
                         
                         if ($oldTenantPay) {
                             $oldTenantPay->update([
-                                'amount_paid' => $oldTenantPay->share_amount,
+                                'amount_paid' => $oldTenantPay->totalOwed(), // share + carry_over
                                 'status'      => 'paid',
                                 'method'      => $data['method'],
                                 'paid_at'     => now(),

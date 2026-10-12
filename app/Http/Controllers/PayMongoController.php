@@ -182,10 +182,10 @@ class PayMongoController extends Controller
                 ]);
             }
 
-            // Mark the tenant's personal share as paid
+            // Mark the tenant's personal share as paid (including carry-over)
             if ($tenantPay) {
                 $tenantPay->update([
-                    'amount_paid' => $tenantPay->share_amount,
+                    'amount_paid' => $tenantPay->totalOwed(), // share + carry_over
                     'status'      => 'paid',
                     'method'      => $method,
                     'paid_at'     => now(),

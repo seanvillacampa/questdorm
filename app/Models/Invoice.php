@@ -198,10 +198,10 @@ class Invoice extends Model
             if ($olderUnpaidInvoices->isEmpty()) continue;
             
             foreach ($olderUnpaidInvoices as $oldTenantPay) {
-                // Mark as paid
+                // Mark as paid (including their carry-over if any)
                 $oldTenantPay->update([
                     'status' => 'paid',
-                    'amount_paid' => $oldTenantPay->share_amount,
+                    'amount_paid' => $oldTenantPay->totalOwed(), // share + carry_over
                     'paid_at' => now(),
                 ]);
                 
