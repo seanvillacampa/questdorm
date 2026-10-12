@@ -72,7 +72,16 @@ class DashboardController extends Controller
 
         $billedThisMonth    = $monthInvoices->sum('total_amount');
         $collectedThisMonth = $monthInvoices->sum('amount_paid');
-        $overdueCount       = $monthInvoices->where('status', 'overdue')->count();
+        
+        // Count overdue invoices based on ACTUAL due date, not just status field
+        // (status field is only updated by cron job, but we need real-time count)
+        $overdueCount = Invoice::whereHas('contract', fn ($q) =>
+                $q->whereHas('room') // only real contracts
+            )
+            ->where('status', '!=', 'paid')
+            ->where('status', '!=', 'void')
+            ->whereDate('due_date', '<', now())
+            ->count();
         
         // Active tenants (those with active contracts and haven't left)
         $activeTenantsCount = DB::table('contract_tenants')
