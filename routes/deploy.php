@@ -122,6 +122,24 @@ Route::get('/deploy/fix-deposits', function () {
     }
 });
 
+Route::get('/deploy/recalculate-carryovers', function () {
+    // Security: Check for deploy key
+    $deployKey = request()->query('key');
+    $expectedKey = env('DEPLOY_KEY', 'quest2026deploy');
+    
+    if (app()->environment('production') && $deployKey !== $expectedKey) {
+        return '<h1>Access Denied</h1><p>Invalid or missing deploy key.</p>';
+    }
+    
+    try {
+        Artisan::call('invoices:recalculate-carryovers');
+        $output = Artisan::output();
+        return '<h1>✅ Carry-Overs Recalculated</h1><pre>' . $output . '</pre><hr><p><a href="/deploy/status">Back to Deployment Status</a></p>';
+    } catch (\Exception $e) {
+        return '<h1>❌ Error</h1><pre>Error: ' . $e->getMessage() . '</pre>';
+    }
+});
+
 Route::get('/deploy/status', function () {
     $deployKey = env('DEPLOY_KEY', 'quest2026deploy');
     return '<html><head><title>Quest Building Deployment</title><style>
@@ -149,6 +167,7 @@ Route::get('/deploy/status', function () {
         <li><a href="/deploy/migrate?key=' . $deployKey . '">Run Migrations</a> - Creates/updates all database tables (including middle_name nullable fix)</li>
         <li><a href="/deploy/seed?key=' . $deployKey . '">Run Seeder</a> - Populates Quest Building data (only if needed)</li>
         <li><strong><a href="/deploy/fix-deposits?key=' . $deployKey . '" style="color: #dc2626;">🔧 Fix Deposit Records</a></strong> - Updates tenant deposits for paid first invoices</li>
+        <li><strong><a href="/deploy/recalculate-carryovers?key=' . $deployKey . '" style="color: #dc2626;">🔄 Recalculate Carry-Overs</a></strong> - Fixes all existing invoices to show accumulated unpaid balances</li>
     </ol>
     <div class="success">
         <strong>✅ Current Issue Fix:</strong> The migration will make <code>middle_name</code> nullable, fixing the integrity constraint error.
