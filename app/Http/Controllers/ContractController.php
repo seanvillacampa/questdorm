@@ -39,28 +39,17 @@ class ContractController extends Controller
 
     public function create()
     {
-        // Get vacant rooms
-        $vacantRooms = Room::where('status', 'vacant')->orderBy('room_number')->get();
-        
-        // Get rooms with available beds (occupied but not full)
-        $roomsWithSpace = Room::where('status', 'occupied')
-            ->whereHas('activeContract')
-            ->with('activeContract.activeTenants')
-            ->get()
-            ->filter(function($room) {
-                $currentTenants = $room->activeContract->activeTenants->count();
-                return $currentTenants < $room->capacity;
-            })
-            ->sortBy('room_number');
-        
-        // Merge both collections
-        $rooms = $vacantRooms->concat($roomsWithSpace)->sortBy('room_number');
-        
+        // Only show vacant rooms with no active contract
+        $rooms = Room::where('status', 'vacant')
+            ->whereDoesntHave('activeContract')
+            ->orderBy('room_number')
+            ->get();
+
         $tenants = Tenant::with('user')
             ->whereDoesntHave('contracts', fn ($q) => $q->where('is_active', true)->whereNull('left_on'))
             ->get()
             ->sortBy('user.name');
-            
+
         return view('contracts.create', compact('rooms', 'tenants'));
     }
 
