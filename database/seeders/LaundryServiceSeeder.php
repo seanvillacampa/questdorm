@@ -13,12 +13,22 @@ class LaundryServiceSeeder extends Seeder
         $services = [
             [
                 'code'            => 'full_service',
-                'name'            => 'Full Service (Wash, Dry & Fold)',
+                'name'            => 'Full Service (Wash-Dry-Fold)',
                 'weight_limit_kg' => 8.00,
                 'prices' => [
                     'tenant'      => 140.00,
                     'student'     => 150.00,
                     'non_student' => 165.00,
+                ],
+            ],
+            [
+                'code'            => 'bedsheet_only',
+                'name'            => 'Bedsheet Only',
+                'weight_limit_kg' => 5.00,
+                'prices' => [
+                    'tenant'      => 160.00,
+                    'student'     => 160.00,
+                    'non_student' => 160.00,
                 ],
             ],
             [
@@ -29,16 +39,6 @@ class LaundryServiceSeeder extends Seeder
                     'tenant'      => 80.00,
                     'student'     => 80.00,
                     'non_student' => 80.00,
-                ],
-            ],
-            [
-                'code'            => 'bedsheet_only',
-                'name'            => 'Bedsheet / Blanket',
-                'weight_limit_kg' => 5.00,
-                'prices' => [
-                    'tenant'      => 160.00,
-                    'student'     => 160.00,
-                    'non_student' => 160.00,
                 ],
             ],
         ];
