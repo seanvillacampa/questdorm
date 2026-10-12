@@ -52,7 +52,7 @@
                     </x-nav-link>
                 </nav>
 
-                <div class="mb-2 mt-6 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-100/45">Workspace</div>
+                <div class="mb-2 mt-6 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-100/45">Laundry Operations</div>
                 <div class="space-y-1">
                     <x-nav-link route="laundry.index" :active="request()->routeIs('laundry.*') && !request()->routeIs('laundry.reports')">
                         <x-slot:icon><svg class="size-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="3"/><path d="M4 8h16M8 5h.01M11 5h.01"/><circle cx="12" cy="15" r="4"/></svg></x-slot:icon>
