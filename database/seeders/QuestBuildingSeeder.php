@@ -54,7 +54,7 @@ class QuestBuildingSeeder extends Seeder
         $this->command->info('  - 28 rooms created');
         $this->command->info('  - 45 tenants created');
         $this->command->info('  - 28 contracts created');
-        $this->command->info('  - 280 invoices created (Jan-Oct 2026)');
+        $this->command->info('  - 84 invoices created (Aug-Oct 2026)');
         $this->command->info('  - All deposits paid');
         $this->command->newLine();
         $this->command->info('Login credentials:');
@@ -414,7 +414,7 @@ class QuestBuildingSeeder extends Seeder
         $tenantPaymentId = 1;
         $meterReadingId = 1;
         
-        $months = ['2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06', '2026-07', '2026-08', '2026-09', '2026-10'];
+        $months = ['2026-08', '2026-09', '2026-10'];
         $dueDays = [25, 20, 1, 25, 5, 25, 20, 22, 25, 28, 5, 12, 1, 25, 5, 10, 5, 12, 10, 15, 10, 8, 15, 1, 20, 22, 22, 18];
         $tenantAssignments = [
             1 => [1, 2], 2 => [3, 4], 3 => [5], 4 => [6, 7], 5 => [8], 6 => [9], 7 => [10],
@@ -435,13 +435,7 @@ class QuestBuildingSeeder extends Seeder
             $hasUnpaid = false; // Track if we've hit an unpaid month
             
             foreach ($months as $monthIndex => $month) {
-                // Months 0-6 are Jan-Jul 2026: ALL PAID
-                if ($monthIndex <= 6) {
-                    $pattern[$monthIndex] = ['status' => 'paid', 'paid_percentage' => 100];
-                    continue;
-                }
-                
-                // Months 7-9 are Aug-Oct 2026: Random with chronological logic
+                // All months (Aug-Oct 2026): Random with chronological logic
                 if ($hasUnpaid) {
                     // Once we have an unpaid month, all future months must be unpaid
                     $pattern[$monthIndex] = ['status' => 'pending', 'paid_percentage' => 0];
