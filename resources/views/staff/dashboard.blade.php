@@ -132,7 +132,6 @@
                     ['label' => 'Occupancy', 'value' => $occupiedCount . ' / ' . $totalRooms, 'detail' => ($vacantCount) . ' vacant rooms', 'icon' => 'building', 'color' => 'bg-emerald-50 text-emerald-700', 'trend' => $totalRooms > 0 ? round(($occupiedCount / $totalRooms) * 100, 1) . '%' : '0%'],
                     ['label' => 'Collected this month', 'value' => '₱' . number_format($collectedThisMonth, 2), 'detail' => 'of ₱' . number_format($billedThisMonth, 2) . ' billed', 'icon' => 'peso', 'color' => 'bg-blue-50 text-blue-700', 'trend' => $billedThisMonth > 0 ? round(($collectedThisMonth / $billedThisMonth) * 100, 1) . '%' : '0%'],
                     ['label' => 'Active Tenants', 'value' => $activeTenantsCount, 'detail' => 'With existing contracts', 'icon' => 'users', 'color' => 'bg-purple-50 text-purple-700', 'trend' => $activeTenantsCount > 0 ? 'Active' : 'None'],
-                    ['label' => 'Overdue', 'value' => $overdueCount, 'detail' => 'Grace period ended', 'icon' => 'receipt', 'color' => 'bg-violet-50 text-violet-700', 'trend' => $overdueCount > 0 ? 'Review' : 'Healthy'],
                 ];
             @endphp
 
