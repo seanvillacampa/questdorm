@@ -116,6 +116,16 @@
                     @error('start_date') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">End date <span class="text-gray-400 font-normal">(optional)</span></label>
+                    <input type="date" name="end_date" value="{{ old('end_date') }}"
+                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <p class="text-[11px] text-gray-400 mt-1">Leave blank for open-ended contract</p>
+                    @error('end_date') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">Due day (1–28)</label>
                     <input type="number" name="due_day" value="{{ old('due_day', 5) }}" min="1" max="28"
                            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required />

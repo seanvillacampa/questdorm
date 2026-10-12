@@ -71,6 +71,7 @@ class ContractController extends Controller
             'tenant_ids'       => 'required|array|min:1',
             'tenant_ids.*'     => 'exists:tenants,id',
             'start_date'       => 'required|date',
+            'end_date'         => 'nullable|date|after:start_date',
             'due_day'          => 'required|integer|min:1|max:28',
         ]);
 
@@ -94,7 +95,7 @@ class ContractController extends Controller
             $contract = Contract::create([
                 'room_id'           => $data['room_id'],
                 'start_date'        => $data['start_date'],
-                'end_date'          => null,
+                'end_date'          => $data['end_date'] ?? null,
                 'due_day'           => $data['due_day'],
                 'deposit_collected' => 0,
                 'status'            => 'active',
