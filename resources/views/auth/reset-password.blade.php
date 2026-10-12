@@ -38,6 +38,7 @@
             </div>
 
             @if ($errors->any())
+                @php $isInvalidToken = collect($errors->all())->contains(fn($e) => str_contains(strtolower($e), 'invalid') || str_contains(strtolower($e), 'expired')); @endphp
                 <div class="mb-6 rounded-lg bg-red-50 border border-red-200 p-4">
                     <ul class="space-y-1 text-sm text-red-600">
                         @foreach ($errors->all() as $error)
@@ -49,6 +50,14 @@
                             </li>
                         @endforeach
                     </ul>
+                    @if($isInvalidToken)
+                        <div class="mt-3 pt-3 border-t border-red-200 text-xs text-red-500">
+                            Your activation link has expired or already been used.
+                            <a href="{{ route('password.request') }}" class="font-semibold underline hover:text-red-700">
+                                Request a new link →
+                            </a>
+                        </div>
+                    @endif
                 </div>
             @endif
 
@@ -76,9 +85,15 @@
                            class="input-field mt-1.5">
                 </div>
 
-                <button type="submit" class="btn-submit mt-6">
-                    Set password & sign in
-                </button>
+                <div class="pt-2">
+                    <button type="submit"
+                            class="w-full rounded-xl bg-[#123f35] px-4 py-3.5 text-sm font-extrabold text-white shadow-lg ring-1 ring-[#0a2820] transition-all duration-150 hover:bg-[#0d3228] hover:shadow-xl active:scale-[0.985] flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                        Set password &amp; sign in
+                    </button>
+                </div>
             </form>
 
             <p class="mt-6 text-center text-sm text-slate-500">
