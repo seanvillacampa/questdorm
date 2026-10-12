@@ -60,17 +60,15 @@ class TenantPortalController extends Controller
 
     public function bill()
     {
-        $contract = $this->activeContract();
-        $invoice  = null;
+        $contract  = $this->activeContract();
+        $invoice   = null;
         $myPayment = null;
-        $reading  = null;
+        $reading   = null;
 
         if ($contract) {
             $myTenantId = Auth::user()->tenant?->id;
 
             // ── Auto-recompute stale statuses for this contract ───────────
-            // Handles cases where the PayMongo webhook was delayed or missed.
-            // Only touches past-due unpaid invoices — fast and safe.
             if ($myTenantId) {
                 Invoice::where('contract_id', $contract->id)
                     ->whereNotIn('status', ['paid', 'void'])
@@ -80,33 +78,35 @@ class TenantPortalController extends Controller
                     ->each(fn ($inv) => $inv->recomputeStatus());
             }
 
-            // First, try to get an unpaid invoice for the current tenant
-            if ($myTenantId) {
-                $unpaidInvoice = Invoice::where('contract_id', $contract->id)
-                    ->whereHas('tenantPayments', function($q) use ($myTenantId) {
+            // ── Invoice selection priority ────────────────────────────────
+            // 1. Current month's invoice (always preferred — if paid it shows paid)
+            // 2. Most recent unpaid invoice (if no current month invoice exists yet)
+            // 3. Most recent invoice of any status (last resort)
+
+            $currentMonth = now()->format('Y-m');
+
+            $invoice = Invoice::where('contract_id', $contract->id)
+                ->where('billing_month', $currentMonth)
+                ->with(['tenantPayments.tenant.user', 'payments'])
+                ->first();
+
+            if (!$invoice && $myTenantId) {
+                // No current-month invoice yet — show the latest unpaid one
+                $invoice = Invoice::where('contract_id', $contract->id)
+                    ->whereHas('tenantPayments', function ($q) use ($myTenantId) {
                         $q->where('tenant_id', $myTenantId)
-                          ->whereIn('status', ['pending', 'partial', 'overdue', 'partial_overdue']);
+                          ->whereIn('status', ['pending', 'overdue']);
                     })
                     ->orderByDesc('billing_month')
-                    ->with([
-                        'tenantPayments.tenant.user',
-                        'payments',
-                    ])
+                    ->with(['tenantPayments.tenant.user', 'payments'])
                     ->first();
-
-                if ($unpaidInvoice) {
-                    $invoice = $unpaidInvoice;
-                }
             }
 
-            // If no unpaid invoice, show current month's invoice (if exists)
             if (!$invoice) {
+                // Absolute fallback — just show the most recent invoice
                 $invoice = Invoice::where('contract_id', $contract->id)
-                    ->where('billing_month', now()->format('Y-m'))
-                    ->with([
-                        'tenantPayments.tenant.user',
-                        'payments',
-                    ])
+                    ->orderByDesc('billing_month')
+                    ->with(['tenantPayments.tenant.user', 'payments'])
                     ->first();
             }
 
