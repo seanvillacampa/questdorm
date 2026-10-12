@@ -110,38 +110,49 @@ class GenerateScheduledInvoices extends Command
 
             $roomRate = $contract->room->monthly_rate;
 
-            // ── Calculate per-tenant carry-over ────────────────────────
+            // ── Calculate per-tenant carry-over (accumulate ALL unpaid balances) ────
             $perTenantCarryOver = []; // keyed by tenant_id
             $totalRoomCarryOver = 0.0;
             $totalRoomCredit = 0.0;
 
-            // Get each tenant's previous payment record
+            // Get ALL previous unpaid tenant payments (not just the most recent)
             foreach ($contract->tenants as $tenant) {
-                $prevTenantPayment = TenantPayment::whereHas('invoice', function($q) use ($contract, $billingMonth) {
+                $allPreviousPayments = TenantPayment::whereHas('invoice', function($q) use ($contract, $billingMonth) {
                     $q->where('contract_id', $contract->id)
                       ->where('billing_month', '<', $billingMonth)
                       ->whereNotIn('status', ['void']);
                 })
                 ->where('tenant_id', $tenant->id)
-                ->orderByDesc('invoice_id')
-                ->first();
+                ->orderBy('invoice_id')
+                ->get();
 
-                if ($prevTenantPayment) {
-                    $prevBalance = $prevTenantPayment->balanceDue();
+                $accumulatedBalance = 0.0;
+                $totalCredit = 0.0;
+                
+                foreach ($allPreviousPayments as $prevPayment) {
+                    $balance = $prevPayment->balanceDue();
                     
-                    if ($prevBalance > 0) {
-                        $perTenantCarryOver[$tenant->id] = round($prevBalance, 2);
-                        $totalRoomCarryOver += $perTenantCarryOver[$tenant->id];
+                    if ($balance > 0) {
+                        $accumulatedBalance += $balance;
                     } else {
-                        $perTenantCarryOver[$tenant->id] = 0;
-                        
                         // Check for overpayment credit
-                        $tenantTotal = $prevTenantPayment->totalOwed();
-                        if ($prevTenantPayment->amount_paid > $tenantTotal) {
-                            $credit = $prevTenantPayment->amount_paid - $tenantTotal;
-                            $totalRoomCredit += round($credit, 2);
+                        $tenantTotal = $prevPayment->totalOwed();
+                        if ($prevPayment->amount_paid > $tenantTotal) {
+                            $totalCredit += ($prevPayment->amount_paid - $tenantTotal);
                         }
                     }
+                }
+                
+                // Apply credit first, then set carry-over
+                $netBalance = $accumulatedBalance - $totalCredit;
+                
+                if ($netBalance > 0) {
+                    $perTenantCarryOver[$tenant->id] = round($netBalance, 2);
+                    $totalRoomCarryOver += $perTenantCarryOver[$tenant->id];
+                } else if ($netBalance < 0) {
+                    // Net credit (overpayment)
+                    $perTenantCarryOver[$tenant->id] = 0;
+                    $totalRoomCredit += round(abs($netBalance), 2);
                 } else {
                     $perTenantCarryOver[$tenant->id] = 0;
                 }
