@@ -67,6 +67,26 @@ Route::get('/deploy/migrate-specific', function () {
     return "<h1>Migration Results</h1><p>{$html}</p><hr><p><a href='/deploy/status'>Back</a></p>";
 });
 
+Route::get('/deploy/seed-detergent', function () {
+    $deployKey = request()->query('key');
+    $expectedKey = env('DEPLOY_KEY', 'quest2026deploy');
+
+    if (app()->environment('production') && $deployKey !== $expectedKey) {
+        return '<h1>Access Denied</h1><p>Invalid or missing deploy key.</p>';
+    }
+
+    try {
+        Artisan::call('db:seed', [
+            '--class' => 'DetergentSampleDataSeeder',
+            '--force' => true,
+        ]);
+        $output = Artisan::output();
+        return '<h1>✅ Detergent Sample Data Seeded</h1><pre>' . htmlspecialchars($output) . '</pre><hr><p><a href="/deploy/status">Back</a></p>';
+    } catch (\Exception $e) {
+        return '<h1>❌ Seeder Error</h1><pre>' . htmlspecialchars($e->getMessage()) . '</pre>';
+    }
+});
+
 Route::get('/deploy/seed-laundry', function () {
     $deployKey = request()->query('key');
     $expectedKey = env('DEPLOY_KEY', 'quest2026deploy');
