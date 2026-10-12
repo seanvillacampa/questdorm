@@ -230,6 +230,34 @@ class InvoiceController extends Controller
             'payments.tenantPayment.tenant.user',
             'createdBy',
         ]);
+
+        // Auto-cascade: for each tenant on this invoice, if a newer invoice
+        // with carry-over is paid, mark this one paid too. Fixes pre-deploy payments.
+        foreach ($invoice->tenantPayments->whereIn('status', ['pending','overdue','partial','late','partial_late','partial_overdue']) as $tp) {
+            $newerPaid = Invoice::where('contract_id', $invoice->contract_id)
+                ->where('billing_month', '>', $invoice->billing_month)
+                ->where('carry_over_balance', '>', 0)
+                ->whereHas('tenantPayments', fn ($q) => $q
+                    ->where('tenant_id', $tp->tenant_id)
+                    ->where('status', 'paid')
+                )
+                ->first();
+
+            if ($newerPaid) {
+                $newerPaid->cascadePaymentToOlderInvoices($tp->tenant_id);
+            }
+        }
+
+        // Reload after potential cascade
+        $invoice->load([
+            'contract.room',
+            'contract.tenants.user',
+            'tenantPayments.tenant.user',
+            'payments.recordedByUser',
+            'payments.tenantPayment.tenant.user',
+            'createdBy',
+        ]);
+
         $canVoid = Auth::user()->hasRole('owner') && $invoice->status !== 'void';
         return view('invoices.show', compact('invoice', 'canVoid'));
     }

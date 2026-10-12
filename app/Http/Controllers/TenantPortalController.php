@@ -78,6 +78,36 @@ class TenantPortalController extends Controller
                     ->each(fn ($inv) => $inv->recomputeStatus());
             }
 
+            // ── Auto-cascade: if tenant has a paid invoice with carry-over,
+            // ensure all older invoices are also marked paid. This catches
+            // cases where payment was made before the cascade logic was deployed.
+            if ($myTenantId) {
+                $paidWithCarryOver = Invoice::where('contract_id', $contract->id)
+                    ->where('carry_over_balance', '>', 0)
+                    ->whereHas('tenantPayments', fn ($q) => $q
+                        ->where('tenant_id', $myTenantId)
+                        ->where('status', 'paid')
+                    )
+                    ->orderByDesc('billing_month')
+                    ->first();
+
+                if ($paidWithCarryOver) {
+                    // Check if any older invoices are still unpaid for this tenant
+                    $hasOldUnpaid = TenantPayment::where('tenant_id', $myTenantId)
+                        ->whereHas('invoice', fn ($q) => $q
+                            ->where('contract_id', $contract->id)
+                            ->where('billing_month', '<', $paidWithCarryOver->billing_month)
+                            ->whereNotIn('status', ['void'])
+                        )
+                        ->whereIn('status', ['pending', 'overdue', 'partial', 'late', 'partial_late', 'partial_overdue'])
+                        ->exists();
+
+                    if ($hasOldUnpaid) {
+                        $paidWithCarryOver->cascadePaymentToOlderInvoices($myTenantId);
+                    }
+                }
+            }
+
             // ── Invoice selection priority ────────────────────────────────
             // 1. Current month's invoice (always preferred — if paid it shows paid)
             // 2. Most recent unpaid invoice (if no current month invoice exists yet)
@@ -125,17 +155,43 @@ class TenantPortalController extends Controller
 
     public function payments()
     {
-        $contract = $this->activeContract();
-        $payments = collect();
+        $contract   = $this->activeContract();
+        $payments   = collect();
         $myTenantId = Auth::user()->tenant?->id;
 
         if ($contract && $myTenantId) {
+            // Auto-cascade: ensure any paid invoice with carry-over has cascaded
+            // to older invoices (fixes payments made before cascade logic was deployed)
+            $paidWithCarryOver = Invoice::where('contract_id', $contract->id)
+                ->where('carry_over_balance', '>', 0)
+                ->whereHas('tenantPayments', fn ($q) => $q
+                    ->where('tenant_id', $myTenantId)
+                    ->where('status', 'paid')
+                )
+                ->orderByDesc('billing_month')
+                ->first();
+
+            if ($paidWithCarryOver) {
+                $hasOldUnpaid = TenantPayment::where('tenant_id', $myTenantId)
+                    ->whereHas('invoice', fn ($q) => $q
+                        ->where('contract_id', $contract->id)
+                        ->where('billing_month', '<', $paidWithCarryOver->billing_month)
+                        ->whereNotIn('status', ['void'])
+                    )
+                    ->whereIn('status', ['pending', 'overdue', 'partial', 'late', 'partial_late', 'partial_overdue'])
+                    ->exists();
+
+                if ($hasOldUnpaid) {
+                    $paidWithCarryOver->cascadePaymentToOlderInvoices($myTenantId);
+                }
+            }
+
             $payments = TenantPayment::where('tenant_id', $myTenantId)
                 ->whereHas('invoice', fn ($q) => $q->where('contract_id', $contract->id))
                 ->with('invoice')
                 ->join('invoices', 'tenant_payments.invoice_id', '=', 'invoices.id')
                 ->orderByDesc('invoices.billing_month')
-                ->select('tenant_payments.*') // Ensure we only select tenant_payments columns
+                ->select('tenant_payments.*')
                 ->paginate(10);
         }
 
