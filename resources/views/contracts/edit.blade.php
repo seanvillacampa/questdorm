@@ -142,9 +142,7 @@
                 @endforeach
             </div>
 
-            <div class="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
-                <strong>Note:</strong> Removing a tenant will void their unpaid invoices and update the room's occupancy status. This action cannot be undone.
-            </div>
+
         </div>
     </div>
 
