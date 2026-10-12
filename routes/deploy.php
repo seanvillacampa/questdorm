@@ -178,6 +178,35 @@ Route::get('/deploy/mark-pre-august-paid', function () {
     }
 });
 
+Route::get('/deploy/clear-cache', function () {
+    // Security: Check for deploy key
+    $deployKey = request()->query('key');
+    $expectedKey = env('DEPLOY_KEY', 'quest2026deploy');
+    
+    if (app()->environment('production') && $deployKey !== $expectedKey) {
+        return '<h1>Access Denied</h1><p>Invalid or missing deploy key.</p>';
+    }
+    
+    try {
+        Artisan::call('view:clear');
+        $output1 = Artisan::output();
+        
+        Artisan::call('config:clear');
+        $output2 = Artisan::output();
+        
+        Artisan::call('route:clear');
+        $output3 = Artisan::output();
+        
+        Artisan::call('cache:clear');
+        $output4 = Artisan::output();
+        
+        $output = $output1 . "\n" . $output2 . "\n" . $output3 . "\n" . $output4;
+        return '<h1>✅ All Caches Cleared</h1><pre>' . $output . '</pre><hr><p><a href="/deploy/status">Back to Deployment Status</a></p>';
+    } catch (\Exception $e) {
+        return '<h1>❌ Error</h1><pre>Error: ' . $e->getMessage() . '</pre>';
+    }
+});
+
 Route::get('/deploy/status', function () {
     $deployKey = env('DEPLOY_KEY', 'quest2026deploy');
     return '<html><head><title>Quest Building Deployment</title><style>
@@ -204,6 +233,7 @@ Route::get('/deploy/status', function () {
     <ol style="line-height: 2;">
         <li><a href="/deploy/migrate?key=' . $deployKey . '">Run Migrations</a> - Creates/updates all database tables (including middle_name nullable fix)</li>
         <li><a href="/deploy/seed?key=' . $deployKey . '">Run Seeder</a> - Populates Quest Building data (only if needed)</li>
+        <li><strong><a href="/deploy/clear-cache?key=' . $deployKey . '" style="color: #2563eb;">🗑️ Clear All Caches</a></strong> - Clears view, config, route, and application caches</li>
         <li><strong><a href="/deploy/fix-deposits?key=' . $deployKey . '" style="color: #dc2626;">🔧 Fix Deposit Records</a></strong> - Updates tenant deposits for paid first invoices</li>
         <li><strong><a href="/deploy/mark-pre-august-paid?key=' . $deployKey . '" style="color: #16a34a;">✅ Mark Pre-August 2026 Paid</a></strong> - Marks all invoices before August 2026 as fully paid</li>
         <li><strong><a href="/deploy/recalculate-carryovers?key=' . $deployKey . '" style="color: #dc2626;">🔄 Recalculate Carry-Overs</a></strong> - Fixes all existing invoices to show accumulated unpaid balances</li>
