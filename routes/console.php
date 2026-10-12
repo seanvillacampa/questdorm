@@ -9,9 +9,11 @@ use Illuminate\Support\Facades\Schedule;
  * In production:  * * * * * php /path/to/artisan schedule:run >> /dev/null 2>&1
  *
  * Order matters:
+ *  0. carryovers:fix-once — ONE-TIME fix for existing invoices (runs once then caches)
  *  1. generate-scheduled — creates invoices X days before each contract's due date
  *                          and emails tenants "Your bill is ready, due in X days"
  *  2. process-statuses   — flips pending→late→overdue and sends missed/overdue emails
  */
+Schedule::command('carryovers:fix-once')->everyMinute();
 Schedule::command('invoices:generate-scheduled')->dailyAt('00:01');
 Schedule::command('invoices:process-statuses')->dailyAt('00:05');
