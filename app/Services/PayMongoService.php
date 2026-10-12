@@ -41,6 +41,10 @@ class PayMongoService
                     'currency'    => 'PHP',
                     'description' => $description ?: "Billing Statement {$invoice->invoice_number}",
                     'remarks'     => $invoice->invoice_number,
+                    'redirect'    => [
+                        'success' => url('/my/bill'),
+                        'failed'  => url('/my/bill'),
+                    ],
                 ],
             ],
         ];
