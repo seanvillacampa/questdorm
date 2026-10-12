@@ -159,4 +159,46 @@ class TenantController extends Controller
         $tenant->load(['user', 'contracts.room', 'contracts.invoices']);
         return view('tenants.show', compact('tenant'));
     }
+
+    public function destroy(Tenant $tenant)
+    {
+        // Check if tenant has any active contracts
+        $hasActiveContract = $tenant->contracts()->where('status', 'active')->exists();
+        
+        if ($hasActiveContract) {
+            return redirect()->route('tenants.show', $tenant)
+                ->with('error', 'Cannot delete tenant with active contracts. Remove them from the contract first.');
+        }
+
+        DB::beginTransaction();
+        try {
+            $tenantName = $tenant->user->name;
+            $tenantEmail = $tenant->user->email;
+            $userId = $tenant->user_id;
+
+            // Delete tenant record (this will cascade delete tenant_payments, tenant_deposits via foreign keys)
+            $tenant->delete();
+
+            // Delete the user account
+            User::where('id', $userId)->delete();
+
+            AuditLog::record('Deleted', 'Tenant', $tenant->id,
+                "Deleted tenant {$tenantName} ({$tenantEmail}) and their user account");
+
+            DB::commit();
+
+            return redirect()->route('tenants.index')
+                ->with('success', "Tenant {$tenantName} and their account have been permanently deleted.");
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to delete tenant', [
+                'tenant_id' => $tenant->id,
+                'error' => $e->getMessage(),
+            ]);
+            
+            return redirect()->route('tenants.show', $tenant)
+                ->with('error', 'Failed to delete tenant: ' . $e->getMessage());
+        }
+    }
 }
