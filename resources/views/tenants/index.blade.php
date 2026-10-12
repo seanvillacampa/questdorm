@@ -31,7 +31,6 @@
                     <th class="px-4 py-3 text-left">Tenant</th>
                     <th class="px-4 py-3 text-left">Room</th>
                     <th class="px-4 py-3 text-left">Phone</th>
-                    <th class="px-4 py-3 text-left">Contract</th>
                     <th class="px-4 py-3 text-left">Actions</th>
                 </tr>
             </thead>
@@ -56,13 +55,6 @@
                         <td class="px-4 py-3 text-gray-700">{{ $room }}</td>
                         <td class="px-4 py-3 text-gray-600">{{ $tenant->user->phone ?? '—' }}</td>
                         <td class="px-4 py-3">
-                            @if($contract)
-                                <x-status-badge :status="$contract->status" />
-                            @else
-                                <span class="text-xs text-gray-400">None</span>
-                            @endif
-                        </td>
-                        <td class="px-4 py-3">
                             <div class="flex items-center gap-3 text-xs font-medium text-blue-600">
                                 <a href="{{ route('tenants.show', $tenant) }}" class="hover:underline">Profile</a>
                                 @if($contract)
@@ -72,7 +64,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="5" class="px-4 py-8 text-center text-sm text-gray-400">No tenants found.</td></tr>
+                    <tr><td colspan="4" class="px-4 py-8 text-center text-sm text-gray-400">No tenants found.</td></tr>
                 @endforelse
             </tbody>
         </table>
