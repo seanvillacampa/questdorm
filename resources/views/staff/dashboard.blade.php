@@ -145,7 +145,7 @@
                     {{-- ── Floor Panels ── --}}
                     @foreach($groupedFloors as $floor => $floorRooms)
                         @php
-                            $cardsPerRow = 7; // show this many cards before "View All"
+                            $cardsPerRow = 6; // 1 row of 6 before "View All"
                             $needsCollapse = $floorRooms->count() > $cardsPerRow;
                         @endphp
                         <div id="floor-panel-{{ $floor }}"
@@ -195,7 +195,8 @@
                                     ['bg-green-400',  'Paid'],
                                     ['bg-yellow-400', 'Partial'],
                                     ['bg-red-400',    'Overdue'],
-                                    ['bg-orange-400', 'Due Soon / Message'],
+                                    ['bg-orange-400', 'Due Soon'],
+                                    ['bg-orange-300', 'Message'],
                                     ['bg-blue-400',   'Maintenance'],
                                     ['bg-slate-300',  'Vacant / Pending'],
                                 ] as [$dot, $lbl])

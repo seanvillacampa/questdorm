@@ -11,20 +11,25 @@
             ->first();
     }
 
-    // Priority: orange for messages, then payment status colors
-    if ($hasUnresolvedMessages) {
-        $status = 'has_message';
-    } else {
-        $invStatus = $invoice?->status;
-        if ($invStatus && !in_array($invStatus, ['paid', 'void'])) {
-            $graceDays    = \App\Models\Setting::billingRules()['overdue_grace_days'];
-            $daysUntilDue = now()->startOfDay()->diffInDays($invoice->due_date->startOfDay(), false);
-            if ($daysUntilDue < 0) {
-                $invStatus = 'overdue';
-            } elseif ($daysUntilDue <= $graceDays) {
-                $invStatus = 'due_soon';
-            }
+    // Priority: billing urgency first, then message alert
+    // 1. Compute invoice-based status
+    $invStatus = $invoice?->status;
+    if ($invStatus && !in_array($invStatus, ['paid', 'void'])) {
+        $graceDays    = \App\Models\Setting::billingRules()['overdue_grace_days'];
+        $daysUntilDue = now()->startOfDay()->diffInDays($invoice->due_date->startOfDay(), false);
+        if ($daysUntilDue < 0) {
+            $invStatus = 'overdue';
+        } elseif ($daysUntilDue <= $graceDays) {
+            $invStatus = 'due_soon';
         }
+    }
+
+    // 2. Determine final status — overdue/due_soon beat message alert
+    if (in_array($invStatus, ['overdue', 'due_soon'])) {
+        $status = $invStatus; // billing urgency wins
+    } elseif ($hasUnresolvedMessages) {
+        $status = 'has_message'; // message alert next
+    } else {
         $status = $invStatus
             ?? ($room->status === 'maintenance' ? 'maintenance'
                 : ($room->status === 'occupied'  ? 'occupied' : 'vacant'));
