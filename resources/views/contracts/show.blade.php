@@ -250,8 +250,9 @@
                         {{-- Show each tenant's share preview --}}
                         @php
                             $activeTenantDeposits = $contract->tenantDeposits()
-                                ->whereHas('tenant', fn($q) => $q->whereHas('contractTenants', fn($q2) =>
-                                    $q2->where('contract_id', $contract->id)->whereNull('left_on')
+                                ->whereHas('tenant', fn($q) => $q->whereHas('contracts', fn($q2) =>
+                                    $q2->where('contracts.id', $contract->id)
+                                       ->wherePivot('left_on', null)
                                 ))
                                 ->with('tenant.user')
                                 ->get();
