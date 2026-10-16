@@ -1,83 +1,7 @@
 <x-layouts.app :title="'Dashboard — Quest Building'">
-    <style>
-        /* Custom styled scrollbar for horizontal room scroll */
-        .custom-scrollbar::-webkit-scrollbar {
-            height: 8px;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #e5e7eb; /* Grey background */
-            border-radius: 4px;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #10b981; /* Green color matching system */
-            border-radius: 4px;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #059669; /* Darker green on hover */
-        }
-        
-        /* Firefox scrollbar styling */
-        .custom-scrollbar {
-            scrollbar-width: thin;
-            scrollbar-color: #10b981 #e5e7eb; /* Green thumb, grey track */
-        }
-        
-        /* Prevent text selection during drag */
-        .dragging {
-            user-select: none;
-        }
-    </style>
 
-    <script>
-        // Initialize mouse drag scrolling for each floor
-        document.addEventListener('DOMContentLoaded', function() {
-            @foreach($rooms->groupBy('floor') as $floor => $floorRooms)
-            initDragScroll{{ $floor }}();
-            @endforeach
-        });
 
-        @foreach($rooms->groupBy('floor') as $floor => $floorRooms)
-        function initDragScroll{{ $floor }}() {
-            const container = document.getElementById('floor-{{ $floor }}-scroll');
-            
-            if (!container) {
-                return;
-            }
-            
-            let isDown = false;
-            let startX;
-            let scrollLeft;
-            
-            container.addEventListener('mousedown', function(e) {
-                isDown = true;
-                container.classList.add('dragging');
-                startX = e.pageX - container.offsetLeft;
-                scrollLeft = container.scrollLeft;
-            });
-            
-            container.addEventListener('mouseleave', function() {
-                isDown = false;
-                container.classList.remove('dragging');
-            });
-            
-            container.addEventListener('mouseup', function() {
-                isDown = false;
-                container.classList.remove('dragging');
-            });
-            
-            container.addEventListener('mousemove', function(e) {
-                if (!isDown) return;
-                e.preventDefault();
-                const x = e.pageX - container.offsetLeft;
-                const walk = (x - startX) * 2; // Scroll speed multiplier
-                container.scrollLeft = scrollLeft - walk;
-            });
-        }
-        @endforeach
-    </script>
+
 
     <div class="space-y-6">
         <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
@@ -166,181 +90,169 @@
         </section>
 
         <section>
-            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_2px_8px_rgba(15,23,42,0.03)]">
-                <div class="flex items-center justify-between">
+            <article class="rounded-2xl border border-slate-200 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.03)] overflow-hidden">
+
+                {{-- ── Header ── --}}
+                <div class="flex items-center justify-between px-5 pt-5 pb-4 border-b border-slate-100">
                     <div>
-                        <div class="text-[15px] font-extrabold text-slate-900">Room status</div>
-                        <p class="mt-1 text-[11px] text-slate-400">Live dashboard of occupancy and billing state</p>
+                        <div class="text-[15px] font-extrabold text-slate-900">Room Status</div>
+                        <p class="mt-0.5 text-[11px] text-slate-400">Live dashboard of occupancy and billing state</p>
                     </div>
                     @if($recentMessages->isNotEmpty())
-                        <a href="{{ route('tenant-messages.index') }}" 
-                           class="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white text-sm font-bold rounded-lg hover:bg-orange-600 transition-colors shadow-md">
-                            <svg class="size-5" viewBox="0 0 24 24" fill="currentColor">
+                        <a href="{{ route('tenant-messages.index') }}"
+                           class="flex items-center gap-2 px-3 py-1.5 bg-orange-500 text-white text-xs font-bold rounded-lg hover:bg-orange-600 transition-colors shadow-sm">
+                            <svg class="size-4" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
                                 <circle cx="12" cy="17" r="1" fill="white"/>
                                 <path d="M12 9v4" stroke="white" stroke-width="2" stroke-linecap="round"/>
                             </svg>
-                            <span>View Messages</span>
-                            <span class="bg-white text-orange-600 px-2 py-0.5 rounded-full text-xs font-extrabold">{{ $recentMessages->count() }}</span>
+                            View Messages
+                            <span class="bg-white text-orange-600 px-1.5 py-0.5 rounded-full text-[10px] font-extrabold">{{ $recentMessages->count() }}</span>
                         </a>
                     @endif
                 </div>
 
                 @if(session('warning'))
-                    <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                    <div class="mx-5 mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
                         {{ session('warning') }}
                     </div>
                 @endif
 
                 @if($rooms->isEmpty())
-                    <div class="mt-6 flex h-32 items-center justify-center text-sm text-slate-400">No rooms set up yet.</div>
+                    <div class="flex h-32 items-center justify-center text-sm text-slate-400">No rooms set up yet.</div>
                 @else
-                    <div class="mt-5 space-y-5">
-                        @foreach($rooms->groupBy('floor') as $floor => $floorRooms)
-                            <div class="pb-5 border-b border-slate-200 last:border-b-0">
-                                <div class="mb-3 text-xs font-bold text-slate-500">Floor {{ $floor }}</div>
-                                
-                                <div id="floor-{{ $floor }}-scroll" 
-                                     class="overflow-x-auto scroll-smooth cursor-grab active:cursor-grabbing custom-scrollbar" 
-                                     style="padding-bottom: 12px;">
-                                    <div class="flex gap-2 min-w-min">
-                                        @foreach($floorRooms as $room)
-                                        @php
-                                            $invoice = $room->currentInvoice ?? null;
-                                            $hasUnresolvedMessages = ($room->unresolvedMessageCount ?? 0) > 0;
-                                            
-                                            // Get first unresolved message for this room
-                                            $firstUnresolvedMessage = null;
-                                            if ($hasUnresolvedMessages) {
-                                                $firstUnresolvedMessage = \App\Models\TenantMessage::where('room_id', $room->id)
-                                                    ->whereNull('resolved_at')
-                                                    ->orderBy('created_at', 'asc')
-                                                    ->first();
-                                            }
-                                            
-                                            // Priority: orange for messages, then payment status colors
-                                            if ($hasUnresolvedMessages) {
-                                                $status = 'has_message';
-                                            } else {
-                                                $invStatus = $invoice?->status;
-                                                if ($invStatus && !in_array($invStatus, ['paid','void'])) {
-                                                    // Date-based override — works even if scheduler hasn't run
-                                                    $graceDays    = \App\Models\Setting::billingRules()['overdue_grace_days'];
-                                                    $daysUntilDue = now()->startOfDay()->diffInDays($invoice->due_date->startOfDay(), false);
-                                                    if ($daysUntilDue < 0) {
-                                                        $invStatus = 'overdue';   // past due → red
-                                                    } elseif ($daysUntilDue <= $graceDays) {
-                                                        $invStatus = 'due_soon';  // within grace → orange
-                                                    }
-                                                }
-                                                $status = $invStatus
-                                                    ?? ($room->status === 'maintenance' ? 'maintenance'
-                                                        : ($room->status === 'occupied'  ? 'occupied' : 'vacant'));
-                                            }
+                    {{-- ── Floor Tabs ── --}}
+                    @php $groupedFloors = $rooms->groupBy('floor'); @endphp
 
-                                            // Color scheme: orange=message alert, green=paid, yellow=partial, red=overdue, grey=pending
-                                            $cardCls = match($status) {
-                                                'has_message' => 'bg-orange-50 border-orange-300',
-                                                'paid' => 'bg-green-50 border-green-200',
-                                                'partial' => 'bg-yellow-50 border-yellow-200',
-                                                'overdue' => 'bg-red-50 border-red-200',
-                                                'due_soon' => 'bg-orange-50 border-orange-300',
-                                                'pending' => 'bg-gray-50 border-gray-200',
-                                                'maintenance' => 'bg-blue-50 border-blue-200',
-                                                'occupied' => 'bg-gray-50 border-gray-200',
-                                                'vacant' => 'bg-slate-100 border-slate-200',
-                                                default => 'bg-slate-100 border-slate-200',
-                                            };
-                                            
-                                            $numCls = match($status) {
-                                                'has_message' => 'text-orange-800',
-                                                'paid' => 'text-green-800',
-                                                'partial' => 'text-yellow-800',
-                                                'overdue' => 'text-red-800',
-                                                'due_soon' => 'text-orange-800',
-                                                'pending' => 'text-gray-700',
-                                                'maintenance' => 'text-blue-800',
-                                                'occupied' => 'text-gray-700',
-                                                default => 'text-slate-600',
-                                            };
-                                            
-                                            $badgeText = match($status) {
-                                                'has_message' => 'Message',
-                                                'paid' => 'Paid',
-                                                'partial' => 'Partial',
-                                                'overdue' => 'Overdue',
-                                                'due_soon' => 'Due Soon',
-                                                'pending' => 'Pending',
-                                                'maintenance' => 'Maintenance',
-                                                'occupied' => 'Occupied',
-                                                'vacant' => 'Vacant',
-                                                default => 'Unknown',
-                                            };
-                                            
-                                            // Determine if card should be clickable
-                                            $isClickable = in_array($status, ['partial', 'overdue', 'paid', 'pending', 'due_soon']) && $invoice;
-                                            $clickUrl = $isClickable ? route('invoices.show', $invoice->id) : null;
-                                            
-                                            // Get all active tenant names (exclude those who left)
-                                            $tenants = $room->activeContract?->activeTenants ?? collect();
-                                            $currentTenants = $tenants->count();
-                                            $capacityDisplay = $currentTenants . '/' . $room->capacity;
-                                        @endphp
-
-                                        @if($isClickable)
-                                        <a href="{{ $clickUrl }}" class="block rounded-xl border-2 {{ $cardCls }} p-3 relative overflow-visible w-36 shrink-0 hover:shadow-md transition-shadow cursor-pointer">
-                                        @else
-                                        <div class="rounded-xl border-2 {{ $cardCls }} p-3 relative overflow-visible w-36 shrink-0">
-                                        @endif
-                                            {{-- Room Number Row --}}
-                                            <div class="flex items-center justify-between pb-2 border-b border-slate-200">
-                                                <div class="text-xs font-extrabold {{ $numCls }}">{{ $room->room_number }}</div>
-                                                <div class="text-[9px] font-semibold text-slate-500">{{ $capacityDisplay }}</div>
-                                            </div>
-                                            
-                                            {{-- Tenants Section --}}
-                                            <div class="py-2 border-b border-slate-200 min-h-[48px]">
-                                                @forelse($tenants as $tenant)
-                                                    <div class="text-[9px] text-slate-700 truncate leading-tight" title="{{ $tenant->user->name }}">
-                                                        • {{ $tenant->user->name }}
-                                                    </div>
-                                                @empty
-                                                    <div class="text-[9px] text-slate-400">Unassigned</div>
-                                                @endforelse
-                                            </div>
-                                            
-                                            {{-- Status Row --}}
-                                            <div class="py-2 border-b border-slate-200">
-                                                <div class="text-[9px] font-bold uppercase tracking-wider text-slate-500">{{ $badgeText }}</div>
-                                            </div>
-                                            
-                                            {{-- Action Button Row --}}
-                                            <div class="pt-2 space-y-1.5">
-                                                @if($hasUnresolvedMessages && $firstUnresolvedMessage)
-                                                    <a href="{{ route('tenant-messages.show', $firstUnresolvedMessage) }}" 
-                                                       class="flex items-center justify-center gap-1 w-full px-2 py-1.5 bg-red-500 hover:bg-red-600 text-white text-[9px] font-bold text-center rounded transition-colors">
-                                                        <svg class="size-3 shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                                                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                                                            <circle cx="12" cy="17" r="1" fill="white"/>
-                                                            <path d="M12 9v4" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                                                        </svg>
-                                                        <span>View Concern</span>
-                                                    </a>
-                                                @endif
-                                            </div>
-                                        @if($isClickable)
-                                        </a>
-                                        @else
-                                        </div>
-                                        @endif
-                                        @endforeach
-                                    </div>
-                                </div>
-                            </div>
+                    <div class="flex border-b border-slate-100 px-5 gap-1 pt-1" id="floor-tabs">
+                        @foreach($groupedFloors as $floor => $floorRooms)
+                            <button
+                                onclick="switchFloor({{ $floor }})"
+                                id="tab-{{ $floor }}"
+                                class="floor-tab px-4 py-2 text-xs font-bold rounded-t-lg border border-b-0 transition-all
+                                       {{ $loop->first
+                                           ? 'bg-white border-slate-200 text-emerald-700 -mb-px z-10'
+                                           : 'bg-slate-50 border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-100' }}">
+                                Floor {{ $floor }}
+                                <span class="ml-1.5 px-1.5 py-0.5 rounded-full text-[9px] font-extrabold
+                                             {{ $loop->first ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500' }}">
+                                    {{ $floorRooms->count() }}
+                                </span>
+                            </button>
                         @endforeach
                     </div>
+
+                    {{-- ── Floor Panels ── --}}
+                    @foreach($groupedFloors as $floor => $floorRooms)
+                        @php
+                            $CARDS_PER_ROW = 7; {{-- show this many cards before "View All" --}}
+                            $needsCollapse = $floorRooms->count() > $CARDS_PER_ROW;
+                        @endphp
+                        <div id="floor-panel-{{ $floor }}"
+                             class="floor-panel px-5 py-4 {{ $loop->first ? '' : 'hidden' }}">
+
+                            {{-- Card Grid --}}
+                            <div class="relative">
+                                {{-- Collapsed grid (first N cards) --}}
+                                <div id="floor-grid-collapsed-{{ $floor }}"
+                                     class="grid gap-2.5"
+                                     style="grid-template-columns: repeat(auto-fill, minmax(138px, 1fr))">
+                                    @foreach($floorRooms->take($CARDS_PER_ROW) as $room)
+                                        @include('staff._dashboard_room_card', ['room' => $room])
+                                    @endforeach
+                                </div>
+
+                                {{-- Expanded grid (all cards, hidden by default if needs collapse) --}}
+                                @if($needsCollapse)
+                                <div id="floor-grid-expanded-{{ $floor }}"
+                                     class="hidden grid gap-2.5 mt-0"
+                                     style="grid-template-columns: repeat(auto-fill, minmax(138px, 1fr))">
+                                    @foreach($floorRooms as $room)
+                                        @include('staff._dashboard_room_card', ['room' => $room])
+                                    @endforeach
+                                </div>
+                                @endif
+                            </div>
+
+                            {{-- View All / Collapse toggle --}}
+                            @if($needsCollapse)
+                            <div class="mt-3 flex items-center justify-center">
+                                <button
+                                    onclick="toggleFloorExpand({{ $floor }}, {{ $floorRooms->count() }})"
+                                    id="expand-btn-{{ $floor }}"
+                                    class="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-all">
+                                    <svg id="expand-icon-{{ $floor }}" class="size-3.5 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="6 9 12 15 18 9"/>
+                                    </svg>
+                                    <span id="expand-label-{{ $floor }}">View all {{ $floorRooms->count() }} rooms</span>
+                                </button>
+                            </div>
+                            @endif
+
+                            {{-- Status legend --}}
+                            <div class="mt-4 flex flex-wrap gap-x-4 gap-y-1.5 pt-3 border-t border-slate-100">
+                                @foreach([
+                                    ['bg-green-400',  'Paid'],
+                                    ['bg-yellow-400', 'Partial'],
+                                    ['bg-red-400',    'Overdue'],
+                                    ['bg-orange-400', 'Due Soon / Message'],
+                                    ['bg-blue-400',   'Maintenance'],
+                                    ['bg-slate-300',  'Vacant / Pending'],
+                                ] as [$dot, $lbl])
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="inline-block size-2 rounded-full {{ $dot }}"></span>
+                                        <span class="text-[10px] text-slate-500">{{ $lbl }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endforeach
                 @endif
             </article>
         </section>
+
+        <script>
+        // ── Floor tab switching ─────────────────────────────────────────────
+        function switchFloor(floor) {
+            document.querySelectorAll('.floor-panel').forEach(p => p.classList.add('hidden'));
+            document.querySelectorAll('.floor-tab').forEach(t => {
+                t.classList.remove('bg-white', 'border-slate-200', 'text-emerald-700', '-mb-px', 'z-10');
+                t.classList.add('bg-slate-50', 'border-transparent', 'text-slate-500');
+                const badge = t.querySelector('span');
+                if (badge) { badge.classList.remove('bg-emerald-100','text-emerald-700'); badge.classList.add('bg-slate-200','text-slate-500'); }
+            });
+
+            const panel = document.getElementById('floor-panel-' + floor);
+            const tab   = document.getElementById('tab-' + floor);
+            if (panel) panel.classList.remove('hidden');
+            if (tab) {
+                tab.classList.add('bg-white', 'border-slate-200', 'text-emerald-700', '-mb-px', 'z-10');
+                tab.classList.remove('bg-slate-50', 'border-transparent', 'text-slate-500');
+                const badge = tab.querySelector('span');
+                if (badge) { badge.classList.add('bg-emerald-100','text-emerald-700'); badge.classList.remove('bg-slate-200','text-slate-500'); }
+            }
+        }
+
+        // ── View all / collapse ─────────────────────────────────────────────
+        function toggleFloorExpand(floor, total) {
+            const collapsed = document.getElementById('floor-grid-collapsed-' + floor);
+            const expanded  = document.getElementById('floor-grid-expanded-'  + floor);
+            const icon      = document.getElementById('expand-icon-' + floor);
+            const label     = document.getElementById('expand-label-' + floor);
+
+            const isExpanded = !expanded.classList.contains('hidden');
+            if (isExpanded) {
+                expanded.classList.add('hidden');
+                collapsed.classList.remove('hidden');
+                icon.style.transform = '';
+                label.textContent = 'View all ' + total + ' rooms';
+            } else {
+                collapsed.classList.add('hidden');
+                expanded.classList.remove('hidden');
+                icon.style.transform = 'rotate(180deg)';
+                label.textContent = 'Show less';
+            }
+        }
+        </script>
     </div>
 </x-layouts.app>
