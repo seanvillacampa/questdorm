@@ -50,25 +50,19 @@ class RecalculateCarryOvers extends Command
                     ->get();
                     
                     $accumulatedBalance = 0.0;
-                    $totalCredit = 0.0;
-                    
+
                     foreach ($allPreviousPayments as $prevPayment) {
-                        $balance = $prevPayment->balanceDue();
-                        
-                        if ($balance > 0) {
-                            $accumulatedBalance += $balance;
-                        } else {
-                            // Check for overpayment credit
-                            $tenantTotal = $prevPayment->totalOwed();
-                            if ($prevPayment->amount_paid > $tenantTotal) {
-                                $totalCredit += ($prevPayment->amount_paid - $tenantTotal);
-                            }
+                        // Use ONLY share_amount - amount_paid (base debt for that month).
+                        // DO NOT call balanceDue() here — that method includes the payment's
+                        // own carry_over_balance which would double-count carry-overs
+                        // that were already rolled into a later month's carry_over_balance.
+                        $baseDebt = $prevPayment->share_amount - $prevPayment->amount_paid;
+                        if ($baseDebt > 0) {
+                            $accumulatedBalance += $baseDebt;
                         }
                     }
-                    
-                    // Calculate net carry-over
-                    $netBalance = $accumulatedBalance - $totalCredit;
-                    $newCarryOver = max(0, round($netBalance, 2));
+
+                    $newCarryOver = round(max(0, $accumulatedBalance), 2);
                     
                     // Update tenant payment
                     if ($tp->carry_over_balance != $newCarryOver) {

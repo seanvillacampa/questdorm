@@ -94,7 +94,7 @@ Route::middleware('auth')->group(function () {
         Route::get('rooms/{room}/invoice', [InvoiceController::class, 'roomInvoice'])->name('rooms.invoice');
 
         // Tenants
-        Route::resource('tenants', TenantController::class)->only(['index','create','store','show']);
+        Route::resource('tenants', TenantController::class)->only(['index','create','store','show','destroy']);
 
         // Contracts
         Route::resource('contracts', ContractController::class)->only(['index','create','store','show','edit','update']);

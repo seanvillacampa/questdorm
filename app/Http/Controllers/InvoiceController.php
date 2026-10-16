@@ -230,6 +230,34 @@ class InvoiceController extends Controller
             'payments.tenantPayment.tenant.user',
             'createdBy',
         ]);
+
+        // Auto-cascade: for each tenant on this invoice, if a newer invoice
+        // with carry-over is paid, mark this one paid too. Fixes pre-deploy payments.
+        foreach ($invoice->tenantPayments->whereIn('status', ['pending','overdue','partial','late','partial_late','partial_overdue']) as $tp) {
+            $newerPaid = Invoice::where('contract_id', $invoice->contract_id)
+                ->where('billing_month', '>', $invoice->billing_month)
+                ->where('carry_over_balance', '>', 0)
+                ->whereHas('tenantPayments', fn ($q) => $q
+                    ->where('tenant_id', $tp->tenant_id)
+                    ->where('status', 'paid')
+                )
+                ->first();
+
+            if ($newerPaid) {
+                $newerPaid->cascadePaymentToOlderInvoices($tp->tenant_id);
+            }
+        }
+
+        // Reload after potential cascade
+        $invoice->load([
+            'contract.room',
+            'contract.tenants.user',
+            'tenantPayments.tenant.user',
+            'payments.recordedByUser',
+            'payments.tenantPayment.tenant.user',
+            'createdBy',
+        ]);
+
         $canVoid = Auth::user()->hasRole('owner') && $invoice->status !== 'void';
         return view('invoices.show', compact('invoice', 'canVoid'));
     }
@@ -302,16 +330,14 @@ class InvoiceController extends Controller
                     $totalCredit = 0.0;
                     
                     foreach ($allPreviousPayments as $prevPayment) {
-                        $balance = $prevPayment->balanceDue();
-                        
-                        if ($balance > 0) {
-                            $accumulatedBalance += $balance;
-                        } else {
-                            // Check for overpayment credit
-                            $tenantTotal = $prevPayment->totalOwed();
-                            if ($prevPayment->amount_paid > $tenantTotal) {
-                                $totalCredit += ($prevPayment->amount_paid - $tenantTotal);
-                            }
+                        // Use share_amount - amount_paid (base debt only).
+                        // DO NOT use balanceDue() — it includes carry_over_balance
+                        // which would double-count carry-overs rolled into later months.
+                        $baseDebt = $prevPayment->share_amount - $prevPayment->amount_paid;
+                        if ($baseDebt > 0) {
+                            $accumulatedBalance += $baseDebt;
+                        } elseif ($baseDebt < 0) {
+                            $totalCredit += abs($baseDebt);
                         }
                     }
                     
