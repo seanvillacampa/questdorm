@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QuestDorm — Data Dictionary</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 13px;
+      background: #f4f6f9;
+      color: #2c3e50;
+      padding: 32px 24px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a2a3a;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #7f8c8d;
+      margin-bottom: 36px;
+    }
+
+    .table-block {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      margin-bottom: 32px;
+      overflow: hidden;
+    }
+
+    .table-block h2 {
+      font-size: 14px;
+      font-weight: 600;
+      padding: 14px 18px;
+      background: #1e3a5f;
+      color: #fff;
+      letter-spacing: 0.3px;
+    }
+
+    .table-block h2 code {
+      font-family: 'Consolas', 'Courier New', monospace;
+      background: rgba(255,255,255,0.15);
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    .note {
+      font-size: 12px;
+      color: #6c757d;
+      padding: 8px 18px 10px;
+      background: #f8f9fa;
+      border-bottom: 1px solid #e9ecef;
+      font-style: italic;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead tr {
+      background: #eaf0fb;
+    }
+
+    thead th {
+      padding: 9px 14px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #4a5568;
+      border-bottom: 2px solid #d0daea;
+      white-space: nowrap;
+    }
+
+    tbody tr:nth-child(even) {
+      background: #f9fbff;
+    }
+
+    tbody tr:hover {
+      background: #eef4ff;
+    }
+
+    tbody td {
+      padding: 8px 14px;
+      border-bottom: 1px solid #e8ecf0;
+      vertical-align: top;
+    }
+
+    td:first-child {
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 12.5px;
+      color: #1a5276;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    /* PK / FK badges */
+    .badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 3px;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+    }
+    .badge-pk { background: #fef3cd; color: #856404; border: 1px solid #ffc107; }
+    .badge-fk { background: #d1ecf1; color: #0c5460; border: 1px solid #17a2b8; }
+    .badge-fk-unique { background: #d4edda; color: #155724; border: 1px solid #28a745; }
+
+    /* Required badges */
+    .req-yes { color: #c0392b; font-weight: 700; }
+    .req-no  { color: #95a5a6; }
+
+    /* Data type */
+    td.dtype {
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 12px;
+      color: #6f42c1;
+    }
+
+    /* Format cell */
+    td.format {
+      font-size: 11.5px;
+      color: #555;
+      max-width: 220px;
+    }
+
+    /* Reference cell */
+    td.ref {
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 12px;
+      color: #c0392b;
+    }
+
+    /* TOC */
+    .toc {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      padding: 20px 24px;
+      margin-bottom: 36px;
+    }
+    .toc h2 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #1a2a3a;
+    }
+    .toc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 6px 20px;
+    }
+    .toc a {
+      font-size: 12.5px;
+      color: #1e3a5f;
+      text-decoration: none;
+      padding: 3px 0;
+      display: block;
+    }
+    .toc a:hover { text-decoration: underline; color: #2980b9; }
+    .toc-num { color: #999; font-size: 11px; margin-right: 4px; }
+  </style>
+</head>
+<body>
+
+<h1>QuestDorm — Data Dictionary</h1>
+<p class="subtitle">Updated schema — Tables 7 to 29 &nbsp;|&nbsp; October 2026</p>
+
+<!-- TABLE OF CONTENTS -->
+<div class="toc">
+  <h2>Tables</h2>
+  <div class="toc-grid">
+    <a href="#t7"><span class="toc-num">7</span> users</a>
+    <a href="#t8"><span class="toc-num">8</span> roles</a>
+    <a href="#t8a"><span class="toc-num">8a</span> model_has_roles</a>
+    <a href="#t9"><span class="toc-num">9</span> tenants</a>
+    <a href="#t10"><span class="toc-num">10</span> rooms</a>
+    <a href="#t11"><span class="toc-num">11</span> contracts</a>
+    <a href="#t12"><span class="toc-num">12</span> contract_tenants</a>
+    <a href="#t13"><span class="toc-num">13</span> invoices</a>
+    <a href="#t14"><span class="toc-num">14</span> tenant_payments</a>
+    <a href="#t15"><span class="toc-num">15</span> payments</a>
+    <a href="#t16"><span class="toc-num">16</span> meter_readings</a>
+    <a href="#t17"><span class="toc-num">17</span> deposit_entries</a>
+    <a href="#t18"><span class="toc-num">18</span> audit_logs</a>
+    <a href="#t19"><span class="toc-num">19</span> settings</a>
+    <a href="#t20"><span class="toc-num">20</span> services</a>
+    <a href="#t21"><span class="toc-num">21</span> service_prices</a>
+    <a href="#t22"><span class="toc-num">22</span> customers</a>
+    <a href="#t23"><span class="toc-num">23</span> laundry_orders</a>
+    <a href="#t24"><span class="toc-num">24</span> order_items</a>
+    <a href="#t25"><span class="toc-num">25</span> tenant_deposits <em style="color:#27ae60;font-size:11px">(new)</em></a>
+    <a href="#t26"><span class="toc-num">26</span> tenant_messages <em style="color:#27ae60;font-size:11px">(new)</em></a>
+    <a href="#t27"><span class="toc-num">27</span> tenant_message_replies <em style="color:#27ae60;font-size:11px">(new)</em></a>
+    <a href="#t28"><span class="toc-num">28</span> detergent_inventory <em style="color:#27ae60;font-size:11px">(new)</em></a>
+    <a href="#t29"><span class="toc-num">29</span> detergent_logs <em style="color:#27ae60;font-size:11px">(new)</em></a>
+  </div>
+</div>
+
+<!-- ==================== TABLE 7: users ==================== -->
+<div class="table-block" id="t7">
+  <h2>Table 7: <code>users</code></h2>
+  <table>
+    <thead><tr>
+      <th>Field Name</th><th>Data Type</th><th>Description</th><th>Size</th><th>Format</th><th>Required</th><th>PK/FK</th><th>Reference To</th>
+    </tr></thead>
+    <tbody>
+      <tr><td>id</td><td class="dtype">bigint unsigned</td><td>User ID</td><td>—</td><td class="format">auto-increment</td><td class="req-yes">Yes</td><td><span class="badge badge-pk">PK</span></td><td></td></tr>
+      <tr><td>first_name</td><td class="dtype">varchar</td><td>First Name</td><td>100</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>middle_name</td><td class="dtype">varchar</td><td>Middle Name</td><td>100</td><td class="format"></td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>last_name</td><td class="dtype">varchar</td><td>Last Name</td><td>100</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>email</td><td class="dtype">varchar</td><td>Email Address</td><td>255</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>email_verified_at</td><td class="dtype">timestamp</td><td>Email Verified Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>phone</td><td class="dtype">varchar</td><td>Phone Number</td><td>255</td><td class="format"></td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>phone_country_code</td><td class="dtype">varchar</td><td>Country Code</td><td>5</td><td class="format">+63</td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>password</td><td class="dtype">varchar</td><td>Hashed Password</td><td>255</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>is_active</td><td class="dtype">boolean</td><td>Account Active Status</td><td>—</td><td class="format">0=Inactive, 1=Active</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>last_login_at</td><td class="dtype">timestamp</td><td>Last Login Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>remember_token</td><td class="dtype">varchar</td><td>Session Remember Token</td><td>100</td><td class="format"></td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>created_at</td><td class="dtype">timestamp</td><td>Record Created Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>updated_at</td><td class="dtype">timestamp</td><td>Record Updated Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ==================== TABLE 8: roles ==================== -->
+<div class="table-block" id="t8">
+  <h2>Table 8: <code>roles</code> <span style="font-weight:400;font-size:12px;opacity:0.8">(Spatie laravel-permission)</span></h2>
+  <table>
+    <thead><tr><th>Field Name</th><th>Data Type</th><th>Description</th><th>Size</th><th>Format</th><th>Required</th><th>PK/FK</th><th>Reference To</th></tr></thead>
+    <tbody>
+      <tr><td>id</td><td class="dtype">bigint unsigned</td><td>Role ID</td><td>—</td><td class="format">auto-increment</td><td class="req-yes">Yes</td><td><span class="badge badge-pk">PK</span></td><td></td></tr>
+      <tr><td>name</td><td class="dtype">varchar</td><td>Role Name</td><td>255</td><td class="format">owner / employee / tenant</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>guard_name</td><td class="dtype">varchar</td><td>Authentication Guard</td><td>255</td><td class="format">web</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>created_at</td><td class="dtype">timestamp</td><td>Created Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>updated_at</td><td class="dtype">timestamp</td><td>Updated Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ==================== TABLE 8a: model_has_roles ==================== -->
+<div class="table-block" id="t8a">
+  <h2>Table 8a: <code>model_has_roles</code> <span style="font-weight:400;font-size:12px;opacity:0.8">(Spatie pivot)</span></h2>
+  <table>
+    <thead><tr><th>Field Name</th><th>Data Type</th><th>Description</th><th>Size</th><th>Format</th><th>Required</th><th>PK/FK</th><th>Reference To</th></tr></thead>
+    <tbody>
+      <tr><td>role_id</td><td class="dtype">bigint unsigned</td><td>Role ID</td><td>—</td><td class="format"></td><td class="req-yes">Yes</td><td><span class="badge badge-fk">FK</span></td><td class="ref">roles</td></tr>
+      <tr><td>model_type</td><td class="dtype">varchar</td><td>Polymorphic Model Class</td><td>255</td><td class="format">App\Models\User</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>model_id</td><td class="dtype">bigint unsigned</td><td>Model Record ID</td><td>—</td><td class="format"></td><td class="req-yes">Yes</td><td><span class="badge badge-fk">FK</span></td><td class="ref">users</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ==================== TABLE 9: tenants ==================== -->
+<div class="table-block" id="t9">
+  <h2>Table 9: <code>tenants</code></h2>
+  <table>
+    <thead><tr><th>Field Name</th><th>Data Type</th><th>Description</th><th>Size</th><th>Format</th><th>Required</th><th>PK/FK</th><th>Reference To</th></tr></thead>
+    <tbody>
+      <tr><td>id</td><td class="dtype">bigint unsigned</td><td>Tenant ID</td><td>—</td><td class="format">auto-increment</td><td class="req-yes">Yes</td><td><span class="badge badge-pk">PK</span></td><td></td></tr>
+      <tr><td>user_id</td><td class="dtype">bigint unsigned</td><td>User ID</td><td>—</td><td class="format"></td><td class="req-yes">Yes</td><td><span class="badge badge-fk-unique">FK unique</span></td><td class="ref">users</td></tr>
+      <tr><td>birthdate</td><td class="dtype">date</td><td>Date of Birth</td><td>—</td><td class="format">YYYY-MM-DD</td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>id_type</td><td class="dtype">varchar</td><td>Government ID Type</td><td>50</td><td class="format"></td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>id_number</td><td class="dtype">varchar</td><td>Government ID Number</td><td>50</td><td class="format"></td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>emergency_name</td><td class="dtype">varchar</td><td>Emergency Contact Name</td><td>255</td><td class="format"></td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>emergency_phone</td><td class="dtype">varchar</td><td>Emergency Contact Phone</td><td>30</td><td class="format"></td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>created_at</td><td class="dtype">timestamp</td><td>Created Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>updated_at</td><td class="dtype">timestamp</td><td>Updated Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ==================== TABLE 10: rooms ==================== -->
+<div class="table-block" id="t10">
+  <h2>Table 10: <code>rooms</code></h2>
+  <table>
+    <thead><tr><th>Field Name</th><th>Data Type</th><th>Description</th><th>Size</th><th>Format</th><th>Required</th><th>PK/FK</th><th>Reference To</th></tr></thead>
+    <tbody>
+      <tr><td>id</td><td class="dtype">bigint unsigned</td><td>Room ID</td><td>—</td><td class="format">auto-increment</td><td class="req-yes">Yes</td><td><span class="badge badge-pk">PK</span></td><td></td></tr>
+      <tr><td>room_number</td><td class="dtype">varchar</td><td>Room Number</td><td>10</td><td class="format">e.g. "101"</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>floor</td><td class="dtype">tinyint unsigned</td><td>Floor Level</td><td>3</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>capacity</td><td class="dtype">varchar</td><td>Maximum Occupants</td><td>20</td><td class="format">e.g. "2 beds"</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>monthly_rate</td><td class="dtype">decimal</td><td>Monthly Rent Rate</td><td>10,2</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>deposit_required</td><td class="dtype">decimal</td><td>Required Security Deposit</td><td>10,2</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>meter_number</td><td class="dtype">varchar</td><td>Electric Meter Number</td><td>30</td><td class="format"></td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>status</td><td class="dtype">varchar</td><td>Room Availability</td><td>20</td><td class="format">vacant / occupied / maintenance</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>is_airconditioned</td><td class="dtype">boolean</td><td>Has Air Conditioning</td><td>—</td><td class="format">0=No, 1=Yes</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>created_at</td><td class="dtype">timestamp</td><td>Created Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>updated_at</td><td class="dtype">timestamp</td><td>Updated Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ==================== TABLE 11: contracts ==================== -->
+<div class="table-block" id="t11">
+  <h2>Table 11: <code>contracts</code></h2>
+  <table>
+    <thead><tr><th>Field Name</th><th>Data Type</th><th>Description</th><th>Size</th><th>Format</th><th>Required</th><th>PK/FK</th><th>Reference To</th></tr></thead>
+    <tbody>
+      <tr><td>id</td><td class="dtype">bigint unsigned</td><td>Contract ID</td><td>—</td><td class="format">auto-increment</td><td class="req-yes">Yes</td><td><span class="badge badge-pk">PK</span></td><td></td></tr>
+      <tr><td>room_id</td><td class="dtype">bigint unsigned</td><td>Room ID</td><td>—</td><td class="format"></td><td class="req-yes">Yes</td><td><span class="badge badge-fk">FK</span></td><td class="ref">rooms</td></tr>
+      <tr><td>start_date</td><td class="dtype">date</td><td>Contract Start Date</td><td>—</td><td class="format">YYYY-MM-DD</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>end_date</td><td class="dtype">date</td><td>Contract End Date</td><td>—</td><td class="format">YYYY-MM-DD</td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>monthly_rent</td><td class="dtype">decimal</td><td>Monthly Rent Amount</td><td>10,2</td><td class="format"></td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>due_day</td><td class="dtype">tinyint unsigned</td><td>Payment Due Day of Month</td><td>3</td><td class="format">1–28</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>deposit_collected</td><td class="dtype">decimal</td><td>Deposit Amount Collected</td><td>10,2</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>status</td><td class="dtype">varchar</td><td>Contract Status</td><td>20</td><td class="format">active / ended / ending_soon</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>is_active</td><td class="dtype">boolean</td><td>Active Flag</td><td>—</td><td class="format">0=Inactive, 1=Active</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>contract_file_path</td><td class="dtype">varchar</td><td>Uploaded Contract File Path</td><td>255</td><td class="format"></td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>created_by</td><td class="dtype">bigint unsigned</td><td>Staff Who Created Contract</td><td>—</td><td class="format"></td><td class="req-no">No</td><td><span class="badge badge-fk">FK</span></td><td class="ref">users</td></tr>
+      <tr><td>created_at</td><td class="dtype">timestamp</td><td>Created Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>updated_at</td><td class="dtype">timestamp</td><td>Updated Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ==================== TABLE 12: contract_tenants ==================== -->
+<div class="table-block" id="t12">
+  <h2>Table 12: <code>contract_tenants</code></h2>
+  <table>
+    <thead><tr><th>Field Name</th><th>Data Type</th><th>Description</th><th>Size</th><th>Format</th><th>Required</th><th>PK/FK</th><th>Reference To</th></tr></thead>
+    <tbody>
+      <tr><td>id</td><td class="dtype">bigint unsigned</td><td>Record ID</td><td>—</td><td class="format">auto-increment</td><td class="req-yes">Yes</td><td><span class="badge badge-pk">PK</span></td><td></td></tr>
+      <tr><td>contract_id</td><td class="dtype">bigint unsigned</td><td>Contract ID</td><td>—</td><td class="format"></td><td class="req-yes">Yes</td><td><span class="badge badge-fk">FK</span></td><td class="ref">contracts</td></tr>
+      <tr><td>tenant_id</td><td class="dtype">bigint unsigned</td><td>Tenant ID</td><td>—</td><td class="format"></td><td class="req-yes">Yes</td><td><span class="badge badge-fk">FK</span></td><td class="ref">tenants</td></tr>
+      <tr><td>joined_on</td><td class="dtype">date</td><td>Date Tenant Joined Room</td><td>—</td><td class="format">YYYY-MM-DD</td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>left_on</td><td class="dtype">date</td><td>Date Tenant Left Room</td><td>—</td><td class="format">YYYY-MM-DD</td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>created_at</td><td class="dtype">timestamp</td><td>Created Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>updated_at</td><td class="dtype">timestamp</td><td>Updated Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ==================== TABLE 13: invoices ==================== -->
+<div class="table-block" id="t13">
+  <h2>Table 13: <code>invoices</code></h2>
+  <table>
+    <thead><tr><th>Field Name</th><th>Data Type</th><th>Description</th><th>Size</th><th>Format</th><th>Required</th><th>PK/FK</th><th>Reference To</th></tr></thead>
+    <tbody>
+      <tr><td>id</td><td class="dtype">bigint unsigned</td><td>Invoice ID</td><td>—</td><td class="format">auto-increment</td><td class="req-yes">Yes</td><td><span class="badge badge-pk">PK</span></td><td></td></tr>
+      <tr><td>invoice_number</td><td class="dtype">varchar</td><td>Invoice Number</td><td>30</td><td class="format">BILL-YYMM-RRR</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>contract_id</td><td class="dtype">bigint unsigned</td><td>Contract ID</td><td>—</td><td class="format"></td><td class="req-yes">Yes</td><td><span class="badge badge-fk">FK</span></td><td class="ref">contracts</td></tr>
+      <tr><td>tenant_count</td><td class="dtype">tinyint unsigned</td><td>Number of Tenants in Room</td><td>3</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>billing_month</td><td class="dtype">varchar</td><td>Month of Billing</td><td>7</td><td class="format">YYYY-MM</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>due_date</td><td class="dtype">date</td><td>Payment Due Date</td><td>—</td><td class="format">YYYY-MM-DD</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>rent_amount</td><td class="dtype">decimal</td><td>Rent Charge</td><td>10,2</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>electricity_amount</td><td class="dtype">decimal</td><td>Electricity Charge</td><td>10,2</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>carry_over_balance</td><td class="dtype">decimal</td><td>Unpaid Balance Carried Forward</td><td>10,2</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>credit_balance</td><td class="dtype">decimal</td><td>Overpayment Credit Applied</td><td>10,2</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>total_amount</td><td class="dtype">decimal</td><td>Total Amount Due</td><td>10,2</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>amount_paid</td><td class="dtype">decimal</td><td>Total Amount Paid</td><td>10,2</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>status</td><td class="dtype">varchar</td><td>Invoice Status</td><td>20</td><td class="format">pending / partial / paid / late / overdue / void</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>paid_at</td><td class="dtype">timestamp</td><td>Date Fully Paid</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>paymongo_link_id</td><td class="dtype">varchar</td><td>PayMongo Payment Link ID</td><td>60</td><td class="format"></td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>created_by</td><td class="dtype">bigint unsigned</td><td>User Who Created Invoice</td><td>—</td><td class="format"></td><td class="req-no">No</td><td><span class="badge badge-fk">FK</span></td><td class="ref">users</td></tr>
+      <tr><td>created_at</td><td class="dtype">timestamp</td><td>Created Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>updated_at</td><td class="dtype">timestamp</td><td>Updated Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ==================== TABLE 14: tenant_payments ==================== -->
+<div class="table-block" id="t14">
+  <h2>Table 14: <code>tenant_payments</code></h2>
+  <div class="note">Unique constraint: (invoice_id, tenant_id)</div>
+  <table>
+    <thead><tr><th>Field Name</th><th>Data Type</th><th>Description</th><th>Size</th><th>Format</th><th>Required</th><th>PK/FK</th><th>Reference To</th></tr></thead>
+    <tbody>
+      <tr><td>id</td><td class="dtype">bigint unsigned</td><td>Tenant Payment ID</td><td>—</td><td class="format">auto-increment</td><td class="req-yes">Yes</td><td><span class="badge badge-pk">PK</span></td><td></td></tr>
+      <tr><td>invoice_id</td><td class="dtype">bigint unsigned</td><td>Invoice ID</td><td>—</td><td class="format"></td><td class="req-yes">Yes</td><td><span class="badge badge-fk">FK</span></td><td class="ref">invoices</td></tr>
+      <tr><td>tenant_id</td><td class="dtype">bigint unsigned</td><td>Tenant ID</td><td>—</td><td class="format"></td><td class="req-yes">Yes</td><td><span class="badge badge-fk">FK</span></td><td class="ref">tenants</td></tr>
+      <tr><td>share_amount</td><td class="dtype">decimal</td><td>Tenant's Share of Invoice</td><td>10,2</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>carry_over_balance</td><td class="dtype">decimal</td><td>Unpaid Balance from Prior Billing</td><td>10,2</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>amount_paid</td><td class="dtype">decimal</td><td>Amount Paid by Tenant</td><td>10,2</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>status</td><td class="dtype">varchar</td><td>Payment Status</td><td>20</td><td class="format">pending / paid / overdue</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>method</td><td class="dtype">varchar</td><td>Payment Method Used</td><td>30</td><td class="format">cash / gcash / maya / card / bank_transfer / paymongo / qr_ph</td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>paid_at</td><td class="dtype">timestamp</td><td>Date Paid</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>paymongo_link_id</td><td class="dtype">varchar</td><td>PayMongo Link ID</td><td>60</td><td class="format"></td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>created_at</td><td class="dtype">timestamp</td><td>Created Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>updated_at</td><td class="dtype">timestamp</td><td>Updated Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ==================== TABLE 15: payments ==================== -->
+<div class="table-block" id="t15">
+  <h2>Table 15: <code>payments</code></h2>
+  <table>
+    <thead><tr><th>Field Name</th><th>Data Type</th><th>Description</th><th>Size</th><th>Format</th><th>Required</th><th>PK/FK</th><th>Reference To</th></tr></thead>
+    <tbody>
+      <tr><td>id</td><td class="dtype">bigint unsigned</td><td>Payment ID</td><td>—</td><td class="format">auto-increment</td><td class="req-yes">Yes</td><td><span class="badge badge-pk">PK</span></td><td></td></tr>
+      <tr><td>invoice_id</td><td class="dtype">bigint unsigned</td><td>Invoice ID</td><td>—</td><td class="format"></td><td class="req-yes">Yes</td><td><span class="badge badge-fk">FK</span></td><td class="ref">invoices</td></tr>
+      <tr><td>tenant_payment_id</td><td class="dtype">bigint unsigned</td><td>Tenant Payment ID</td><td>—</td><td class="format"></td><td class="req-no">No</td><td><span class="badge badge-fk">FK</span></td><td class="ref">tenant_payments</td></tr>
+      <tr><td>amount</td><td class="dtype">decimal</td><td>Payment Amount</td><td>10,2</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>method</td><td class="dtype">varchar</td><td>Payment Method</td><td>30</td><td class="format">cash / gcash / maya / card / bank_transfer / paymongo / qr_ph</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>received_at</td><td class="dtype">date</td><td>Date Payment Received</td><td>—</td><td class="format">YYYY-MM-DD</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>reference</td><td class="dtype">varchar</td><td>Payment Reference Number</td><td>100</td><td class="format"></td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>notes</td><td class="dtype">varchar</td><td>Additional Notes</td><td>255</td><td class="format"></td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>recorded_by_type</td><td class="dtype">varchar</td><td>Who Recorded Payment</td><td>20</td><td class="format">staff / paymongo</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>recorded_by_user</td><td class="dtype">bigint unsigned</td><td>Staff User Who Recorded</td><td>—</td><td class="format"></td><td class="req-no">No</td><td><span class="badge badge-fk">FK</span></td><td class="ref">users</td></tr>
+      <tr><td>created_at</td><td class="dtype">timestamp</td><td>Created Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>updated_at</td><td class="dtype">timestamp</td><td>Updated Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ==================== TABLE 16: meter_readings ==================== -->
+<div class="table-block" id="t16">
+  <h2>Table 16: <code>meter_readings</code></h2>
+  <div class="note">Unique constraint: (room_id, reading_month)</div>
+  <table>
+    <thead><tr><th>Field Name</th><th>Data Type</th><th>Description</th><th>Size</th><th>Format</th><th>Required</th><th>PK/FK</th><th>Reference To</th></tr></thead>
+    <tbody>
+      <tr><td>id</td><td class="dtype">bigint unsigned</td><td>Meter Reading ID</td><td>—</td><td class="format">auto-increment</td><td class="req-yes">Yes</td><td><span class="badge badge-pk">PK</span></td><td></td></tr>
+      <tr><td>room_id</td><td class="dtype">bigint unsigned</td><td>Room ID</td><td>—</td><td class="format"></td><td class="req-yes">Yes</td><td><span class="badge badge-fk">FK</span></td><td class="ref">rooms</td></tr>
+      <tr><td>reading_month</td><td class="dtype">varchar</td><td>Month of Meter Reading</td><td>7</td><td class="format">YYYY-MM</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>previous_kwh</td><td class="dtype">decimal</td><td>Previous Meter Reading (kWh)</td><td>10,1</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>current_kwh</td><td class="dtype">decimal</td><td>Current Meter Reading (kWh)</td><td>10,1</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>kwh_used</td><td class="dtype">decimal</td><td>Electricity Consumed (kWh)</td><td>10,1</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>recorded_by</td><td class="dtype">bigint unsigned</td><td>Staff Who Recorded Reading</td><td>—</td><td class="format"></td><td class="req-no">No</td><td><span class="badge badge-fk">FK</span></td><td class="ref">users</td></tr>
+      <tr><td>created_at</td><td class="dtype">timestamp</td><td>Created Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>updated_at</td><td class="dtype">timestamp</td><td>Updated Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ==================== TABLE 17: deposit_entries ==================== -->
+<div class="table-block" id="t17">
+  <h2>Table 17: <code>deposit_entries</code></h2>
+  <table>
+    <thead><tr><th>Field Name</th><th>Data Type</th><th>Description</th><th>Size</th><th>Format</th><th>Required</th><th>PK/FK</th><th>Reference To</th></tr></thead>
+    <tbody>
+      <tr><td>id</td><td class="dtype">bigint unsigned</td><td>Deposit Entry ID</td><td>—</td><td class="format">auto-increment</td><td class="req-yes">Yes</td><td><span class="badge badge-pk">PK</span></td><td></td></tr>
+      <tr><td>contract_id</td><td class="dtype">bigint unsigned</td><td>Contract ID</td><td>—</td><td class="format"></td><td class="req-yes">Yes</td><td><span class="badge badge-fk">FK</span></td><td class="ref">contracts</td></tr>
+      <tr><td>type</td><td class="dtype">varchar</td><td>Transaction Type</td><td>20</td><td class="format">collected / deduction / refund</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>amount</td><td class="dtype">decimal</td><td>Deposit Amount</td><td>10,2</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>date</td><td class="dtype">date</td><td>Transaction Date</td><td>—</td><td class="format">YYYY-MM-DD</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>reason</td><td class="dtype">varchar</td><td>Reason for Transaction</td><td>255</td><td class="format"></td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>recorded_by</td><td class="dtype">bigint unsigned</td><td>Staff Who Recorded Entry</td><td>—</td><td class="format"></td><td class="req-no">No</td><td><span class="badge badge-fk">FK</span></td><td class="ref">users</td></tr>
+      <tr><td>created_at</td><td class="dtype">timestamp</td><td>Created Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>updated_at</td><td class="dtype">timestamp</td><td>Updated Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ==================== TABLE 18: audit_logs ==================== -->
+<div class="table-block" id="t18">
+  <h2>Table 18: <code>audit_logs</code></h2>
+  <div class="note">Insert-only — no updated_at column.</div>
+  <table>
+    <thead><tr><th>Field Name</th><th>Data Type</th><th>Description</th><th>Size</th><th>Format</th><th>Required</th><th>PK/FK</th><th>Reference To</th></tr></thead>
+    <tbody>
+      <tr><td>id</td><td class="dtype">bigint unsigned</td><td>Audit Log ID</td><td>—</td><td class="format">auto-increment</td><td class="req-yes">Yes</td><td><span class="badge badge-pk">PK</span></td><td></td></tr>
+      <tr><td>user_id</td><td class="dtype">bigint unsigned</td><td>User ID</td><td>—</td><td class="format"></td><td class="req-no">No</td><td><span class="badge badge-fk">FK</span></td><td class="ref">users</td></tr>
+      <tr><td>user_label</td><td class="dtype">varchar</td><td>Display Name of User</td><td>100</td><td class="format"></td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>action</td><td class="dtype">varchar</td><td>Action Performed</td><td>50</td><td class="format">Created / Updated / Deleted / Voided / Payment</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>record_type</td><td class="dtype">varchar</td><td>Type of Record Affected</td><td>60</td><td class="format">Invoice / Tenant / Contract / Room</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>record_id</td><td class="dtype">bigint unsigned</td><td>ID of Affected Record</td><td>—</td><td class="format"></td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>description</td><td class="dtype">text</td><td>Detailed Log Description</td><td>—</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>ip_address</td><td class="dtype">varchar</td><td>IP Address of Request</td><td>45</td><td class="format"></td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>created_at</td><td class="dtype">timestamp</td><td>Log Created Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ==================== TABLE 19: settings ==================== -->
+<div class="table-block" id="t19">
+  <h2>Table 19: <code>settings</code></h2>
+  <table>
+    <thead><tr><th>Field Name</th><th>Data Type</th><th>Description</th><th>Size</th><th>Format</th><th>Required</th><th>PK/FK</th><th>Reference To</th></tr></thead>
+    <tbody>
+      <tr><td>id</td><td class="dtype">bigint unsigned</td><td>Setting ID</td><td>—</td><td class="format">auto-increment</td><td class="req-yes">Yes</td><td><span class="badge badge-pk">PK</span></td><td></td></tr>
+      <tr><td>key</td><td class="dtype">varchar</td><td>Setting Key Name</td><td>60</td><td class="format">electricity_rate / invoice_advance_days / overdue_grace_days / deposit_months / advance_months</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>value</td><td class="dtype">decimal</td><td>Setting Value</td><td>12,4</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>effective_from</td><td class="dtype">date</td><td>Effective Start Date</td><td>—</td><td class="format">YYYY-MM-DD</td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>set_by</td><td class="dtype">bigint unsigned</td><td>User Who Configured Setting</td><td>—</td><td class="format"></td><td class="req-no">No</td><td><span class="badge badge-fk">FK</span></td><td class="ref">users</td></tr>
+      <tr><td>created_at</td><td class="dtype">timestamp</td><td>Created Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>updated_at</td><td class="dtype">timestamp</td><td>Updated Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ==================== TABLE 20: services ==================== -->
+<div class="table-block" id="t20">
+  <h2>Table 20: <code>services</code></h2>
+  <table>
+    <thead><tr><th>Field Name</th><th>Data Type</th><th>Description</th><th>Size</th><th>Format</th><th>Required</th><th>PK/FK</th><th>Reference To</th></tr></thead>
+    <tbody>
+      <tr><td>id</td><td class="dtype">bigint unsigned</td><td>Service ID</td><td>—</td><td class="format">auto-increment</td><td class="req-yes">Yes</td><td><span class="badge badge-pk">PK</span></td><td></td></tr>
+      <tr><td>code</td><td class="dtype">varchar</td><td>Service Code</td><td>255</td><td class="format">WASH / DRY / WASH_DRY / FOLD / IRON / DRY_CLEAN</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>name</td><td class="dtype">varchar</td><td>Service Name</td><td>255</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>weight_limit_kg</td><td class="dtype">decimal</td><td>Max Weight per Load (kg)</td><td>5,2</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>is_active</td><td class="dtype">boolean</td><td>Service Active Status</td><td>—</td><td class="format">0=Inactive, 1=Active</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>created_at</td><td class="dtype">timestamp</td><td>Created Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>updated_at</td><td class="dtype">timestamp</td><td>Updated Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ==================== TABLE 21: service_prices ==================== -->
+<div class="table-block" id="t21">
+  <h2>Table 21: <code>service_prices</code></h2>
+  <div class="note">Unique constraint: (service_id, customer_type)</div>
+  <table>
+    <thead><tr><th>Field Name</th><th>Data Type</th><th>Description</th><th>Size</th><th>Format</th><th>Required</th><th>PK/FK</th><th>Reference To</th></tr></thead>
+    <tbody>
+      <tr><td>id</td><td class="dtype">bigint unsigned</td><td>Service Price ID</td><td>—</td><td class="format">auto-increment</td><td class="req-yes">Yes</td><td><span class="badge badge-pk">PK</span></td><td></td></tr>
+      <tr><td>service_id</td><td class="dtype">bigint unsigned</td><td>Service ID</td><td>—</td><td class="format"></td><td class="req-yes">Yes</td><td><span class="badge badge-fk">FK</span></td><td class="ref">services</td></tr>
+      <tr><td>customer_type</td><td class="dtype">enum</td><td>Customer Type Category</td><td>—</td><td class="format">tenant / student / non_student</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>price</td><td class="dtype">decimal</td><td>Price per Load</td><td>8,2</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>created_at</td><td class="dtype">timestamp</td><td>Created Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>updated_at</td><td class="dtype">timestamp</td><td>Updated Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ==================== TABLE 22: customers ==================== -->
+<div class="table-block" id="t22">
+  <h2>Table 22: <code>customers</code></h2>
+  <table>
+    <thead><tr><th>Field Name</th><th>Data Type</th><th>Description</th><th>Size</th><th>Format</th><th>Required</th><th>PK/FK</th><th>Reference To</th></tr></thead>
+    <tbody>
+      <tr><td>id</td><td class="dtype">bigint unsigned</td><td>Customer ID</td><td>—</td><td class="format">auto-increment</td><td class="req-yes">Yes</td><td><span class="badge badge-pk">PK</span></td><td></td></tr>
+      <tr><td>name</td><td class="dtype">varchar</td><td>Customer Full Name</td><td>255</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>type</td><td class="dtype">enum</td><td>Customer Type</td><td>—</td><td class="format">tenant / student / non_student</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>room_no</td><td class="dtype">varchar</td><td>Room Number</td><td>255</td><td class="format"></td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>contact_no</td><td class="dtype">varchar</td><td>Contact Number</td><td>255</td><td class="format"></td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>created_at</td><td class="dtype">timestamp</td><td>Created Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>updated_at</td><td class="dtype">timestamp</td><td>Updated Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ==================== TABLE 23: laundry_orders ==================== -->
+<div class="table-block" id="t23">
+  <h2>Table 23: <code>laundry_orders</code></h2>
+  <table>
+    <thead><tr><th>Field Name</th><th>Data Type</th><th>Description</th><th>Size</th><th>Format</th><th>Required</th><th>PK/FK</th><th>Reference To</th></tr></thead>
+    <tbody>
+      <tr><td>id</td><td class="dtype">bigint unsigned</td><td>Laundry Order ID</td><td>—</td><td class="format">auto-increment</td><td class="req-yes">Yes</td><td><span class="badge badge-pk">PK</span></td><td></td></tr>
+      <tr><td>order_no</td><td class="dtype">varchar</td><td>Order Number</td><td>255</td><td class="format">LDY-YYYYMMDD-XXXX</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>customer_id</td><td class="dtype">bigint unsigned</td><td>Customer ID</td><td>—</td><td class="format"></td><td class="req-yes">Yes</td><td><span class="badge badge-fk">FK</span></td><td class="ref">customers</td></tr>
+      <tr><td>customer_type</td><td class="dtype">enum</td><td>Customer Type</td><td>—</td><td class="format">tenant / student / non_student</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>room_no</td><td class="dtype">varchar</td><td>Room Number</td><td>255</td><td class="format"></td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>date_received</td><td class="dtype">date</td><td>Date Order Received</td><td>—</td><td class="format">YYYY-MM-DD</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>payment_method</td><td class="dtype">enum</td><td>Payment Method</td><td>—</td><td class="format">none / cash / online</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>payment_status</td><td class="dtype">enum</td><td>Payment Status</td><td>—</td><td class="format">paid / unpaid</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>paid_before_service</td><td class="dtype">boolean</td><td>Paid Before Service Flag</td><td>—</td><td class="format">0=No, 1=Yes</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>total_amount</td><td class="dtype">decimal</td><td>Total Order Amount</td><td>10,2</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>total_weight_kg</td><td class="dtype">decimal</td><td>Total Laundry Weight (kg)</td><td>8,2</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>total_loads</td><td class="dtype">int unsigned</td><td>Total Number of Loads</td><td>10</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>total_liquid_ml</td><td class="dtype">int unsigned</td><td>Total Detergent Used (mL)</td><td>10</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>remarks</td><td class="dtype">text</td><td>Additional Remarks</td><td>—</td><td class="format"></td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>recorded_by</td><td class="dtype">bigint unsigned</td><td>Staff Who Recorded Order</td><td>—</td><td class="format"></td><td class="req-yes">Yes</td><td><span class="badge badge-fk">FK</span></td><td class="ref">users</td></tr>
+      <tr><td>created_at</td><td class="dtype">timestamp</td><td>Created Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>updated_at</td><td class="dtype">timestamp</td><td>Updated Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>deleted_at</td><td class="dtype">timestamp</td><td>Soft Delete Timestamp</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-no">No</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ==================== TABLE 24: order_items ==================== -->
+<div class="table-block" id="t24">
+  <h2>Table 24: <code>order_items</code></h2>
+  <table>
+    <thead><tr><th>Field Name</th><th>Data Type</th><th>Description</th><th>Size</th><th>Format</th><th>Required</th><th>PK/FK</th><th>Reference To</th></tr></thead>
+    <tbody>
+      <tr><td>id</td><td class="dtype">bigint unsigned</td><td>Order Item ID</td><td>—</td><td class="format">auto-increment</td><td class="req-yes">Yes</td><td><span class="badge badge-pk">PK</span></td><td></td></tr>
+      <tr><td>laundry_order_id</td><td class="dtype">bigint unsigned</td><td>Laundry Order ID</td><td>—</td><td class="format"></td><td class="req-yes">Yes</td><td><span class="badge badge-fk">FK</span></td><td class="ref">laundry_orders</td></tr>
+      <tr><td>service_id</td><td class="dtype">bigint unsigned</td><td>Service ID</td><td>—</td><td class="format"></td><td class="req-yes">Yes</td><td><span class="badge badge-fk">FK</span></td><td class="ref">services</td></tr>
+      <tr><td>weight_kg</td><td class="dtype">decimal</td><td>Weight of This Item (kg)</td><td>8,2</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>weight_limit_kg</td><td class="dtype">decimal</td><td>Max Weight per Load Snapshot</td><td>5,2</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>unit_price</td><td class="dtype">decimal</td><td>Price per Load Snapshot</td><td>8,2</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>loads</td><td class="dtype">int unsigned</td><td>Number of Machine Loads</td><td>10</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>liquid_ml</td><td class="dtype">int unsigned</td><td>Detergent Used (mL)</td><td>10</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>subtotal</td><td class="dtype">decimal</td><td>Item Subtotal Amount</td><td>10,2</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>created_at</td><td class="dtype">timestamp</td><td>Created Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>updated_at</td><td class="dtype">timestamp</td><td>Updated Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ==================== TABLE 25: tenant_deposits ==================== -->
+<div class="table-block" id="t25">
+  <h2>Table 25: <code>tenant_deposits</code> <span style="font-size:12px;font-weight:400;color:#27ae60">(New)</span></h2>
+  <div class="note">Balance formula: amount_paid − amount_deducted − amount_refunded</div>
+  <table>
+    <thead><tr><th>Field Name</th><th>Data Type</th><th>Description</th><th>Size</th><th>Format</th><th>Required</th><th>PK/FK</th><th>Reference To</th></tr></thead>
+    <tbody>
+      <tr><td>id</td><td class="dtype">bigint unsigned</td><td>Tenant Deposit ID</td><td>—</td><td class="format">auto-increment</td><td class="req-yes">Yes</td><td><span class="badge badge-pk">PK</span></td><td></td></tr>
+      <tr><td>contract_id</td><td class="dtype">bigint unsigned</td><td>Contract ID</td><td>—</td><td class="format"></td><td class="req-yes">Yes</td><td><span class="badge badge-fk">FK</span></td><td class="ref">contracts</td></tr>
+      <tr><td>tenant_id</td><td class="dtype">bigint unsigned</td><td>Tenant ID</td><td>—</td><td class="format"></td><td class="req-yes">Yes</td><td><span class="badge badge-fk">FK</span></td><td class="ref">tenants</td></tr>
+      <tr><td>amount_required</td><td class="dtype">decimal</td><td>Tenant's Required Deposit Share</td><td>10,2</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>amount_paid</td><td class="dtype">decimal</td><td>Amount Paid by Tenant</td><td>10,2</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>amount_deducted</td><td class="dtype">decimal</td><td>Amount Deducted from Deposit</td><td>10,2</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>amount_refunded</td><td class="dtype">decimal</td><td>Amount Refunded to Tenant</td><td>10,2</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>deduction_reason</td><td class="dtype">text</td><td>Reason for Deduction</td><td>—</td><td class="format"></td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>notes</td><td class="dtype">text</td><td>Additional Notes</td><td>—</td><td class="format"></td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>created_at</td><td class="dtype">timestamp</td><td>Created Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>updated_at</td><td class="dtype">timestamp</td><td>Updated Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ==================== TABLE 26: tenant_messages ==================== -->
+<div class="table-block" id="t26">
+  <h2>Table 26: <code>tenant_messages</code> <span style="font-size:12px;font-weight:400;color:#27ae60">(New)</span></h2>
+  <table>
+    <thead><tr><th>Field Name</th><th>Data Type</th><th>Description</th><th>Size</th><th>Format</th><th>Required</th><th>PK/FK</th><th>Reference To</th></tr></thead>
+    <tbody>
+      <tr><td>id</td><td class="dtype">bigint unsigned</td><td>Message ID</td><td>—</td><td class="format">auto-increment</td><td class="req-yes">Yes</td><td><span class="badge badge-pk">PK</span></td><td></td></tr>
+      <tr><td>tenant_id</td><td class="dtype">bigint unsigned</td><td>Tenant ID</td><td>—</td><td class="format"></td><td class="req-yes">Yes</td><td><span class="badge badge-fk">FK</span></td><td class="ref">tenants</td></tr>
+      <tr><td>room_id</td><td class="dtype">bigint unsigned</td><td>Room ID</td><td>—</td><td class="format"></td><td class="req-no">No</td><td><span class="badge badge-fk">FK</span></td><td class="ref">rooms</td></tr>
+      <tr><td>subject</td><td class="dtype">varchar</td><td>Message Subject</td><td>255</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>message</td><td class="dtype">text</td><td>Message Body</td><td>—</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>status</td><td class="dtype">enum</td><td>Message Status</td><td>—</td><td class="format">unread / read / replied</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>read_at</td><td class="dtype">timestamp</td><td>Date Read</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>read_by</td><td class="dtype">bigint unsigned</td><td>Staff Who Read Message</td><td>—</td><td class="format"></td><td class="req-no">No</td><td><span class="badge badge-fk">FK</span></td><td class="ref">users</td></tr>
+      <tr><td>admin_reply</td><td class="dtype">text</td><td>Admin Reply Text</td><td>—</td><td class="format"></td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>replied_at</td><td class="dtype">timestamp</td><td>Date Replied</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>replied_by</td><td class="dtype">bigint unsigned</td><td>Staff Who Replied</td><td>—</td><td class="format"></td><td class="req-no">No</td><td><span class="badge badge-fk">FK</span></td><td class="ref">users</td></tr>
+      <tr><td>resolved_at</td><td class="dtype">timestamp</td><td>Date Resolved</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>resolved_by</td><td class="dtype">bigint unsigned</td><td>Staff Who Resolved</td><td>—</td><td class="format"></td><td class="req-no">No</td><td><span class="badge badge-fk">FK</span></td><td class="ref">users</td></tr>
+      <tr><td>created_at</td><td class="dtype">timestamp</td><td>Created Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>updated_at</td><td class="dtype">timestamp</td><td>Updated Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ==================== TABLE 27: tenant_message_replies ==================== -->
+<div class="table-block" id="t27">
+  <h2>Table 27: <code>tenant_message_replies</code> <span style="font-size:12px;font-weight:400;color:#27ae60">(New)</span></h2>
+  <table>
+    <thead><tr><th>Field Name</th><th>Data Type</th><th>Description</th><th>Size</th><th>Format</th><th>Required</th><th>PK/FK</th><th>Reference To</th></tr></thead>
+    <tbody>
+      <tr><td>id</td><td class="dtype">bigint unsigned</td><td>Reply ID</td><td>—</td><td class="format">auto-increment</td><td class="req-yes">Yes</td><td><span class="badge badge-pk">PK</span></td><td></td></tr>
+      <tr><td>tenant_message_id</td><td class="dtype">bigint unsigned</td><td>Parent Message ID</td><td>—</td><td class="format"></td><td class="req-yes">Yes</td><td><span class="badge badge-fk">FK</span></td><td class="ref">tenant_messages</td></tr>
+      <tr><td>user_id</td><td class="dtype">bigint unsigned</td><td>User Who Replied</td><td>—</td><td class="format"></td><td class="req-yes">Yes</td><td><span class="badge badge-fk">FK</span></td><td class="ref">users</td></tr>
+      <tr><td>message</td><td class="dtype">text</td><td>Reply Body</td><td>—</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>read_at</td><td class="dtype">timestamp</td><td>Date Read by Recipient</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>created_at</td><td class="dtype">timestamp</td><td>Created Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>updated_at</td><td class="dtype">timestamp</td><td>Updated Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ==================== TABLE 28: detergent_inventory ==================== -->
+<div class="table-block" id="t28">
+  <h2>Table 28: <code>detergent_inventory</code> <span style="font-size:12px;font-weight:400;color:#27ae60">(New)</span></h2>
+  <div class="note">Singleton table — always contains one row. Access via DetergentInventory::current().</div>
+  <table>
+    <thead><tr><th>Field Name</th><th>Data Type</th><th>Description</th><th>Size</th><th>Format</th><th>Required</th><th>PK/FK</th><th>Reference To</th></tr></thead>
+    <tbody>
+      <tr><td>id</td><td class="dtype">bigint unsigned</td><td>Inventory ID</td><td>—</td><td class="format">auto-increment</td><td class="req-yes">Yes</td><td><span class="badge badge-pk">PK</span></td><td></td></tr>
+      <tr><td>stock_ml</td><td class="dtype">int unsigned</td><td>Current Detergent Stock (mL)</td><td>—</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>created_at</td><td class="dtype">timestamp</td><td>Created Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>updated_at</td><td class="dtype">timestamp</td><td>Updated Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ==================== TABLE 29: detergent_logs ==================== -->
+<div class="table-block" id="t29">
+  <h2>Table 29: <code>detergent_logs</code> <span style="font-size:12px;font-weight:400;color:#27ae60">(New)</span></h2>
+  <table>
+    <thead><tr><th>Field Name</th><th>Data Type</th><th>Description</th><th>Size</th><th>Format</th><th>Required</th><th>PK/FK</th><th>Reference To</th></tr></thead>
+    <tbody>
+      <tr><td>id</td><td class="dtype">bigint unsigned</td><td>Log ID</td><td>—</td><td class="format">auto-increment</td><td class="req-yes">Yes</td><td><span class="badge badge-pk">PK</span></td><td></td></tr>
+      <tr><td>type</td><td class="dtype">enum</td><td>Transaction Type</td><td>—</td><td class="format">restock / deduct</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>amount_ml</td><td class="dtype">int unsigned</td><td>Amount Added or Removed (mL)</td><td>—</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>stock_before_ml</td><td class="dtype">int unsigned</td><td>Stock Before Transaction (mL)</td><td>—</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>stock_after_ml</td><td class="dtype">int unsigned</td><td>Stock After Transaction (mL)</td><td>—</td><td class="format"></td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>laundry_order_id</td><td class="dtype">bigint unsigned</td><td>Linked Laundry Order</td><td>—</td><td class="format"></td><td class="req-no">No</td><td><span class="badge badge-fk">FK</span></td><td class="ref">laundry_orders</td></tr>
+      <tr><td>user_id</td><td class="dtype">bigint unsigned</td><td>User Who Performed Action</td><td>—</td><td class="format"></td><td class="req-no">No</td><td><span class="badge badge-fk">FK</span></td><td class="ref">users</td></tr>
+      <tr><td>notes</td><td class="dtype">text</td><td>Additional Notes</td><td>—</td><td class="format"></td><td class="req-no">No</td><td></td><td></td></tr>
+      <tr><td>created_at</td><td class="dtype">timestamp</td><td>Created Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+      <tr><td>updated_at</td><td class="dtype">timestamp</td><td>Updated Date</td><td>—</td><td class="format">YYYY-MM-DD HH:MM:SS</td><td class="req-yes">Yes</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+</body>
+</html>

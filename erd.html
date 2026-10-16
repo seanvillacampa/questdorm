@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>QuestDorm ERD</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #060b18; display: flex; flex-direction: column; align-items: center; padding: 20px; font-family: 'Segoe UI', Arial, sans-serif; }
+  h1 { color: #94a3b8; font-size: 14px; margin-bottom: 12px; letter-spacing: 1px; }
+  svg { display: block; max-width: 100%; height: auto; }
+  .toolbar { display: flex; gap: 8px; margin-bottom: 12px; }
+  button { background: #1e293b; border: 1px solid #334155; color: #94a3b8; padding: 5px 14px; border-radius: 5px; cursor: pointer; font-size: 12px; }
+  button:hover { background: #334155; }
+</style>
+</head>
+<body>
+<h1>QuestDorm — Entity Relationship Diagram</h1>
+<div class="toolbar">
+  <button onclick="window.print()">🖨 Print / Save as PDF</button>
+  <button onclick="downloadSVG()">⬇ Download SVG</button>
+</div>
+
+<svg id="erd" xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 1560 1300"
+     width="1560" height="1300"
+     style="background:#060b18; border:1px solid #1e293b; border-radius:8px">
+
+<defs>
+  <!-- arrowhead markers per colour -->
+  <marker id="arr-w" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+    <polygon points="0 0,7 3.5,0 7" fill="#94a3b8" opacity="0.8"/>
+  </marker>
+  <marker id="arr-g" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+    <polygon points="0 0,7 3.5,0 7" fill="#6ee7b7" opacity="0.8"/>
+  </marker>
+  <marker id="arr-y" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+    <polygon points="0 0,7 3.5,0 7" fill="#fde68a" opacity="0.8"/>
+  </marker>
+  <marker id="arr-o" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+    <polygon points="0 0,7 3.5,0 7" fill="#fdba74" opacity="0.8"/>
+  </marker>
+  <marker id="arr-gr" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+    <polygon points="0 0,7 3.5,0 7" fill="#4ade80" opacity="0.8"/>
+  </marker>
+  <marker id="arr-p" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+    <polygon points="0 0,7 3.5,0 7" fill="#c4b5fd" opacity="0.8"/>
+  </marker>
+  <marker id="arr-c" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+    <polygon points="0 0,7 3.5,0 7" fill="#67e8f9" opacity="0.8"/>
+  </marker>
+  <marker id="arr-pk" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+    <polygon points="0 0,7 3.5,0 7" fill="#e879f9" opacity="0.8"/>
+  </marker>
+  <marker id="arr-r" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+    <polygon points="0 0,7 3.5,0 7" fill="#fca5a5" opacity="0.8"/>
+  </marker>
+  <marker id="arr-teal" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+    <polygon points="0 0,7 3.5,0 7" fill="#86efac" opacity="0.8"/>
+  </marker>
+  <marker id="arr-pink" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+    <polygon points="0 0,7 3.5,0 7" fill="#f9a8d4" opacity="0.8"/>
+  </marker>
+</defs>
+
+<!-- ═══════════════════════════════════════════
+  HELPER: person icon (3 circles + lines = crow's foot)
+  We'll inline them as group symbols
+════════════════════════════════════════════════ -->
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     LAYOUT MAP  (cx = center-x of card)
+     
+     ROW 0  y=40:    ROOMS(cx=480)   USERS(cx=780)
+     ROW 1  y=220:   CONTRACTS(cx=250) TENANTS(cx=530) METER_READINGS(cx=760) SETTINGS(cx=1010) AUDIT_LOGS(cx=1220)
+     ROW 2  y=430:   INVOICES(cx=80) DEPOSIT_ENTRIES(cx=310) CONTRACT_TENANTS(cx=530) SERVICES(cx=760) LAUNDRY_ORDERS(cx=990) [CUSTOMERS above LO]
+     ROW 3  y=640:   TENANT_PAYMENTS(cx=140) SERVICE_PRICES(cx=700) ORDER_ITEMS(cx=920)  TENANT_DEPOSITS(cx=380) TENANT_MESSAGES(cx=1200) DETERGENT(cx=1350)
+     ROW 4  y=860:   PAYMENTS(cx=140)    TENANT_MSG_REPLIES(cx=1200) DETERGENT_LOGS(cx=1350)
+     FAR RIGHT:      ROLES(cx=1450,y=220)  MODEL_HAS_ROLES(cx=1450,y=370)
+════════════════════════════════════════════════════════════════════ -->
+
+<!-- ╔══════════════════════════╗
+     ║  ENTITY DRAWING MACRO   ║
+     ╚══════════════════════════╝
+  Each entity = rect + header text + field rows
+  W=148 default, H calculated by fields
+  cx,cy = top-left corner
+-->
+
+<!-- ┌─────────────────────────────────────────────────────────────────┐ -->
+<!-- │  ROW 0: ROOMS (x=406,y=30) · USERS (x=706,y=30)               │ -->
+<!-- └─────────────────────────────────────────────────────────────────┘ -->
+
+<!-- ROOMS -->
+<g id="G-rooms">
+  <rect x="406" y="30" width="148" height="168" rx="4" fill="#0d1a00" stroke="#a3e635" stroke-width="1.5"/>
+  <rect x="406" y="30" width="148" height="22" rx="4" fill="#1a2e00"/>
+  <rect x="406" y="44" width="148" height="8" fill="#1a2e00"/>
+  <text x="480" y="46" text-anchor="middle" fill="#a3e635" font-size="11" font-weight="700" font-family="Consolas,monospace">ROOMS</text>
+  <!-- fields -->
+  <text x="414" y="64" fill="#fbbf24" font-size="9.5" font-family="Consolas,monospace">PK  id</text>
+  <text x="414" y="78" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    room_number</text>
+  <text x="414" y="92" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    floor</text>
+  <text x="414" y="106" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    capacity</text>
+  <text x="414" y="120" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    monthly_rate</text>
+  <text x="414" y="134" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    deposit_required</text>
+  <text x="414" y="148" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    meter_number</text>
+  <text x="414" y="162" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    status / is_ac</text>
+</g>
+
+<!-- USERS -->
+<g id="G-users">
+  <rect x="706" y="30" width="158" height="210" rx="4" fill="#1a1400" stroke="#facc15" stroke-width="1.5"/>
+  <rect x="706" y="30" width="158" height="22" rx="4" fill="#2a2000"/>
+  <rect x="706" y="44" width="158" height="8" fill="#2a2000"/>
+  <text x="785" y="46" text-anchor="middle" fill="#facc15" font-size="11" font-weight="700" font-family="Consolas,monospace">USERS</text>
+  <text x="714" y="64" fill="#fbbf24" font-size="9.5" font-family="Consolas,monospace">PK  id</text>
+  <text x="714" y="78" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    first_name</text>
+  <text x="714" y="92" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    middle_name</text>
+  <text x="714" y="106" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    last_name</text>
+  <text x="714" y="120" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    email</text>
+  <text x="714" y="134" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    phone / country_code</text>
+  <text x="714" y="148" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    password</text>
+  <text x="714" y="162" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    is_active</text>
+  <text x="714" y="176" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    last_login_at</text>
+  <text x="714" y="190" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    email_verified_at</text>
+  <text x="714" y="204" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    remember_token</text>
+</g>
+
+<!-- ┌─────────────────────────────────────────────────────────────────┐ -->
+<!-- │  ROW 1 y=290                                                    │ -->
+<!-- └─────────────────────────────────────────────────────────────────┘ -->
+
+<!-- CONTRACTS cx=250 -->
+<g id="G-contracts">
+  <rect x="176" y="290" width="158" height="196" rx="4" fill="#1a0d00" stroke="#fb923c" stroke-width="1.5"/>
+  <rect x="176" y="290" width="158" height="22" rx="4" fill="#2a1500"/>
+  <rect x="176" y="304" width="158" height="8" fill="#2a1500"/>
+  <text x="255" y="306" text-anchor="middle" fill="#fb923c" font-size="11" font-weight="700" font-family="Consolas,monospace">CONTRACTS</text>
+  <text x="184" y="326" fill="#fbbf24" font-size="9.5" font-family="Consolas,monospace">PK  id</text>
+  <text x="184" y="340" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  room_id</text>
+  <text x="184" y="354" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  created_by</text>
+  <text x="184" y="368" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    start_date / end_date</text>
+  <text x="184" y="382" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    monthly_rent</text>
+  <text x="184" y="396" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    due_day</text>
+  <text x="184" y="410" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    deposit_collected</text>
+  <text x="184" y="424" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    status / is_active</text>
+  <text x="184" y="438" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    contract_file_path</text>
+  <line x1="176" y1="318" x2="334" y2="318" stroke="#fb923c" stroke-width="0.5" opacity="0.3"/>
+</g>
+
+<!-- TENANTS cx=530 -->
+<g id="G-tenants">
+  <rect x="456" y="290" width="148" height="140" rx="4" fill="#001a10" stroke="#34d399" stroke-width="1.5"/>
+  <rect x="456" y="290" width="148" height="22" rx="4" fill="#002818"/>
+  <rect x="456" y="304" width="148" height="8" fill="#002818"/>
+  <text x="530" y="306" text-anchor="middle" fill="#34d399" font-size="11" font-weight="700" font-family="Consolas,monospace">TENANTS</text>
+  <text x="464" y="326" fill="#fbbf24" font-size="9.5" font-family="Consolas,monospace">PK  id</text>
+  <text x="464" y="340" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  user_id</text>
+  <text x="464" y="354" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    birthdate</text>
+  <text x="464" y="368" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    id_type / id_number</text>
+  <text x="464" y="382" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    emergency_name</text>
+  <text x="464" y="396" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    emergency_phone</text>
+  <line x1="456" y1="318" x2="604" y2="318" stroke="#34d399" stroke-width="0.5" opacity="0.3"/>
+</g>
+
+<!-- METER_READINGS cx=760 -->
+<g id="G-meter">
+  <rect x="686" y="290" width="158" height="140" rx="4" fill="#0a0a1a" stroke="#818cf8" stroke-width="1.5"/>
+  <rect x="686" y="290" width="158" height="22" rx="4" fill="#121228"/>
+  <rect x="686" y="304" width="158" height="8" fill="#121228"/>
+  <text x="765" y="306" text-anchor="middle" fill="#818cf8" font-size="11" font-weight="700" font-family="Consolas,monospace">METER_READINGS</text>
+  <text x="694" y="326" fill="#fbbf24" font-size="9.5" font-family="Consolas,monospace">PK  id</text>
+  <text x="694" y="340" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  room_id</text>
+  <text x="694" y="354" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  recorded_by</text>
+  <text x="694" y="368" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    reading_month</text>
+  <text x="694" y="382" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    previous/current_kwh</text>
+  <text x="694" y="396" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    kwh_used</text>
+  <line x1="686" y1="318" x2="844" y2="318" stroke="#818cf8" stroke-width="0.5" opacity="0.3"/>
+</g>
+
+<!-- SETTINGS cx=1010 -->
+<g id="G-settings">
+  <rect x="920" y="290" width="148" height="112" rx="4" fill="#1a1400" stroke="#facc15" stroke-width="1.5"/>
+  <rect x="920" y="290" width="148" height="22" rx="4" fill="#2a2000"/>
+  <rect x="920" y="304" width="148" height="8" fill="#2a2000"/>
+  <text x="994" y="306" text-anchor="middle" fill="#facc15" font-size="11" font-weight="700" font-family="Consolas,monospace">SETTINGS</text>
+  <text x="928" y="326" fill="#fbbf24" font-size="9.5" font-family="Consolas,monospace">PK  id</text>
+  <text x="928" y="340" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  set_by</text>
+  <text x="928" y="354" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    key</text>
+  <text x="928" y="368" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    value</text>
+  <text x="928" y="382" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    effective_from</text>
+  <line x1="920" y1="318" x2="1068" y2="318" stroke="#facc15" stroke-width="0.5" opacity="0.3"/>
+</g>
+
+<!-- AUDIT_LOGS cx=1210 -->
+<g id="G-audit">
+  <rect x="1130" y="290" width="152" height="168" rx="4" fill="#090918" stroke="#6366f1" stroke-width="1.5"/>
+  <rect x="1130" y="290" width="152" height="22" rx="4" fill="#111130"/>
+  <rect x="1130" y="304" width="152" height="8" fill="#111130"/>
+  <text x="1206" y="306" text-anchor="middle" fill="#6366f1" font-size="11" font-weight="700" font-family="Consolas,monospace">AUDIT_LOGS</text>
+  <text x="1138" y="326" fill="#fbbf24" font-size="9.5" font-family="Consolas,monospace">PK  id</text>
+  <text x="1138" y="340" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  user_id</text>
+  <text x="1138" y="354" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    user_label</text>
+  <text x="1138" y="368" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    action</text>
+  <text x="1138" y="382" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    record_type</text>
+  <text x="1138" y="396" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    record_id</text>
+  <text x="1138" y="410" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    description</text>
+  <text x="1138" y="424" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    ip_address</text>
+  <text x="1138" y="438" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    created_at</text>
+  <line x1="1130" y1="318" x2="1282" y2="318" stroke="#6366f1" stroke-width="0.5" opacity="0.3"/>
+</g>
+
+<!-- ROLES cx=1370 y=290 -->
+<g id="G-roles">
+  <rect x="1310" y="290" width="148" height="84" rx="4" fill="#1a1400" stroke="#facc15" stroke-width="1.5"/>
+  <rect x="1310" y="290" width="148" height="22" rx="4" fill="#2a2000"/>
+  <rect x="1310" y="304" width="148" height="8" fill="#2a2000"/>
+  <text x="1384" y="306" text-anchor="middle" fill="#facc15" font-size="11" font-weight="700" font-family="Consolas,monospace">ROLES</text>
+  <text x="1318" y="326" fill="#fbbf24" font-size="9.5" font-family="Consolas,monospace">PK  id</text>
+  <text x="1318" y="340" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    name</text>
+  <text x="1318" y="354" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    guard_name</text>
+  <line x1="1310" y1="318" x2="1458" y2="318" stroke="#facc15" stroke-width="0.5" opacity="0.3"/>
+</g>
+
+<!-- MODEL_HAS_ROLES cx=1370 y=415 -->
+<g id="G-mhr">
+  <rect x="1310" y="415" width="165" height="84" rx="4" fill="#1a1400" stroke="#facc15" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <rect x="1310" y="415" width="165" height="22" rx="4" fill="#2a2000"/>
+  <rect x="1310" y="429" width="165" height="8" fill="#2a2000"/>
+  <text x="1392" y="431" text-anchor="middle" fill="#facc15" font-size="10" font-weight="700" font-family="Consolas,monospace">MODEL_HAS_ROLES</text>
+  <text x="1318" y="451" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  role_id</text>
+  <text x="1318" y="465" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    model_type</text>
+  <text x="1318" y="479" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  model_id (users)</text>
+  <line x1="1310" y1="443" x2="1475" y2="443" stroke="#facc15" stroke-width="0.5" opacity="0.3"/>
+</g>
+
+<!-- ┌─────────────────────────────────────────────────────────────────┐ -->
+<!-- │  ROW 2 y=510                                                    │ -->
+<!-- └─────────────────────────────────────────────────────────────────┘ -->
+
+<!-- INVOICES cx=80 y=510 -->
+<g id="G-invoices">
+  <rect x="20" y="510" width="158" height="280" rx="4" fill="#001a08" stroke="#4ade80" stroke-width="1.5"/>
+  <rect x="20" y="510" width="158" height="22" rx="4" fill="#002a10"/>
+  <rect x="20" y="524" width="158" height="8" fill="#002a10"/>
+  <text x="99" y="526" text-anchor="middle" fill="#4ade80" font-size="11" font-weight="700" font-family="Consolas,monospace">INVOICES</text>
+  <text x="28" y="546" fill="#fbbf24" font-size="9.5" font-family="Consolas,monospace">PK  id</text>
+  <text x="28" y="560" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  contract_id</text>
+  <text x="28" y="574" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  created_by</text>
+  <text x="28" y="588" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    invoice_number</text>
+  <text x="28" y="602" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    tenant_count</text>
+  <text x="28" y="616" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    billing_month</text>
+  <text x="28" y="630" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    due_date</text>
+  <text x="28" y="644" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    rent_amount</text>
+  <text x="28" y="658" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    electricity_amount</text>
+  <text x="28" y="672" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    carry_over_balance</text>
+  <text x="28" y="686" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    credit_balance</text>
+  <text x="28" y="700" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    total_amount</text>
+  <text x="28" y="714" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    amount_paid</text>
+  <text x="28" y="728" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    status / paid_at</text>
+  <text x="28" y="742" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    paymongo_link_id</text>
+  <line x1="20" y1="538" x2="178" y2="538" stroke="#4ade80" stroke-width="0.5" opacity="0.3"/>
+</g>
+
+<!-- DEPOSIT_ENTRIES cx=310 y=510 -->
+<g id="G-dep-entries">
+  <rect x="220" y="510" width="158" height="140" rx="4" fill="#0d0a1a" stroke="#a78bfa" stroke-width="1.5"/>
+  <rect x="220" y="510" width="158" height="22" rx="4" fill="#1a1230"/>
+  <rect x="220" y="524" width="158" height="8" fill="#1a1230"/>
+  <text x="299" y="526" text-anchor="middle" fill="#a78bfa" font-size="10.5" font-weight="700" font-family="Consolas,monospace">DEPOSIT_ENTRIES</text>
+  <text x="228" y="546" fill="#fbbf24" font-size="9.5" font-family="Consolas,monospace">PK  id</text>
+  <text x="228" y="560" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  contract_id</text>
+  <text x="228" y="574" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  recorded_by</text>
+  <text x="228" y="588" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    type</text>
+  <text x="228" y="602" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    amount</text>
+  <text x="228" y="616" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    date / reason</text>
+  <line x1="220" y1="538" x2="378" y2="538" stroke="#a78bfa" stroke-width="0.5" opacity="0.3"/>
+</g>
+
+<!-- CONTRACT_TENANTS cx=480 y=510 -->
+<g id="G-ct">
+  <rect x="416" y="510" width="158" height="112" rx="4" fill="#1a0d00" stroke="#fb923c" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <rect x="416" y="510" width="158" height="22" rx="4" fill="#2a1500"/>
+  <rect x="416" y="524" width="158" height="8" fill="#2a1500"/>
+  <text x="495" y="526" text-anchor="middle" fill="#fb923c" font-size="10.5" font-weight="700" font-family="Consolas,monospace">CONTRACT_TENANTS</text>
+  <text x="424" y="546" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  contract_id</text>
+  <text x="424" y="560" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  tenant_id</text>
+  <text x="424" y="574" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    joined_on</text>
+  <text x="424" y="588" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    left_on</text>
+  <line x1="416" y1="538" x2="574" y2="538" stroke="#fb923c" stroke-width="0.5" opacity="0.3"/>
+</g>
+
+<!-- CUSTOMERS cx=680 y=510 -->
+<g id="G-customers">
+  <rect x="614" y="510" width="148" height="112" rx="4" fill="#1a0018" stroke="#e879f9" stroke-width="1.5"/>
+  <rect x="614" y="510" width="148" height="22" rx="4" fill="#2a0028"/>
+  <rect x="614" y="524" width="148" height="8" fill="#2a0028"/>
+  <text x="688" y="526" text-anchor="middle" fill="#e879f9" font-size="11" font-weight="700" font-family="Consolas,monospace">CUSTOMERS</text>
+  <text x="622" y="546" fill="#fbbf24" font-size="9.5" font-family="Consolas,monospace">PK  id</text>
+  <text x="622" y="560" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    name</text>
+  <text x="622" y="574" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    type (enum)</text>
+  <text x="622" y="588" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    room_no / contact_no</text>
+  <line x1="614" y1="538" x2="762" y2="538" stroke="#e879f9" stroke-width="0.5" opacity="0.3"/>
+</g>
+
+<!-- SERVICES cx=830 y=510 -->
+<g id="G-services">
+  <rect x="780" y="510" width="148" height="112" rx="4" fill="#001a1a" stroke="#22d3ee" stroke-width="1.5"/>
+  <rect x="780" y="510" width="148" height="22" rx="4" fill="#002a2a"/>
+  <rect x="780" y="524" width="148" height="8" fill="#002a2a"/>
+  <text x="854" y="526" text-anchor="middle" fill="#22d3ee" font-size="11" font-weight="700" font-family="Consolas,monospace">SERVICES</text>
+  <text x="788" y="546" fill="#fbbf24" font-size="9.5" font-family="Consolas,monospace">PK  id</text>
+  <text x="788" y="560" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    code (unique)</text>
+  <text x="788" y="574" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    name</text>
+  <text x="788" y="588" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    weight_limit_kg / is_active</text>
+  <line x1="780" y1="538" x2="928" y2="538" stroke="#22d3ee" stroke-width="0.5" opacity="0.3"/>
+</g>
+
+<!-- LAUNDRY_ORDERS cx=1020 y=510 -->
+<g id="G-lo">
+  <rect x="950" y="510" width="162" height="280" rx="4" fill="#1a0018" stroke="#e879f9" stroke-width="1.5"/>
+  <rect x="950" y="510" width="162" height="22" rx="4" fill="#2a0028"/>
+  <rect x="950" y="524" width="162" height="8" fill="#2a0028"/>
+  <text x="1031" y="526" text-anchor="middle" fill="#e879f9" font-size="10.5" font-weight="700" font-family="Consolas,monospace">LAUNDRY_ORDERS</text>
+  <text x="958" y="546" fill="#fbbf24" font-size="9.5" font-family="Consolas,monospace">PK  id</text>
+  <text x="958" y="560" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  customer_id</text>
+  <text x="958" y="574" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  recorded_by</text>
+  <text x="958" y="588" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    order_no</text>
+  <text x="958" y="602" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    customer_type</text>
+  <text x="958" y="616" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    room_no</text>
+  <text x="958" y="630" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    date_received</text>
+  <text x="958" y="644" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    payment_method</text>
+  <text x="958" y="658" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    payment_status</text>
+  <text x="958" y="672" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    paid_before_service</text>
+  <text x="958" y="686" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    total_amount</text>
+  <text x="958" y="700" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    total_weight_kg</text>
+  <text x="958" y="714" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    total_loads</text>
+  <text x="958" y="728" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    total_liquid_ml</text>
+  <text x="958" y="742" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    remarks / deleted_at</text>
+  <line x1="950" y1="538" x2="1112" y2="538" stroke="#e879f9" stroke-width="0.5" opacity="0.3"/>
+</g>
+
+<!-- TENANT_MESSAGES cx=1220 y=510 -->
+<g id="G-tmsg">
+  <rect x="1155" y="510" width="162" height="238" rx="4" fill="#1a0010" stroke="#f472b6" stroke-width="1.5"/>
+  <rect x="1155" y="510" width="162" height="22" rx="4" fill="#2a0020"/>
+  <rect x="1155" y="524" width="162" height="8" fill="#2a0020"/>
+  <text x="1236" y="526" text-anchor="middle" fill="#f472b6" font-size="10.5" font-weight="700" font-family="Consolas,monospace">TENANT_MESSAGES</text>
+  <text x="1163" y="546" fill="#fbbf24" font-size="9.5" font-family="Consolas,monospace">PK  id</text>
+  <text x="1163" y="560" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  tenant_id</text>
+  <text x="1163" y="574" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  room_id</text>
+  <text x="1163" y="588" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  read_by</text>
+  <text x="1163" y="602" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  replied_by</text>
+  <text x="1163" y="616" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  resolved_by</text>
+  <text x="1163" y="630" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    subject / message</text>
+  <text x="1163" y="644" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    status</text>
+  <text x="1163" y="658" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    read_at / admin_reply</text>
+  <text x="1163" y="672" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    replied_at</text>
+  <text x="1163" y="686" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    resolved_at</text>
+  <line x1="1155" y1="538" x2="1317" y2="538" stroke="#f472b6" stroke-width="0.5" opacity="0.3"/>
+</g>
+
+<!-- DETERGENT_INVENTORY cx=1390 y=510 -->
+<g id="G-det-inv">
+  <rect x="1345" y="510" width="175" height="70" rx="4" fill="#001a08" stroke="#86efac" stroke-width="1.5"/>
+  <rect x="1345" y="510" width="175" height="22" rx="4" fill="#002810"/>
+  <rect x="1345" y="524" width="175" height="8" fill="#002810"/>
+  <text x="1432" y="526" text-anchor="middle" fill="#86efac" font-size="10.5" font-weight="700" font-family="Consolas,monospace">DETERGENT_INVENTORY</text>
+  <text x="1353" y="546" fill="#fbbf24" font-size="9.5" font-family="Consolas,monospace">PK  id</text>
+  <text x="1353" y="560" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    stock_ml</text>
+  <line x1="1345" y1="538" x2="1520" y2="538" stroke="#86efac" stroke-width="0.5" opacity="0.3"/>
+</g>
+
+<!-- ┌─────────────────────────────────────────────────────────────────┐ -->
+<!-- │  ROW 3 y=830                                                    │ -->
+<!-- └─────────────────────────────────────────────────────────────────┘ -->
+
+<!-- TENANT_PAYMENTS cx=120 y=830 -->
+<g id="G-tp">
+  <rect x="20" y="830" width="190" height="196" rx="4" fill="#1a0505" stroke="#f87171" stroke-width="1.5"/>
+  <rect x="20" y="830" width="190" height="22" rx="4" fill="#2a0a0a"/>
+  <rect x="20" y="844" width="190" height="8" fill="#2a0a0a"/>
+  <text x="115" y="846" text-anchor="middle" fill="#f87171" font-size="11" font-weight="700" font-family="Consolas,monospace">TENANT_PAYMENTS</text>
+  <text x="28" y="866" fill="#fbbf24" font-size="9.5" font-family="Consolas,monospace">PK  id</text>
+  <text x="28" y="880" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  invoice_id</text>
+  <text x="28" y="894" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  tenant_id</text>
+  <text x="28" y="908" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    share_amount</text>
+  <text x="28" y="922" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    carry_over_balance</text>
+  <text x="28" y="936" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    amount_paid</text>
+  <text x="28" y="950" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    status / method</text>
+  <text x="28" y="964" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    paid_at</text>
+  <text x="28" y="978" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    paymongo_link_id</text>
+  <line x1="20" y1="858" x2="210" y2="858" stroke="#f87171" stroke-width="0.5" opacity="0.3"/>
+</g>
+
+<!-- TENANT_DEPOSITS cx=330 y=830 -->
+<g id="G-tdeposits">
+  <rect x="240" y="830" width="165" height="168" rx="4" fill="#0d0a1a" stroke="#a78bfa" stroke-width="1.5"/>
+  <rect x="240" y="830" width="165" height="22" rx="4" fill="#1a1230"/>
+  <rect x="240" y="844" width="165" height="8" fill="#1a1230"/>
+  <text x="322" y="846" text-anchor="middle" fill="#a78bfa" font-size="10.5" font-weight="700" font-family="Consolas,monospace">TENANT_DEPOSITS</text>
+  <text x="248" y="866" fill="#fbbf24" font-size="9.5" font-family="Consolas,monospace">PK  id</text>
+  <text x="248" y="880" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  contract_id</text>
+  <text x="248" y="894" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  tenant_id</text>
+  <text x="248" y="908" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    amount_required</text>
+  <text x="248" y="922" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    amount_paid</text>
+  <text x="248" y="936" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    amount_deducted</text>
+  <text x="248" y="950" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    amount_refunded</text>
+  <text x="248" y="964" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    deduction_reason</text>
+  <text x="248" y="978" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    notes</text>
+  <line x1="240" y1="858" x2="405" y2="858" stroke="#a78bfa" stroke-width="0.5" opacity="0.3"/>
+</g>
+
+<!-- SERVICE_PRICES cx=700 y=720 -->
+<g id="G-svc-prices">
+  <rect x="634" y="720" width="152" height="98" rx="4" fill="#001a1a" stroke="#22d3ee" stroke-width="1.5"/>
+  <rect x="634" y="720" width="152" height="22" rx="4" fill="#002a2a"/>
+  <rect x="634" y="734" width="152" height="8" fill="#002a2a"/>
+  <text x="710" y="736" text-anchor="middle" fill="#22d3ee" font-size="11" font-weight="700" font-family="Consolas,monospace">SERVICE_PRICES</text>
+  <text x="642" y="756" fill="#fbbf24" font-size="9.5" font-family="Consolas,monospace">PK  id</text>
+  <text x="642" y="770" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  service_id</text>
+  <text x="642" y="784" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    customer_type</text>
+  <text x="642" y="798" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    price</text>
+  <line x1="634" y1="748" x2="786" y2="748" stroke="#22d3ee" stroke-width="0.5" opacity="0.3"/>
+</g>
+
+<!-- ORDER_ITEMS cx=900 y=830 -->
+<g id="G-oi">
+  <rect x="840" y="830" width="162" height="168" rx="4" fill="#001a1a" stroke="#22d3ee" stroke-width="1.5"/>
+  <rect x="840" y="830" width="162" height="22" rx="4" fill="#002a2a"/>
+  <rect x="840" y="844" width="162" height="8" fill="#002a2a"/>
+  <text x="921" y="846" text-anchor="middle" fill="#22d3ee" font-size="11" font-weight="700" font-family="Consolas,monospace">ORDER_ITEMS</text>
+  <text x="848" y="866" fill="#fbbf24" font-size="9.5" font-family="Consolas,monospace">PK  id</text>
+  <text x="848" y="880" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  laundry_order_id</text>
+  <text x="848" y="894" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  service_id</text>
+  <text x="848" y="908" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    weight_kg</text>
+  <text x="848" y="922" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    weight_limit_kg</text>
+  <text x="848" y="936" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    unit_price</text>
+  <text x="848" y="950" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    loads / liquid_ml</text>
+  <text x="848" y="964" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    subtotal</text>
+  <line x1="840" y1="858" x2="1002" y2="858" stroke="#22d3ee" stroke-width="0.5" opacity="0.3"/>
+</g>
+
+<!-- TENANT_MSG_REPLIES cx=1236 y=830 -->
+<g id="G-tmr">
+  <rect x="1155" y="830" width="175" height="112" rx="4" fill="#1a0010" stroke="#f472b6" stroke-width="1.5"/>
+  <rect x="1155" y="830" width="175" height="22" rx="4" fill="#2a0020"/>
+  <rect x="1155" y="844" width="175" height="8" fill="#2a0020"/>
+  <text x="1242" y="846" text-anchor="middle" fill="#f472b6" font-size="10" font-weight="700" font-family="Consolas,monospace">TENANT_MSG_REPLIES</text>
+  <text x="1163" y="866" fill="#fbbf24" font-size="9.5" font-family="Consolas,monospace">PK  id</text>
+  <text x="1163" y="880" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  tenant_message_id</text>
+  <text x="1163" y="894" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  user_id</text>
+  <text x="1163" y="908" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    message / read_at</text>
+  <line x1="1155" y1="858" x2="1330" y2="858" stroke="#f472b6" stroke-width="0.5" opacity="0.3"/>
+</g>
+
+<!-- DETERGENT_LOGS cx=1432 y=650 -->
+<g id="G-det-log">
+  <rect x="1345" y="640" width="175" height="154" rx="4" fill="#001a08" stroke="#86efac" stroke-width="1.5"/>
+  <rect x="1345" y="640" width="175" height="22" rx="4" fill="#002810"/>
+  <rect x="1345" y="654" width="175" height="8" fill="#002810"/>
+  <text x="1432" y="656" text-anchor="middle" fill="#86efac" font-size="11" font-weight="700" font-family="Consolas,monospace">DETERGENT_LOGS</text>
+  <text x="1353" y="676" fill="#fbbf24" font-size="9.5" font-family="Consolas,monospace">PK  id</text>
+  <text x="1353" y="690" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  laundry_order_id</text>
+  <text x="1353" y="704" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  user_id</text>
+  <text x="1353" y="718" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    type (enum)</text>
+  <text x="1353" y="732" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    amount_ml</text>
+  <text x="1353" y="746" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    stock_before_ml</text>
+  <text x="1353" y="760" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    stock_after_ml / notes</text>
+  <line x1="1345" y1="668" x2="1520" y2="668" stroke="#86efac" stroke-width="0.5" opacity="0.3"/>
+</g>
+
+<!-- ┌─────────────────────────────────────────────────────────────────┐ -->
+<!-- │  ROW 4 y=1080: PAYMENTS                                         │ -->
+<!-- └─────────────────────────────────────────────────────────────────┘ -->
+
+<!-- PAYMENTS cx=115 y=1080 -->
+<g id="G-pay">
+  <rect x="20" y="1080" width="190" height="182" rx="4" fill="#1a0505" stroke="#f87171" stroke-width="1.5"/>
+  <rect x="20" y="1080" width="190" height="22" rx="4" fill="#2a0a0a"/>
+  <rect x="20" y="1094" width="190" height="8" fill="#2a0a0a"/>
+  <text x="115" y="1096" text-anchor="middle" fill="#f87171" font-size="11" font-weight="700" font-family="Consolas,monospace">PAYMENTS</text>
+  <text x="28" y="1116" fill="#fbbf24" font-size="9.5" font-family="Consolas,monospace">PK  id</text>
+  <text x="28" y="1130" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  invoice_id</text>
+  <text x="28" y="1144" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  tenant_payment_id</text>
+  <text x="28" y="1158" fill="#60a5fa" font-size="9.5" font-family="Consolas,monospace">FK  recorded_by_user</text>
+  <text x="28" y="1172" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    amount / method</text>
+  <text x="28" y="1186" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    received_at</text>
+  <text x="28" y="1200" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    reference / notes</text>
+  <text x="28" y="1214" fill="#8b949e" font-size="9.5" font-family="Consolas,monospace">    recorded_by_type</text>
+  <line x1="20" y1="1108" x2="210" y2="1108" stroke="#f87171" stroke-width="0.5" opacity="0.3"/>
+</g>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     RELATIONSHIP LINES — drawn on top of everything
+     Using clean orthogonal routing where possible
+════════════════════════════════════════════════════════════════════ -->
+
+<!-- ── person icon helper (inline, small) ── -->
+<!-- We draw a small "person" (circle + lines) near the "many" end -->
+<!-- Macro: person at (px,py) -->
+
+<!-- ╔══════════════════╗
+     ROOMS relationships
+╚══════════════════╝ -->
+
+<!-- ROOMS → CONTRACTS (has) -->
+<line x1="455" y1="114" x2="334" y2="290" stroke="#a3e635" stroke-width="1.2" opacity="0.6" marker-end="url(#arr-g)"/>
+<text x="370" y="210" fill="#a3e635" font-size="9" font-family="Consolas,monospace" opacity="0.8">has</text>
+<!-- person icon near CONTRACTS top -->
+<circle cx="316" cy="282" r="4" fill="none" stroke="#a3e635" stroke-width="1" opacity="0.7"/>
+<line x1="316" y1="286" x2="316" y2="298" stroke="#a3e635" stroke-width="1" opacity="0.7"/>
+<line x1="308" y1="290" x2="324" y2="290" stroke="#a3e635" stroke-width="1" opacity="0.7"/>
+<line x1="316" y1="298" x2="310" y2="308" stroke="#a3e635" stroke-width="1" opacity="0.7"/>
+<line x1="316" y1="298" x2="322" y2="308" stroke="#a3e635" stroke-width="1" opacity="0.7"/>
+
+<!-- ROOMS → METER_READINGS (has) -->
+<line x1="480" y1="198" x2="730" y2="290" stroke="#818cf8" stroke-width="1.2" opacity="0.6" marker-end="url(#arr-p)"/>
+<text x="580" y="240" fill="#818cf8" font-size="9" font-family="Consolas,monospace" opacity="0.8">has</text>
+<!-- person icon -->
+<circle cx="745" cy="282" r="4" fill="none" stroke="#818cf8" stroke-width="1" opacity="0.7"/>
+<line x1="745" y1="286" x2="745" y2="298" stroke="#818cf8" stroke-width="1" opacity="0.7"/>
+<line x1="737" y1="290" x2="753" y2="290" stroke="#818cf8" stroke-width="1" opacity="0.7"/>
+<line x1="745" y1="298" x2="739" y2="308" stroke="#818cf8" stroke-width="1" opacity="0.7"/>
+<line x1="745" y1="298" x2="751" y2="308" stroke="#818cf8" stroke-width="1" opacity="0.7"/>
+
+<!-- ROOMS → TENANT_MESSAGES (ref) — long line right -->
+<path d="M554,100 H1140 V510" stroke="#f472b6" stroke-width="1.1" fill="none" opacity="0.4" stroke-dasharray="4,3" marker-end="url(#arr-pink)"/>
+<text x="840" y="96" fill="#f472b6" font-size="9" font-family="Consolas,monospace" opacity="0.7">ref</text>
+
+<!-- ╔══════════════════╗
+     USERS relationships
+╚══════════════════╝ -->
+
+<!-- USERS → TENANTS (account) -->
+<line x1="760" y1="240" x2="600" y2="290" stroke="#facc15" stroke-width="1.2" opacity="0.6" marker-end="url(#arr-y)"/>
+<text x="660" y="262" fill="#facc15" font-size="9" font-family="Consolas,monospace" opacity="0.8">account</text>
+<circle cx="614" cy="282" r="4" fill="none" stroke="#facc15" stroke-width="1" opacity="0.7"/>
+<line x1="614" y1="286" x2="614" y2="298" stroke="#facc15" stroke-width="1" opacity="0.7"/>
+<line x1="606" y1="290" x2="622" y2="290" stroke="#facc15" stroke-width="1" opacity="0.7"/>
+<line x1="614" y1="298" x2="608" y2="308" stroke="#facc15" stroke-width="1" opacity="0.7"/>
+<line x1="614" y1="298" x2="620" y2="308" stroke="#facc15" stroke-width="1" opacity="0.7"/>
+
+<!-- USERS → CONTRACTS (creates) -->
+<path d="M720,240 C680,260 360,260 334,290" stroke="#fb923c" stroke-width="1.2" fill="none" opacity="0.55" marker-end="url(#arr-o)"/>
+<text x="480" y="256" fill="#fb923c" font-size="9" font-family="Consolas,monospace" opacity="0.8">creates</text>
+
+<!-- USERS → METER_READINGS (records) -->
+<line x1="800" y1="240" x2="800" y2="290" stroke="#818cf8" stroke-width="1.2" opacity="0.5" marker-end="url(#arr-p)"/>
+<text x="804" y="268" fill="#818cf8" font-size="9" font-family="Consolas,monospace" opacity="0.8">records</text>
+
+<!-- USERS → SETTINGS (updates) — right -->
+<line x1="864" y1="135" x2="994" y2="290" stroke="#facc15" stroke-width="1.2" opacity="0.5" marker-end="url(#arr-y)"/>
+<text x="926" y="210" fill="#facc15" font-size="9" font-family="Consolas,monospace" opacity="0.8">updates</text>
+
+<!-- USERS → AUDIT_LOGS (performs) -->
+<line x1="864" y1="115" x2="1170" y2="290" stroke="#6366f1" stroke-width="1.2" opacity="0.5" marker-end="url(#arr-w)"/>
+<text x="1060" y="190" fill="#6366f1" font-size="9" font-family="Consolas,monospace" opacity="0.8">performs</text>
+
+<!-- USERS → INVOICES (creates) — left long line -->
+<path d="M706,135 H20 V510" stroke="#4ade80" stroke-width="1.1" fill="none" opacity="0.45" marker-end="url(#arr-gr)"/>
+<text x="30" y="130" fill="#4ade80" font-size="9" font-family="Consolas,monospace" opacity="0.8">creates</text>
+
+<!-- USERS → LAUNDRY_ORDERS (records) — right -->
+<path d="M864,170 H1031 V510" stroke="#e879f9" stroke-width="1.1" fill="none" opacity="0.4" marker-end="url(#arr-pk)"/>
+<text x="956" y="340" fill="#e879f9" font-size="9" font-family="Consolas,monospace" opacity="0.8">records</text>
+
+<!-- USERS → ROLES (assigned) -->
+<line x1="864" y1="100" x2="1310" y2="305" stroke="#facc15" stroke-width="1.1" fill="none" opacity="0.4" stroke-dasharray="4,3" marker-end="url(#arr-y)"/>
+<text x="1090" y="186" fill="#facc15" font-size="9" font-family="Consolas,monospace" opacity="0.6">assigned</text>
+
+<!-- USERS → PAYMENTS (records) — left bottom long -->
+<path d="M706,200 H20 V1080" stroke="#f87171" stroke-width="1.1" fill="none" opacity="0.35" marker-end="url(#arr-r)"/>
+<text x="30" y="660" fill="#f87171" font-size="9" font-family="Consolas,monospace" opacity="0.6">records</text>
+
+<!-- ╔══════════════════╗
+     ROLES relationships
+╚══════════════════╝ -->
+<!-- ROLES → MODEL_HAS_ROLES -->
+<line x1="1384" y1="374" x2="1384" y2="415" stroke="#facc15" stroke-width="1.2" opacity="0.6" stroke-dasharray="4,3" marker-end="url(#arr-y)"/>
+
+<!-- ╔══════════════════╗
+     CONTRACTS relationships
+╚══════════════════╝ -->
+
+<!-- CONTRACTS → INVOICES (generates) -->
+<path d="M220,390" stroke="none"/>
+<line x1="220" y1="440" x2="99" y2="510" stroke="#4ade80" stroke-width="1.2" opacity="0.6" marker-end="url(#arr-gr)"/>
+<text x="100" y="490" fill="#4ade80" font-size="9" font-family="Consolas,monospace" opacity="0.9">generates</text>
+<circle cx="85" cy="502" r="4" fill="none" stroke="#4ade80" stroke-width="1" opacity="0.7"/>
+<line x1="85" y1="506" x2="85" y2="518" stroke="#4ade80" stroke-width="1" opacity="0.7"/>
+<line x1="77" y1="510" x2="93" y2="510" stroke="#4ade80" stroke-width="1" opacity="0.7"/>
+<line x1="85" y1="518" x2="79" y2="528" stroke="#4ade80" stroke-width="1" opacity="0.7"/>
+<line x1="85" y1="518" x2="91" y2="528" stroke="#4ade80" stroke-width="1" opacity="0.7"/>
+
+<!-- CONTRACTS → DEPOSIT_ENTRIES (tracks) -->
+<line x1="255" y1="486" x2="299" y2="510" stroke="#a78bfa" stroke-width="1.2" opacity="0.6" marker-end="url(#arr-p)"/>
+<text x="246" y="506" fill="#a78bfa" font-size="9" font-family="Consolas,monospace" opacity="0.9">tracks</text>
+<circle cx="310" cy="502" r="4" fill="none" stroke="#a78bfa" stroke-width="1" opacity="0.7"/>
+<line x1="310" y1="506" x2="310" y2="518" stroke="#a78bfa" stroke-width="1" opacity="0.7"/>
+<line x1="302" y1="510" x2="318" y2="510" stroke="#a78bfa" stroke-width="1" opacity="0.7"/>
+<line x1="310" y1="518" x2="304" y2="528" stroke="#a78bfa" stroke-width="1" opacity="0.7"/>
+<line x1="310" y1="518" x2="316" y2="528" stroke="#a78bfa" stroke-width="1" opacity="0.7"/>
+
+<!-- CONTRACTS → CONTRACT_TENANTS (includes) -->
+<line x1="334" y1="430" x2="480" y2="510" stroke="#fb923c" stroke-width="1.2" opacity="0.5" stroke-dasharray="4,3" marker-end="url(#arr-o)"/>
+<text x="380" y="490" fill="#fb923c" font-size="9" font-family="Consolas,monospace" opacity="0.9">includes</text>
+
+<!-- CONTRACTS → TENANT_DEPOSITS (tracks) -->
+<path d="M255,486 C255,700 322,780 322,830" stroke="#a78bfa" stroke-width="1.1" fill="none" opacity="0.45" stroke-dasharray="3,3" marker-end="url(#arr-p)"/>
+
+<!-- ╔══════════════════╗
+     TENANTS relationships
+╚══════════════════╝ -->
+
+<!-- TENANTS → CONTRACT_TENANTS (joins) -->
+<line x1="530" y1="430" x2="510" y2="510" stroke="#fb923c" stroke-width="1.2" opacity="0.5" stroke-dasharray="4,3" marker-end="url(#arr-o)"/>
+<text x="516" y="490" fill="#fb923c" font-size="9" font-family="Consolas,monospace" opacity="0.9">joins</text>
+
+<!-- TENANTS → TENANT_PAYMENTS (owes) -->
+<path d="M495,430 C420,550 115,750 115,830" stroke="#f87171" stroke-width="1.2" fill="none" opacity="0.55" marker-end="url(#arr-r)"/>
+<text x="260" y="636" fill="#f87171" font-size="9" font-family="Consolas,monospace" opacity="0.9">owes</text>
+<circle cx="105" cy="822" r="4" fill="none" stroke="#f87171" stroke-width="1" opacity="0.7"/>
+<line x1="105" y1="826" x2="105" y2="838" stroke="#f87171" stroke-width="1" opacity="0.7"/>
+<line x1="97" y1="830" x2="113" y2="830" stroke="#f87171" stroke-width="1" opacity="0.7"/>
+<line x1="105" y1="838" x2="99" y2="848" stroke="#f87171" stroke-width="1" opacity="0.7"/>
+<line x1="105" y1="838" x2="111" y2="848" stroke="#f87171" stroke-width="1" opacity="0.7"/>
+
+<!-- TENANTS → TENANT_DEPOSITS -->
+<path d="M530,430 C530,650 322,770 322,830" stroke="#a78bfa" stroke-width="1.1" fill="none" opacity="0.5" marker-end="url(#arr-p)"/>
+
+<!-- TENANTS → TENANT_MESSAGES (sends) -->
+<path d="M604,360 C900,360 1155,490 1155,510" stroke="#f472b6" stroke-width="1.1" fill="none" opacity="0.45" marker-end="url(#arr-pink)"/>
+<text x="840" y="356" fill="#f472b6" font-size="9" font-family="Consolas,monospace" opacity="0.8">sends</text>
+
+<!-- ╔══════════════════╗
+     INVOICES relationships
+╚══════════════════╝ -->
+
+<!-- INVOICES → TENANT_PAYMENTS (splits_into) -->
+<line x1="99" y1="790" x2="99" y2="830" stroke="#f87171" stroke-width="1.2" opacity="0.6" marker-end="url(#arr-r)"/>
+<text x="22" y="818" fill="#f87171" font-size="9" font-family="Consolas,monospace" opacity="0.9">splits_into</text>
+<circle cx="99" cy="822" r="4" fill="none" stroke="#f87171" stroke-width="1" opacity="0.7"/>
+<line x1="99" y1="826" x2="99" y2="838" stroke="#f87171" stroke-width="1" opacity="0.7"/>
+<line x1="91" y1="830" x2="107" y2="830" stroke="#f87171" stroke-width="1" opacity="0.7"/>
+<line x1="99" y1="838" x2="93" y2="848" stroke="#f87171" stroke-width="1" opacity="0.7"/>
+<line x1="99" y1="838" x2="105" y2="848" stroke="#f87171" stroke-width="1" opacity="0.7"/>
+
+<!-- INVOICES → PAYMENTS (receives) -->
+<line x1="99" y1="790" x2="99" y2="1080" stroke="#f87171" stroke-width="1.2" opacity="0.5" marker-end="url(#arr-r)" stroke-dasharray="2,3"/>
+<text x="22" y="970" fill="#f87171" font-size="9" font-family="Consolas,monospace" opacity="0.7">receives</text>
+
+<!-- ╔══════════════════╗
+     TENANT_PAYMENTS relationships
+╚══════════════════╝ -->
+
+<!-- TENANT_PAYMENTS → PAYMENTS (records) -->
+<line x1="115" y1="1026" x2="115" y2="1080" stroke="#f87171" stroke-width="1.2" opacity="0.6" marker-end="url(#arr-r)"/>
+<text x="22" y="1060" fill="#f87171" font-size="9" font-family="Consolas,monospace" opacity="0.9">records</text>
+<circle cx="115" cy="1072" r="4" fill="none" stroke="#f87171" stroke-width="1" opacity="0.7"/>
+<line x1="115" y1="1076" x2="115" y2="1088" stroke="#f87171" stroke-width="1" opacity="0.7"/>
+<line x1="107" y1="1080" x2="123" y2="1080" stroke="#f87171" stroke-width="1" opacity="0.7"/>
+<line x1="115" y1="1088" x2="109" y2="1098" stroke="#f87171" stroke-width="1" opacity="0.7"/>
+<line x1="115" y1="1088" x2="121" y2="1098" stroke="#f87171" stroke-width="1" opacity="0.7"/>
+
+<!-- ╔══════════════════╗
+     SERVICES relationships
+╚══════════════════╝ -->
+
+<!-- SERVICES → SERVICE_PRICES (priced_by) -->
+<line x1="790" y1="622" x2="748" y2="720" stroke="#22d3ee" stroke-width="1.2" opacity="0.6" marker-end="url(#arr-c)"/>
+<text x="730" y="686" fill="#22d3ee" font-size="9" font-family="Consolas,monospace" opacity="0.9">priced_by</text>
+<circle cx="740" cy="712" r="4" fill="none" stroke="#22d3ee" stroke-width="1" opacity="0.7"/>
+<line x1="740" y1="716" x2="740" y2="728" stroke="#22d3ee" stroke-width="1" opacity="0.7"/>
+<line x1="732" y1="720" x2="748" y2="720" stroke="#22d3ee" stroke-width="1" opacity="0.7"/>
+<line x1="740" y1="728" x2="734" y2="738" stroke="#22d3ee" stroke-width="1" opacity="0.7"/>
+<line x1="740" y1="728" x2="746" y2="738" stroke="#22d3ee" stroke-width="1" opacity="0.7"/>
+
+<!-- SERVICES → ORDER_ITEMS (selected_for) -->
+<line x1="870" y1="622" x2="900" y2="830" stroke="#22d3ee" stroke-width="1.2" opacity="0.6" marker-end="url(#arr-c)"/>
+<text x="874" y="730" fill="#22d3ee" font-size="9" font-family="Consolas,monospace" opacity="0.9">selected_for</text>
+<circle cx="905" cy="822" r="4" fill="none" stroke="#22d3ee" stroke-width="1" opacity="0.7"/>
+<line x1="905" y1="826" x2="905" y2="838" stroke="#22d3ee" stroke-width="1" opacity="0.7"/>
+<line x1="897" y1="830" x2="913" y2="830" stroke="#22d3ee" stroke-width="1" opacity="0.7"/>
+<line x1="905" y1="838" x2="899" y2="848" stroke="#22d3ee" stroke-width="1" opacity="0.7"/>
+<line x1="905" y1="838" x2="911" y2="848" stroke="#22d3ee" stroke-width="1" opacity="0.7"/>
+
+<!-- ╔══════════════════╗
+     CUSTOMERS relationships
+╚══════════════════╝ -->
+<!-- CUSTOMERS → LAUNDRY_ORDERS (places) -->
+<line x1="762" y1="566" x2="950" y2="566" stroke="#e879f9" stroke-width="1.2" opacity="0.6" marker-end="url(#arr-pk)"/>
+<text x="830" y="558" fill="#e879f9" font-size="9" font-family="Consolas,monospace" opacity="0.9">places</text>
+<circle cx="942" cy="566" r="4" fill="none" stroke="#e879f9" stroke-width="1" opacity="0.7"/>
+<line x1="942" y1="570" x2="942" y2="582" stroke="#e879f9" stroke-width="1" opacity="0.7"/>
+<line x1="934" y1="574" x2="950" y2="574" stroke="#e879f9" stroke-width="1" opacity="0.7"/>
+<line x1="942" y1="582" x2="936" y2="592" stroke="#e879f9" stroke-width="1" opacity="0.7"/>
+<line x1="942" y1="582" x2="948" y2="592" stroke="#e879f9" stroke-width="1" opacity="0.7"/>
+
+<!-- ╔══════════════════╗
+     LAUNDRY_ORDERS relationships
+╚══════════════════╝ -->
+<!-- LAUNDRY_ORDERS → ORDER_ITEMS (contains) -->
+<line x1="1000" y1="790" x2="940" y2="830" stroke="#22d3ee" stroke-width="1.2" opacity="0.6" marker-end="url(#arr-c)"/>
+<text x="950" y="820" fill="#22d3ee" font-size="9" font-family="Consolas,monospace" opacity="0.9">contains</text>
+<circle cx="926" cy="822" r="4" fill="none" stroke="#22d3ee" stroke-width="1" opacity="0.7"/>
+<line x1="926" y1="826" x2="926" y2="838" stroke="#22d3ee" stroke-width="1" opacity="0.7"/>
+<line x1="918" y1="830" x2="934" y2="830" stroke="#22d3ee" stroke-width="1" opacity="0.7"/>
+<line x1="926" y1="838" x2="920" y2="848" stroke="#22d3ee" stroke-width="1" opacity="0.7"/>
+<line x1="926" y1="838" x2="932" y2="848" stroke="#22d3ee" stroke-width="1" opacity="0.7"/>
+
+<!-- LAUNDRY_ORDERS → DETERGENT_LOGS (triggers) -->
+<path d="M1112,660 C1220,660 1345,680 1345,700" stroke="#86efac" stroke-width="1.2" fill="none" opacity="0.6" marker-end="url(#arr-teal)"/>
+<text x="1180" y="656" fill="#86efac" font-size="9" font-family="Consolas,monospace" opacity="0.9">triggers</text>
+
+<!-- ╔══════════════════╗
+     TENANT_MESSAGES → REPLIES
+╚══════════════════╝ -->
+<line x1="1236" y1="748" x2="1236" y2="830" stroke="#f472b6" stroke-width="1.2" opacity="0.6" marker-end="url(#arr-pink)"/>
+<text x="1242" y="796" fill="#f472b6" font-size="9" font-family="Consolas,monospace" opacity="0.9">has</text>
+<circle cx="1236" cy="822" r="4" fill="none" stroke="#f472b6" stroke-width="1" opacity="0.7"/>
+<line x1="1236" y1="826" x2="1236" y2="838" stroke="#f472b6" stroke-width="1" opacity="0.7"/>
+<line x1="1228" y1="830" x2="1244" y2="830" stroke="#f472b6" stroke-width="1" opacity="0.7"/>
+<line x1="1236" y1="838" x2="1230" y2="848" stroke="#f472b6" stroke-width="1" opacity="0.7"/>
+<line x1="1236" y1="838" x2="1242" y2="848" stroke="#f472b6" stroke-width="1" opacity="0.7"/>
+
+<!-- DETERGENT_INVENTORY → DETERGENT_LOGS -->
+<line x1="1432" y1="580" x2="1432" y2="640" stroke="#86efac" stroke-width="1.2" opacity="0.6" marker-end="url(#arr-teal)"/>
+
+<!-- ═══════════════════════════════════════
+     LEGEND bottom-right
+═══════════════════════════════════════ -->
+<rect x="1340" y="860" width="200" height="190" rx="5" fill="#111827" stroke="#1f2937" stroke-width="1"/>
+<text x="1350" y="878" fill="#e2e8f0" font-size="10" font-weight="700" font-family="'Segoe UI',Arial,sans-serif">Legend</text>
+<line x1="1340" y1="883" x2="1540" y2="883" stroke="#1f2937" stroke-width="1"/>
+
+<rect x="1350" y="892" width="10" height="10" rx="2" fill="#a3e635"/>
+<text x="1366" y="901" fill="#94a3b8" font-size="9" font-family="'Segoe UI',Arial">Rooms</text>
+<rect x="1350" y="908" width="10" height="10" rx="2" fill="#facc15"/>
+<text x="1366" y="917" fill="#94a3b8" font-size="9" font-family="'Segoe UI',Arial">Users / Settings / Roles</text>
+<rect x="1350" y="924" width="10" height="10" rx="2" fill="#fb923c"/>
+<text x="1366" y="933" fill="#94a3b8" font-size="9" font-family="'Segoe UI',Arial">Contracts</text>
+<rect x="1350" y="940" width="10" height="10" rx="2" fill="#34d399"/>
+<text x="1366" y="949" fill="#94a3b8" font-size="9" font-family="'Segoe UI',Arial">Tenants</text>
+<rect x="1350" y="956" width="10" height="10" rx="2" fill="#4ade80"/>
+<text x="1366" y="965" fill="#94a3b8" font-size="9" font-family="'Segoe UI',Arial">Invoices / Billing</text>
+<rect x="1350" y="972" width="10" height="10" rx="2" fill="#a78bfa"/>
+<text x="1366" y="981" fill="#94a3b8" font-size="9" font-family="'Segoe UI',Arial">Deposits</text>
+<rect x="1350" y="988" width="10" height="10" rx="2" fill="#22d3ee"/>
+<text x="1366" y="997" fill="#94a3b8" font-size="9" font-family="'Segoe UI',Arial">Services / Laundry Items</text>
+<rect x="1350" y="1004" width="10" height="10" rx="2" fill="#e879f9"/>
+<text x="1366" y="1013" fill="#94a3b8" font-size="9" font-family="'Segoe UI',Arial">Laundry Orders</text>
+<rect x="1350" y="1020" width="10" height="10" rx="2" fill="#f87171"/>
+<text x="1366" y="1029" fill="#94a3b8" font-size="9" font-family="'Segoe UI',Arial">Payments</text>
+<rect x="1350" y="1036" width="10" height="10" rx="2" fill="#f472b6"/>
+<text x="1366" y="1045" fill="#94a3b8" font-size="9" font-family="'Segoe UI',Arial">Messaging</text>
+<rect x="1350" y="1052" width="10" height="10" rx="2" fill="#86efac"/>
+<text x="1366" y="1061" fill="#94a3b8" font-size="9" font-family="'Segoe UI',Arial">Detergent</text>
+<!-- line types -->
+<line x1="1350" y1="1074" x2="1380" y2="1074" stroke="#94a3b8" stroke-width="1.5"/>
+<text x="1386" y="1078" fill="#94a3b8" font-size="9" font-family="'Segoe UI',Arial">1 : N relationship</text>
+<line x1="1350" y1="1088" x2="1380" y2="1088" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4,3"/>
+<text x="1386" y="1092" fill="#94a3b8" font-size="9" font-family="'Segoe UI',Arial">M : N / pivot</text>
+
+<!-- title -->
+<text x="780" y="1270" text-anchor="middle" fill="#374151" font-size="10" font-family="'Segoe UI',Arial">QuestDorm — Entity Relationship Diagram · Tables 7–29</text>
+
+</svg>
+
+<script>
+function downloadSVG() {
+  const svg = document.getElementById('erd');
+  const serializer = new XMLSerializer();
+  const svgStr = serializer.serializeToString(svg);
+  const blob = new Blob([svgStr], {type: 'image/svg+xml'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'questdorm-erd.svg'; a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>

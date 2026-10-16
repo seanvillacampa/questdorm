@@ -94,10 +94,7 @@
                 </div>
             </div>
 
-            {{-- Footer note --}}
-            <div class="text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-100/50">
-                Secure access · Owners · Employees · Tenants
-            </div>
+
         </div>
     </div>
 
