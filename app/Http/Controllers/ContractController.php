@@ -562,6 +562,73 @@ class ContractController extends Controller
     }
 
     /**
+     * Deduct an equal share from ALL active tenants in the contract.
+     * Used when shared damage occurs (e.g. all tenants broke something in the room).
+     * The total amount entered is split equally across all tenants.
+     */
+    public function deductDepositAll(Request $request, Contract $contract)
+    {
+        $data = $request->validate([
+            'total_amount' => 'required|numeric|min:0.01',
+            'reason'       => 'required|string|max:500',
+            'date'         => 'required|date',
+        ]);
+
+        // Get all active tenant deposits for this contract
+        $tenantDeposits = \App\Models\TenantDeposit::where('contract_id', $contract->id)
+            ->whereHas('tenant', fn($q) => $q->whereHas('contractTenants', fn($q2) =>
+                $q2->where('contract_id', $contract->id)->whereNull('left_on')
+            ))
+            ->with('tenant.user')
+            ->get();
+
+        if ($tenantDeposits->isEmpty()) {
+            return back()->withErrors(['total_amount' => 'No active tenants with deposit records found.'])->withInput();
+        }
+
+        $count       = $tenantDeposits->count();
+        $shareAmount = round($data['total_amount'] / $count, 2);
+
+        // Check each tenant has enough balance
+        $insufficient = [];
+        foreach ($tenantDeposits as $td) {
+            if ($shareAmount > $td->balance()) {
+                $insufficient[] = $td->tenant->user->name . " (balance: ₱" . number_format($td->balance(), 2) . ")";
+            }
+        }
+
+        if (!empty($insufficient)) {
+            return back()->withErrors([
+                'total_amount' => 'Insufficient balance for: ' . implode(', ', $insufficient) . '. Each share would be ₱' . number_format($shareAmount, 2) . '.',
+            ])->withInput();
+        }
+
+        DB::transaction(function () use ($tenantDeposits, $shareAmount, $data, $contract) {
+            $names = [];
+            foreach ($tenantDeposits as $td) {
+                $td->deduct($shareAmount, $data['reason']);
+                $names[] = $td->tenant->user->name;
+            }
+
+            // One shared DepositEntry for the history log
+            DepositEntry::create([
+                'contract_id' => $contract->id,
+                'type'        => 'deduction',
+                'amount'      => $data['total_amount'],
+                'date'        => $data['date'],
+                'reason'      => '[Shared damage — split equally] ' . $data['reason'],
+                'recorded_by' => Auth::id(),
+            ]);
+
+            AuditLog::record('Deposit Deduction (All)', 'Contract', $contract->id,
+                "Deducted ₱" . number_format($data['total_amount'], 2) . " total (₱" . number_format($shareAmount, 2) . " each) from " . count($names) . " tenant(s): " . implode(', ', $names) . ". Reason: {$data['reason']}");
+        });
+
+        return redirect()->route('contracts.show', $contract)
+            ->with('success', "₱" . number_format($data['total_amount'], 2) . " deducted equally from {$count} tenant(s) — ₱" . number_format($shareAmount, 2) . " each.");
+    }
+
+    /**
      * Remove a tenant from a contract.
      * This will:
      * - Detach the tenant from the contract
