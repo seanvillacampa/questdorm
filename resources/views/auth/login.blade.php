@@ -218,11 +218,7 @@
 
             </div>{{-- /card --}}
 
-            {{-- Footer --}}
-            <p class="mt-6 text-center text-[12px] leading-6 text-slate-400">
-                Owners, employees and tenants all sign in here.<br>
-                <span class="font-medium text-slate-500">You'll be redirected to the correct dashboard.</span>
-            </p>
+
 
         </div>
     </main>
