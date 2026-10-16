@@ -516,9 +516,18 @@ class ContractController extends Controller
 
     /**
      * Store a deposit deduction for damages or other reasons.
+     * If tenant_id = 'all', redirects to deductDepositAll instead.
      */
     public function deductDeposit(Request $request, Contract $contract)
     {
+        // Safety: if JS somehow submitted "all" to this route, redirect to the correct one
+        if ($request->input('tenant_id') === 'all') {
+            return $this->deductDepositAll(
+                $request->merge(['total_amount' => $request->input('amount')]),
+                $contract
+            );
+        }
+
         $data = $request->validate([
             'tenant_id' => 'required|exists:tenants,id',
             'amount'    => 'required|numeric|min:0.01',

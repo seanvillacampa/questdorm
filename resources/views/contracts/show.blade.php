@@ -159,12 +159,13 @@
                             Deduct from deposit
                         </summary>
 
-                        <form method="POST" action="{{ route('contracts.deduct-deposit', $contract) }}" class="mt-3 space-y-3">
+                        <form method="POST" action="{{ route('contracts.deduct-deposit', $contract) }}" class="mt-3 space-y-3" id="deduct-form">
                             @csrf
 
                             <div>
                                 <label class="block text-xs font-medium text-gray-700 mb-1">Deduct from tenant</label>
-                                <select name="tenant_id" required
+                                <select name="tenant_id" id="deduct-tenant-select"
+                                        onchange="handleDeductSelectChange(this)"
                                         class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                                     <option value="">Select a tenant...</option>
                                     @foreach($contract->tenants as $tenant)
@@ -176,10 +177,20 @@
                                             {{ $tenant->user->name }} — Balance: ₱{{ number_format($tenantBalance, 2) }}
                                         </option>
                                     @endforeach
+                                    <option value="all" style="font-weight:600;color:#b91c1c;">
+                                        — All tenants (split equally) —
+                                    </option>
                                 </select>
                                 @error('tenant_id')
                                     <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                                 @enderror
+                            </div>
+
+                            {{-- Shown only when "All tenants" is selected --}}
+                            <div id="deduct-all-notice" class="hidden rounded-lg bg-red-50 border border-red-200 px-3 py-2">
+                                <p class="text-xs text-red-700 font-medium">Shared damage deduction</p>
+                                <p class="text-xs text-red-600 mt-0.5">The total amount entered will be split equally across all active tenants.</p>
+                                <p class="mt-1 text-[10px] text-red-400" id="deduct-all-preview-inline"></p>
                             </div>
 
                             <div>
@@ -187,12 +198,14 @@
                                 <input type="number" name="amount" step="0.01" min="0.01"
                                        value="{{ old('amount') }}"
                                        required
+                                       id="deduct-amount-input"
+                                       oninput="updateDeductAllPreview()"
                                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                        placeholder="0.00">
                                 @error('amount')
                                     <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                                 @enderror
-                                <p class="mt-1 text-xs text-gray-500">Maximum is the tenant's current balance</p>
+                                <p class="mt-1 text-xs text-gray-500" id="deduct-amount-hint">Maximum is the tenant's current balance</p>
                             </div>
 
                             <div>
@@ -220,6 +233,7 @@
 
                             <button type="button"
                                     onclick="handleDeductDeposit(event)"
+                                    id="deduct-submit-btn"
                                     class="w-full px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors">
                                 Record deduction
                             </button>
@@ -231,99 +245,6 @@
                     <p class="text-xs text-gray-400 mt-3 pt-3 border-t border-gray-100">No deposit balance available for deduction.</p>
                 @endif
 
-                {{-- Deduct from ALL Tenants Form --}}
-                @if($contract->is_active && $depositBalance > 0)
-                    <details class="mt-2 border-t border-gray-100 pt-3">
-                        <summary class="cursor-pointer text-sm font-medium text-red-600 hover:text-red-700 select-none flex items-center gap-1.5">
-                            <svg class="size-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
-                            </svg>
-                            Deduct from all tenants
-                        </summary>
-
-                        <div class="mt-2 rounded-lg bg-red-50 border border-red-200 px-3 py-2">
-                            <p class="text-xs text-red-700 font-medium">Shared damage deduction</p>
-                            <p class="text-xs text-red-600 mt-0.5">The total amount will be split equally across all active tenants in this room.</p>
-                        </div>
-
-                        {{-- Show each tenant's share preview --}}
-                        @php
-                            $activeTenantIds = \DB::table('contract_tenants')
-                                ->where('contract_id', $contract->id)
-                                ->whereNull('left_on')
-                                ->pluck('tenant_id');
-                            $activeTenantDeposits = $contract->tenantDeposits()
-                                ->whereIn('tenant_id', $activeTenantIds)
-                                ->with('tenant.user')
-                                ->get();
-                            $activeTenantCount = $activeTenantDeposits->count();
-                        @endphp
-
-                        @if($activeTenantCount > 0)
-                            <div class="mt-2 rounded-lg bg-white border border-gray-200 divide-y divide-gray-100">
-                                @foreach($activeTenantDeposits as $atd)
-                                    <div class="flex items-center justify-between px-3 py-1.5">
-                                        <span class="text-xs text-gray-700">{{ $atd->tenant->user->name }}</span>
-                                        <span class="text-xs font-semibold text-gray-600">Balance: ₱{{ number_format($atd->balance(), 2) }}</span>
-                                    </div>
-                                @endforeach
-                            </div>
-                            <p class="mt-1.5 text-[10px] text-gray-400 text-center">{{ $activeTenantCount }} tenant(s) · amount will be divided equally</p>
-                        @endif
-
-                        <form method="POST" action="{{ route('contracts.deduct-deposit-all', $contract) }}" class="mt-3 space-y-3">
-                            @csrf
-
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">Total amount to deduct</label>
-                                <input type="number" name="total_amount" step="0.01" min="0.01"
-                                       value="{{ old('total_amount') }}"
-                                       required
-                                       id="deduct-all-amount"
-                                       class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                                       placeholder="0.00">
-                                @error('total_amount')
-                                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                                @enderror
-                                @if($activeTenantCount > 0)
-                                    <p class="mt-1 text-xs text-gray-400" id="deduct-all-preview">
-                                        Each tenant will be deducted ₱0.00
-                                    </p>
-                                @endif
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">Date</label>
-                                <input type="date" name="date"
-                                       value="{{ old('date', date('Y-m-d')) }}"
-                                       required
-                                       class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                                @error('date')
-                                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">Reason for deduction</label>
-                                <textarea name="reason"
-                                          rows="3"
-                                          required
-                                          class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                                          placeholder="e.g., Shared room damage — broken window, wall damage...">{{ old('reason') }}</textarea>
-                                @error('reason')
-                                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <button type="button"
-                                    onclick="handleDeductAll(event, {{ $activeTenantCount }})"
-                                    class="w-full px-3 py-2 text-sm font-medium text-white bg-red-700 rounded-lg hover:bg-red-800 transition-colors">
-                                Deduct from all {{ $activeTenantCount }} tenant(s)
-                            </button>
-                        </form>
-                    </details>
-                @endif
             </div>
         </div>
     </div>
@@ -351,74 +272,77 @@
             );
         }
 
+        const DEDUCT_SINGLE_URL = "{{ route('contracts.deduct-deposit', $contract) }}";
+        const DEDUCT_ALL_URL   = "{{ route('contracts.deduct-deposit-all', $contract) }}";
+        const TENANT_COUNT     = {{ $contract->activeTenants->count() }};
+
+        function handleDeductSelectChange(select) {
+            const form    = document.getElementById('deduct-form');
+            const notice  = document.getElementById('deduct-all-notice');
+            const hint    = document.getElementById('deduct-amount-hint');
+            const btn     = document.getElementById('deduct-submit-btn');
+            const isAll   = select.value === 'all';
+
+            // Switch form action
+            form.action = isAll ? DEDUCT_ALL_URL : DEDUCT_SINGLE_URL;
+
+            // Rename the amount field so the right controller picks it up
+            const amountInput = document.getElementById('deduct-amount-input');
+            amountInput.name  = isAll ? 'total_amount' : 'amount';
+
+            // Show/hide "all tenants" notice
+            notice.classList.toggle('hidden', !isAll);
+            hint.textContent = isAll
+                ? 'This total will be split equally across all ' + TENANT_COUNT + ' active tenant(s)'
+                : "Maximum is the tenant's current balance";
+            btn.textContent = isAll ? 'Deduct from all tenants' : 'Record deduction';
+
+            updateDeductAllPreview();
+        }
+
+        function updateDeductAllPreview() {
+            const select  = document.getElementById('deduct-tenant-select');
+            const preview = document.getElementById('deduct-all-preview-inline');
+            const amount  = parseFloat(document.getElementById('deduct-amount-input').value) || 0;
+            if (select.value === 'all' && preview && TENANT_COUNT > 0 && amount > 0) {
+                preview.textContent = 'Each tenant will be deducted ₱' + (amount / TENANT_COUNT).toFixed(2);
+            } else if (preview) {
+                preview.textContent = '';
+            }
+        }
+
         function handleDeductDeposit(event) {
-            const button = event.target;
-            const form = button.closest('form');
-            
-            // Get form values for the confirmation message
-            const tenantSelect = form.querySelector('select[name="tenant_id"]');
-            const amountInput = form.querySelector('input[name="amount"]');
-            
-            if (!tenantSelect.value) {
+            const form        = document.getElementById('deduct-form');
+            const select      = document.getElementById('deduct-tenant-select');
+            const amountInput = document.getElementById('deduct-amount-input');
+            const isAll       = select.value === 'all';
+
+            if (!select.value) {
                 window.showWarning('Missing Information', 'Please select a tenant first.');
                 return;
             }
-            
             if (!amountInput.value || parseFloat(amountInput.value) <= 0) {
                 window.showWarning('Missing Information', 'Please enter a valid deduction amount.');
                 return;
             }
-            
-            const tenantName = tenantSelect.options[tenantSelect.selectedIndex].text.split(' — ')[0];
+
             const amount = parseFloat(amountInput.value).toFixed(2);
-            
-            window.showConfirm(
-                'Deduct from Deposit',
-                `Deduct ₱${amount} from ${tenantName}'s deposit?\n\nThis will reduce their individual deposit balance.`,
-                () => {
-                    form.submit();
-                }
-            );
-        }
 
-        // ── Deduct All: live per-tenant share preview ──────────────────
-        document.addEventListener('DOMContentLoaded', function () {
-            const deductAllInput   = document.getElementById('deduct-all-amount');
-            const deductAllPreview = document.getElementById('deduct-all-preview');
-            const tenantCount      = {{ isset($activeTenantCount) ? $activeTenantCount : 0 }};
-
-            if (deductAllInput && deductAllPreview && tenantCount > 0) {
-                deductAllInput.addEventListener('input', function () {
-                    const total = parseFloat(this.value) || 0;
-                    const share = total > 0 ? (total / tenantCount).toFixed(2) : '0.00';
-                    deductAllPreview.textContent = `Each of ${tenantCount} tenant(s) will be deducted ₱${share}`;
-                });
+            if (isAll) {
+                const share = (parseFloat(amountInput.value) / TENANT_COUNT).toFixed(2);
+                window.showConfirm(
+                    'Deduct from All Tenants',
+                    `Deduct ₱${amount} total from all ${TENANT_COUNT} tenant(s)?\n\nEach tenant will be deducted ₱${share}.\n\nThis cannot be undone.`,
+                    () => { form.submit(); }
+                );
+            } else {
+                const tenantName = select.options[select.selectedIndex].text.split(' — ')[0];
+                window.showConfirm(
+                    'Deduct from Deposit',
+                    `Deduct ₱${amount} from ${tenantName}'s deposit?\n\nThis will reduce their individual deposit balance.`,
+                    () => { form.submit(); }
+                );
             }
-        });
-
-        function handleDeductAll(event, count) {
-            const button      = event.target.closest('button');
-            const form        = button.closest('form');
-            const amountInput = form.querySelector('input[name="total_amount"]');
-            const reasonInput = form.querySelector('textarea[name="reason"]');
-
-            if (!amountInput.value || parseFloat(amountInput.value) <= 0) {
-                window.showWarning('Missing Information', 'Please enter a valid total amount.');
-                return;
-            }
-            if (!reasonInput.value.trim()) {
-                window.showWarning('Missing Information', 'Please provide a reason for the deduction.');
-                return;
-            }
-
-            const total = parseFloat(amountInput.value).toFixed(2);
-            const share = (parseFloat(amountInput.value) / count).toFixed(2);
-
-            window.showConfirm(
-                'Deduct from All Tenants',
-                `Deduct ₱${total} total from all ${count} tenant(s)?\n\nEach tenant will have ₱${share} deducted from their deposit.\n\nThis action cannot be undone.`,
-                () => { form.submit(); }
-            );
         }
     </script>
     @endpush
