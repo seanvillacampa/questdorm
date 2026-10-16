@@ -145,8 +145,8 @@
                     {{-- ── Floor Panels ── --}}
                     @foreach($groupedFloors as $floor => $floorRooms)
                         @php
-                            $CARDS_PER_ROW = 7; {{-- show this many cards before "View All" --}}
-                            $needsCollapse = $floorRooms->count() > $CARDS_PER_ROW;
+                            $cardsPerRow = 7; // show this many cards before "View All"
+                            $needsCollapse = $floorRooms->count() > $cardsPerRow;
                         @endphp
                         <div id="floor-panel-{{ $floor }}"
                              class="floor-panel px-5 py-4 {{ $loop->first ? '' : 'hidden' }}">
@@ -157,7 +157,7 @@
                                 <div id="floor-grid-collapsed-{{ $floor }}"
                                      class="grid gap-2.5"
                                      style="grid-template-columns: repeat(auto-fill, minmax(138px, 1fr))">
-                                    @foreach($floorRooms->take($CARDS_PER_ROW) as $room)
+                                    @foreach($floorRooms->take($cardsPerRow) as $room)
                                         @include('staff._dashboard_room_card', ['room' => $room])
                                     @endforeach
                                 </div>
