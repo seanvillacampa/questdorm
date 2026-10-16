@@ -249,11 +249,12 @@
 
                         {{-- Show each tenant's share preview --}}
                         @php
+                            $activeTenantIds = \DB::table('contract_tenants')
+                                ->where('contract_id', $contract->id)
+                                ->whereNull('left_on')
+                                ->pluck('tenant_id');
                             $activeTenantDeposits = $contract->tenantDeposits()
-                                ->whereHas('tenant', fn($q) => $q->whereHas('contracts', fn($q2) =>
-                                    $q2->where('contracts.id', $contract->id)
-                                       ->wherePivot('left_on', null)
-                                ))
+                                ->whereIn('tenant_id', $activeTenantIds)
                                 ->with('tenant.user')
                                 ->get();
                             $activeTenantCount = $activeTenantDeposits->count();

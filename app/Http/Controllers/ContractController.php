@@ -575,11 +575,14 @@ class ContractController extends Controller
         ]);
 
         // Get all active tenant deposits for this contract
+        // "active" = tenant has not left (left_on is null in contract_tenants)
+        $activeTenantIds = \DB::table('contract_tenants')
+            ->where('contract_id', $contract->id)
+            ->whereNull('left_on')
+            ->pluck('tenant_id');
+
         $tenantDeposits = \App\Models\TenantDeposit::where('contract_id', $contract->id)
-            ->whereHas('tenant', fn($q) => $q->whereHas('contracts', fn($q2) =>
-                $q2->where('contracts.id', $contract->id)
-                   ->wherePivot('left_on', null)
-            ))
+            ->whereIn('tenant_id', $activeTenantIds)
             ->with('tenant.user')
             ->get();
 
