@@ -145,29 +145,54 @@
                     {{-- ── Floor Panels ── --}}
                     @foreach($groupedFloors as $floor => $floorRooms)
                         @php
-                            $cardsPerRow = 6; // 1 row of 6 before "View All"
-                            $needsCollapse = $floorRooms->count() > $cardsPerRow;
+                            $cardsPerRow  = 6; // 1 row of 6 before "View All"
+
+                            // Sort rooms by urgency: overdue → due_soon → partial → has_message → pending/occupied → paid → vacant/maintenance
+                            $urgencyOrder = ['overdue' => 0, 'due_soon' => 1, 'partial' => 2, 'has_message' => 3, 'pending' => 4, 'occupied' => 5, 'paid' => 6, 'maintenance' => 7, 'vacant' => 8];
+
+                            $sortedRooms = $floorRooms->sortBy(function($room) use ($urgencyOrder) {
+                                $invoice  = $room->currentInvoice ?? null;
+                                $hasMsg   = ($room->unresolvedMessageCount ?? 0) > 0;
+                                $invStatus = $invoice?->status;
+
+                                if ($invStatus && !in_array($invStatus, ['paid','void'])) {
+                                    try {
+                                        $graceDays    = \App\Models\Setting::billingRules()['overdue_grace_days'];
+                                        $daysUntilDue = now()->startOfDay()->diffInDays($invoice->due_date->startOfDay(), false);
+                                        if ($daysUntilDue < 0)              $invStatus = 'overdue';
+                                        elseif ($daysUntilDue <= $graceDays) $invStatus = 'due_soon';
+                                    } catch (\Throwable $e) {}
+                                }
+
+                                if (in_array($invStatus, ['overdue','due_soon'])) $resolved = $invStatus;
+                                elseif ($hasMsg)                                  $resolved = 'has_message';
+                                else $resolved = $invStatus ?? ($room->status === 'maintenance' ? 'maintenance' : ($room->status === 'occupied' ? 'occupied' : 'vacant'));
+
+                                return $urgencyOrder[$resolved] ?? 99;
+                            })->values();
+
+                            $needsCollapse = $sortedRooms->count() > $cardsPerRow;
                         @endphp
                         <div id="floor-panel-{{ $floor }}"
                              class="floor-panel px-5 py-4 {{ $loop->first ? '' : 'hidden' }}">
 
                             {{-- Card Grid --}}
                             <div class="relative">
-                                {{-- Collapsed grid (first N cards) --}}
+                                {{-- Collapsed grid: first row (most urgent) --}}
                                 <div id="floor-grid-collapsed-{{ $floor }}"
                                      class="grid gap-2.5"
-                                     style="grid-template-columns: repeat(auto-fill, minmax(138px, 1fr))">
-                                    @foreach($floorRooms->take($cardsPerRow) as $room)
+                                     style="grid-template-columns: repeat(6, minmax(0, 1fr))">
+                                    @foreach($sortedRooms->take($cardsPerRow) as $room)
                                         @include('staff._dashboard_room_card', ['room' => $room])
                                     @endforeach
                                 </div>
 
-                                {{-- Expanded grid (all cards, hidden by default if needs collapse) --}}
+                                {{-- Expanded grid (all cards sorted, hidden by default) --}}
                                 @if($needsCollapse)
                                 <div id="floor-grid-expanded-{{ $floor }}"
-                                     class="hidden grid gap-2.5 mt-0"
-                                     style="grid-template-columns: repeat(auto-fill, minmax(138px, 1fr))">
-                                    @foreach($floorRooms as $room)
+                                     class="hidden gap-2.5 mt-2.5"
+                                     style="display:none; grid-template-columns: repeat(6, minmax(0, 1fr))">
+                                    @foreach($sortedRooms as $room)
                                         @include('staff._dashboard_room_card', ['room' => $room])
                                     @endforeach
                                 </div>
@@ -178,13 +203,13 @@
                             @if($needsCollapse)
                             <div class="mt-3 flex items-center justify-center">
                                 <button
-                                    onclick="toggleFloorExpand({{ $floor }}, {{ $floorRooms->count() }})"
+                                    onclick="toggleFloorExpand({{ $floor }}, {{ $sortedRooms->count() }})"
                                     id="expand-btn-{{ $floor }}"
                                     class="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-all">
                                     <svg id="expand-icon-{{ $floor }}" class="size-3.5 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                         <polyline points="6 9 12 15 18 9"/>
                                     </svg>
-                                    <span id="expand-label-{{ $floor }}">View all {{ $floorRooms->count() }} rooms</span>
+                                    <span id="expand-label-{{ $floor }}">View all {{ $sortedRooms->count() }} rooms</span>
                                 </button>
                             </div>
                             @endif
@@ -241,15 +266,15 @@
             const icon      = document.getElementById('expand-icon-' + floor);
             const label     = document.getElementById('expand-label-' + floor);
 
-            const isExpanded = !expanded.classList.contains('hidden');
+            const isExpanded = expanded.style.display === 'grid';
             if (isExpanded) {
-                expanded.classList.add('hidden');
-                collapsed.classList.remove('hidden');
+                expanded.style.display = 'none';
+                collapsed.style.display = 'grid';
                 icon.style.transform = '';
                 label.textContent = 'View all ' + total + ' rooms';
             } else {
-                collapsed.classList.add('hidden');
-                expanded.classList.remove('hidden');
+                collapsed.style.display = 'none';
+                expanded.style.display = 'grid';
                 icon.style.transform = 'rotate(180deg)';
                 label.textContent = 'Show less';
             }
