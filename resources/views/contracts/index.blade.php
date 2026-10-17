@@ -1,6 +1,6 @@
 <x-layouts.app title="Contracts — Quest Building">
 
-    <x-page-header title="Contracts" badge="Owner + Employee"
+    <x-page-header title="Contracts"
         subtitle="Contract letters, rent and deposit terms">
         <x-slot:actions>
             <a href="{{ route('contracts.create') }}"

@@ -1,6 +1,6 @@
 <x-layouts.app title="Payments — Quest Building">
 
-    <x-page-header title="Payments" badge="Owner + Employee"
+    <x-page-header title="Payments"
         subtitle="All recorded payments — online and cash" />
 
     @if(session('success'))

@@ -1,6 +1,6 @@
 <x-layouts.app title="Add Room — Quest Building">
 
-    <x-page-header title="Add room" badge="Owner + Employee" subtitle="Create a new room in the building" />
+    <x-page-header title="Add room" subtitle="Create a new room in the building" />
 
     <div class="max-w-lg bg-white rounded-xl border border-gray-200 shadow-xs p-6">
         <form method="POST" action="{{ route('rooms.store') }}" class="space-y-4">

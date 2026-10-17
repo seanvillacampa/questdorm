@@ -1,6 +1,6 @@
 <x-layouts.app title="{{ $tenant->user->name }} — Quest Building">
 
-    <x-page-header title="{{ $tenant->user->name }}" badge="Owner + Employee"
+    <x-page-header title="{{ $tenant->user->name }}"
         subtitle="{{ $tenant->user->email }}" />
 
     @if(session('success'))

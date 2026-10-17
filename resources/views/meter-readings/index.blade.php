@@ -1,6 +1,6 @@
 <x-layouts.app title="Meter Readings — Quest Building">
 
-    <x-page-header title="Meter Readings" badge="Owner + Employee"
+    <x-page-header title="Meter Readings"
         subtitle="Enter monthly kWh reading per room">
     </x-page-header>
 

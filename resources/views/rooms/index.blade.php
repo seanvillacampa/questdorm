@@ -1,6 +1,6 @@
 <x-layouts.app title="Rooms — Quest Building">
 
-    <x-page-header title="Rooms" badge="Owner + Employee"
+    <x-page-header title="Rooms"
         subtitle="{{ $rooms->total() }} rooms">
         <x-slot:actions>
             <a href="{{ route('rooms.create') }}"

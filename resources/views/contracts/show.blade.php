@@ -16,8 +16,7 @@
 
     <div class="flex items-start justify-between mb-6">
         <div>
-            <x-page-header title="Contract CT-{{ str_pad($contract->id,4,'0',STR_PAD_LEFT) }}"
-                badge="Owner + Employee" subtitle="Room {{ $contract->room->room_number }}" />
+            <x-page-header title="Contract CT-{{ str_pad($contract->id,4,'0',STR_PAD_LEFT) }}" subtitle="Room {{ $contract->room->room_number }}" />
         </div>
         <div class="flex items-center gap-2">
             @if($contract->is_active && auth()->user()->hasRole('owner'))

@@ -1,6 +1,6 @@
 <x-layouts.app title="New Contract — Quest Building">
 
-    <x-page-header title="New contract" badge="Owner + Employee"
+    <x-page-header title="New contract"
         subtitle="Rent is calculated automatically from the room rate ÷ number of tenants." />
 
     <div class="max-w-xl bg-white rounded-xl border border-gray-200 shadow-xs p-6">

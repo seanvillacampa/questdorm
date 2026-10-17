@@ -1,6 +1,6 @@
 <x-layouts.app title="Edit Room {{ $room->room_number }} — Quest Building">
 
-    <x-page-header title="Edit room {{ $room->room_number }}" badge="Owner + Employee" />
+    <x-page-header title="Edit room {{ $room->room_number }}" />
 
     @php
         // Gather active contracts to show in the confirmation dialog

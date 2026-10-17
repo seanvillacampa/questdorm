@@ -4,7 +4,7 @@
         <div>
             <div class="flex items-center gap-2 flex-wrap">
                 <h1 class="text-2xl font-bold text-gray-900">Billing Statement {{ $invoice->invoice_number }}</h1>
-                <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">Owner + Employee</span>
+
                 <x-status-badge :status="str_replace('_',' ',$invoice->status)" />
             </div>
             <p class="text-sm text-gray-500 mt-0.5">

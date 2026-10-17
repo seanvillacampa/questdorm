@@ -1,6 +1,6 @@
 <x-layouts.app title="Register Tenant — Quest Building">
 
-    <x-page-header title="Register tenant" badge="Owner + Employee"
+    <x-page-header title="Register tenant"
         subtitle="Creates a tenant account. An activation email is sent automatically." />
 
     <div class="max-w-xl bg-white rounded-xl border border-gray-200 shadow-xs p-6">

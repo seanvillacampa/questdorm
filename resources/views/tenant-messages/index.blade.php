@@ -2,7 +2,6 @@
 
     <x-page-header 
         :title="$showResolved ? 'Resolved Concerns' : 'Tenant Concerns'" 
-        badge="Owner + Employee"
         :subtitle="$showResolved ? 'View concerns that have been marked as completed' : 'Manage tenant messages and concerns'" />
 
     <div class="max-w-6xl">

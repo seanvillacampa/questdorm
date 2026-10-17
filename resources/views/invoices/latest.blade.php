@@ -1,6 +1,6 @@
 <x-layouts.app title="Latest Billing Statements — Quest Building">
 
-    <x-page-header title="Latest Billing Statements" badge="Owner + Employee"
+    <x-page-header title="Latest Billing Statements"
         subtitle="All billing statements sorted by creation date — newest first">
         <x-slot:actions>
             <a href="{{ route('invoices.index') }}"
