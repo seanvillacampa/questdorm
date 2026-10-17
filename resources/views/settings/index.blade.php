@@ -102,45 +102,5 @@
         </div>
     </div>
 
-    {{-- PayMongo configuration status --}}
-    <div class="bg-white rounded-xl border border-gray-200 shadow-xs p-5 mt-4">
-        <div class="flex items-center justify-between mb-3">
-            <h2 class="text-sm font-semibold text-gray-900">PayMongo</h2>
-            @if(config('paymongo.secret_key'))
-                <span class="flex items-center gap-1.5 text-xs font-medium text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
-                    <span class="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span>
-                    Connected
-                </span>
-            @else
-                <span class="text-xs font-medium text-yellow-600 bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded-full">
-                    Not configured
-                </span>
-            @endif
-        </div>
-        <div class="grid grid-cols-2 gap-4 text-sm">
-            <div>
-                <p class="text-xs text-gray-400 mb-1">Secret key</p>
-                <p class="font-mono text-gray-700 text-xs truncate">
-                    {{ config('paymongo.secret_key') ? substr(config('paymongo.secret_key'),0,12).'••••••••••••••' : '— not set —' }}
-                </p>
-            </div>
-            <div>
-                <p class="text-xs text-gray-400 mb-1">Webhook secret</p>
-                <p class="font-mono text-gray-700 text-xs truncate">
-                    {{ config('paymongo.webhook_secret') ? substr(config('paymongo.webhook_secret'),0,8).'••••••••' : '— not set —' }}
-                </p>
-            </div>
-        </div>
-        <div class="mt-3 p-3 bg-gray-50 rounded-lg text-xs text-gray-500 space-y-1">
-            <p><span class="font-medium text-gray-700">Webhook URL:</span>
-               <span class="font-mono">{{ url('/webhooks/paymongo') }}</span>
-            </p>
-            <p>Set API keys in your <span class="font-mono">.env</span> file:
-               <span class="font-mono">PAYMONGO_PUBLIC_KEY</span>,
-               <span class="font-mono">PAYMONGO_SECRET_KEY</span>,
-               <span class="font-mono">PAYMONGO_WEBHOOK_SECRET</span>
-            </p>
-        </div>
-    </div>
 
 </x-layouts.app>
