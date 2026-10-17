@@ -231,6 +231,12 @@ class InvoiceController extends Controller
             'createdBy',
         ]);
 
+        // Sort payments newest first
+        $invoice->setRelation(
+            'payments',
+            $invoice->payments->sortByDesc('created_at')->values()
+        );
+
         // Auto-cascade: for each tenant on this invoice, if a newer invoice
         // with carry-over is paid, mark this one paid too. Fixes pre-deploy payments.
         foreach ($invoice->tenantPayments->whereIn('status', ['pending','overdue','partial','late','partial_late','partial_overdue']) as $tp) {
