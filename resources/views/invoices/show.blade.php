@@ -122,7 +122,6 @@
                             <th class="pb-2 text-right">Share (rent)</th>
                             <th class="pb-2 text-right">Share (elec.)</th>
                             <th class="pb-2 text-right">Total share</th>
-                            <th class="pb-2 text-right">Paid</th>
                             <th class="pb-2 text-left">Status</th>
                         </tr>
                     </thead>
@@ -143,9 +142,6 @@
                                 <td class="py-2.5 text-right text-gray-700">₱{{ number_format($invoice->rentPerTenant(), 2) }}</td>
                                 <td class="py-2.5 text-right text-gray-700">₱{{ number_format($invoice->electricityPerTenant(), 2) }}</td>
                                 <td class="py-2.5 text-right font-medium text-gray-900">₱{{ number_format($tp->share_amount, 2) }}</td>
-                                <td class="py-2.5 text-right {{ $tp->amount_paid > 0 ? 'text-green-600' : 'text-gray-400' }}">
-                                    {{ $tp->amount_paid > 0 ? '₱'.number_format($tp->amount_paid, 2) : '—' }}
-                                </td>
                                 <td class="py-2.5">
                                     <x-status-badge :status="$tp->status" />
                                 </td>
