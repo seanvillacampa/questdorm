@@ -181,7 +181,7 @@
                         <th class="px-4 py-3 text-right">Electricity</th>
                         <th class="px-4 py-3 text-right">Total</th>
                         <th class="px-4 py-3 text-left">Status</th>
-                        <th class="px-4 py-3 text-left">Tenants paid</th>
+                        <th class="px-4 py-3 text-left">Status</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
@@ -211,25 +211,6 @@
                             <td class="px-4 py-3 text-right font-semibold text-gray-900">₱{{ number_format($inv->total_amount,2) }}</td>
                             <td class="px-4 py-3">
                                 <x-status-badge :status="$displayStatus" />
-                            </td>
-                            <td class="px-4 py-3">
-                                {{-- Per-tenant status pill: initial + status --}}
-                                <div class="flex flex-wrap gap-1">
-                                    @foreach($inv->tenantPayments as $tp)
-                                        @php
-                                            $pillCls = match($tp->status) {
-                                                'paid'    => 'bg-green-100 text-green-700',
-                                                'overdue' => 'bg-red-100 text-red-700',
-                                                default   => 'bg-gray-100 text-gray-500',
-                                            };
-                                            $initial = strtoupper(substr($tp->tenant->user->name ?? '?', 0, 1));
-                                        @endphp
-                                        <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium {{ $pillCls }}"
-                                              title="{{ $tp->tenant->user->name }}">
-                                            {{ $initial }}&nbsp;<span class="capitalize">{{ $tp->status }}</span>
-                                        </span>
-                                    @endforeach
-                                </div>
                             </td>
                         </tr>
                     @empty
