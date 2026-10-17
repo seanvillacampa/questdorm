@@ -181,7 +181,6 @@
                         <th class="px-4 py-3 text-right">Electricity</th>
                         <th class="px-4 py-3 text-right">Total</th>
                         <th class="px-4 py-3 text-left">Status</th>
-                        <th class="px-4 py-3 text-left">Status</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
