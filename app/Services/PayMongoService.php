@@ -26,7 +26,7 @@ class PayMongoService
 
     // ── Create Payment Link ──────────────────────────────────────────────
 
-    public function createPaymentLink(Invoice $invoice, string $description = ''): array
+    public function createPaymentLink(Invoice $invoice, string $description = '', string $successUrl = '', string $cancelUrl = ''): array
     {
         $amountCentavos = (int) round($invoice->balanceDue() * 100);
 
@@ -34,7 +34,6 @@ class PayMongoService
             throw new \RuntimeException('Amount too small for PayMongo (minimum ₱20).');
         }
 
-        // Remove unsupported redirect from payment links (PayMongo /v1/links don't support redirect)
         $payload = [
             'data' => [
                 'attributes' => [
@@ -45,6 +44,14 @@ class PayMongoService
                 ],
             ],
         ];
+
+        // Add redirect URLs if provided (PayMongo links support this)
+        if ($successUrl || $cancelUrl) {
+            $payload['data']['attributes']['redirect'] = [
+                'success' => $successUrl ?: $cancelUrl,
+                'failed'  => $cancelUrl  ?: $successUrl,
+            ];
+        }
 
         $response = Http::withBasicAuth($this->secretKey, '')
             ->post("{$this->baseUrl}/links", $payload);

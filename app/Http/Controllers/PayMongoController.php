@@ -47,9 +47,14 @@ class PayMongoController extends Controller
         $fakeInvoice->amount_paid  = 0;
 
         try {
+            $successUrl = route('tenant.payment-return', ['status' => 'success', 'invoice' => $invoice->id]);
+            $cancelUrl  = route('tenant.payment-return', ['status' => 'failed',  'invoice' => $invoice->id]);
+
             $link = $this->paymongo->createPaymentLink(
                 $fakeInvoice,
-                "Room {$invoice->contract->room->room_number} · {$invoice->billing_month} · Your share"
+                "Room {$invoice->contract->room->room_number} · {$invoice->billing_month} · Your share",
+                $successUrl,
+                $cancelUrl
             );
 
             // Store link on the TenantPayment row for webhook matching

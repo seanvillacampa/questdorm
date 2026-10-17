@@ -34,6 +34,8 @@ class TenantPortalController extends Controller
 
     public function paymentReturn()
     {
+        $status     = request('status', 'success'); // 'success' or 'failed'
+        $invoiceId  = request('invoice');
         $contract   = $this->activeContract();
         $myTenantId = Auth::user()->tenant?->id;
         $isPaid     = false;
@@ -55,7 +57,17 @@ class TenantPortalController extends Controller
             $isPaid = $latestPayment?->status === 'paid';
         }
 
-        return view('tenant.payment-return', compact('isPaid'));
+        if ($status === 'failed') {
+            return redirect()->route('tenant.dashboard')
+                ->with('error', 'Payment was not completed. Please try again or pay in person.');
+        }
+
+        // Success — webhook may or may not have fired yet; show optimistic message
+        return redirect()->route('tenant.dashboard')
+            ->with('success', $isPaid
+                ? 'Payment confirmed! Your billing statement is now marked as paid.'
+                : 'Payment submitted! Your payment is being processed and will reflect shortly.'
+            );
     }
 
     public function bill()
