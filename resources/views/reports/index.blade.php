@@ -74,37 +74,78 @@
                 <h2 class="text-sm font-semibold text-gray-900 mb-4">Monthly income (₱ thousands)</h2>
                 @php
                     $max = max(array_merge($trendValues, [1]));
-                    $chartHeight = 220; // px — taller chart
+                    $chartHeight = 220;
                     $barColors = [
-                        '#6366f1', // indigo
-                        '#3b82f6', // blue
-                        '#06b6d4', // cyan
-                        '#10b981', // emerald
-                        '#84cc16', // lime
-                        '#f59e0b', // amber
-                        '#f97316', // orange
-                        '#ef4444', // red
-                        '#ec4899', // pink
-                        '#8b5cf6', // violet
-                        '#14b8a6', // teal
-                        '#a78bfa', // purple
-                        '#fb923c', // orange-400
+                        '#6366f1','#3b82f6','#06b6d4','#10b981',
+                        '#84cc16','#f59e0b','#f97316','#ef4444',
+                        '#ec4899','#8b5cf6','#14b8a6','#a78bfa',
+                        '#fb923c',
                     ];
+
+                    // Compute a nice rounded Y-axis max
+                    // e.g. 231800 → magnitude=100000, ceil(231800/100000)*100000 = 300000
+                    $magnitude  = pow(10, floor(log10($max)));
+                    $niceMax    = ceil($max / $magnitude) * $magnitude;
+                    // If niceMax is too far above max, try half-magnitude steps
+                    if ($niceMax > $max * 1.5) {
+                        $niceMax = ceil($max / ($magnitude / 2)) * ($magnitude / 2);
+                    }
+                    $niceMax = max($niceMax, 1);
+
+                    // 5 evenly-spaced Y gridlines
+                    $gridSteps = 5;
+                    $gridLines = [];
+                    for ($g = 0; $g <= $gridSteps; $g++) {
+                        $gridLines[] = round(($g / $gridSteps) * $niceMax);
+                    }
                 @endphp
-                <div class="flex items-end gap-2 flex-1" style="height: {{ $chartHeight }}px;">
-                    @foreach($trendValues as $i => $val)
-                        @php
-                            $barHeight = $max > 0 ? max(4, round(($val / $max) * $chartHeight)) : 4;
-                            $color     = $barColors[$i % count($barColors)];
-                            $label     = $val > 0 ? '₱' . number_format($val / 1000, 1) . 'k' : '';
-                        @endphp
-                        <div class="flex-1 flex flex-col items-center justify-end gap-1" style="height: {{ $chartHeight }}px;">
-                            <p class="text-[9px] text-gray-500 leading-none mb-0.5">{{ $label }}</p>
-                            <div class="w-full rounded-t-sm transition-all"
-                                 style="height: {{ $barHeight }}px; background-color: {{ $color }};"></div>
-                            <p class="text-[10px] text-gray-400 mt-1 whitespace-nowrap">{{ $trendLabels[$i] }}</p>
+
+                {{-- Chart wrapper with Y-axis labels --}}
+                <div class="flex gap-2" style="height: {{ $chartHeight + 24 }}px;">
+
+                    {{-- Y-axis labels --}}
+                    <div class="flex flex-col-reverse justify-between text-right pr-1 pb-5 pt-1" style="width:46px; height:{{ $chartHeight }}px;">
+                        @foreach($gridLines as $gl)
+                            <span class="text-[9px] text-gray-400 leading-none">
+                                {{ $gl >= 1000 ? '₱'.number_format($gl/1000,0).'k' : '₱'.$gl }}
+                            </span>
+                        @endforeach
+                    </div>
+
+                    {{-- Bars + grid --}}
+                    <div class="flex-1 relative flex flex-col">
+                        {{-- Grid lines --}}
+                        <div class="absolute inset-0 pb-5 flex flex-col-reverse justify-between pointer-events-none" style="height:{{ $chartHeight }}px;">
+                            @foreach($gridLines as $gl)
+                                <div class="w-full border-t border-gray-100"></div>
+                            @endforeach
                         </div>
-                    @endforeach
+
+                        {{-- Bars --}}
+                        <div class="flex items-end gap-2 flex-1 px-1 relative z-10" style="height: {{ $chartHeight }}px;">
+                            @foreach($trendValues as $i => $val)
+                                @php
+                                    $barHeight = $niceMax > 0 ? max(2, round(($val / $niceMax) * ($chartHeight - 20))) : 2;
+                                    $color     = $barColors[$i % count($barColors)];
+                                    $label     = $val > 0 ? '₱'.number_format($val/1000,1).'k' : '';
+                                @endphp
+                                <div class="flex-1 flex flex-col items-center justify-end gap-0.5" style="height:{{ $chartHeight - 20 }}px;">
+                                    <p class="text-[9px] text-gray-500 leading-none">{{ $label }}</p>
+                                    <div class="w-full rounded-t-sm transition-all"
+                                         style="height:{{ $barHeight }}px; background-color:{{ $color }};"></div>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        {{-- X-axis labels --}}
+                        <div class="flex gap-2 px-1 mt-1">
+                            @foreach($trendLabels as $lbl)
+                                <div class="flex-1 text-center">
+                                    <p class="text-[10px] text-gray-400 whitespace-nowrap">{{ $lbl }}</p>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
                 </div>
             </div>
 
