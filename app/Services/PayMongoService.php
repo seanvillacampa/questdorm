@@ -76,6 +76,68 @@ class PayMongoService
         ];
     }
 
+    // ── Create Checkout Session (supports success/cancel redirect) ────────
+
+    public function createCheckoutSession(Invoice $invoice, string $description = '', string $successUrl = '', string $cancelUrl = ''): array
+    {
+        $amountCentavos = (int) round($invoice->balanceDue() * 100);
+
+        if ($amountCentavos < 2000) {
+            throw new \RuntimeException('Amount too small for PayMongo (minimum ₱20).');
+        }
+
+        $payload = [
+            'data' => [
+                'attributes' => [
+                    'billing'            => null,
+                    'cancel_url'         => $cancelUrl  ?: $successUrl,
+                    'success_url'        => $successUrl ?: $cancelUrl,
+                    'description'        => $description ?: "Billing Statement {$invoice->invoice_number}",
+                    'line_items'         => [
+                        [
+                            'amount'      => $amountCentavos,
+                            'currency'    => 'PHP',
+                            'description' => $description ?: "Billing Statement {$invoice->invoice_number}",
+                            'name'        => $invoice->invoice_number,
+                            'quantity'    => 1,
+                        ],
+                    ],
+                    'payment_method_types' => ['gcash', 'paymaya', 'card', 'dob', 'dob_ubp', 'brankas_bdo', 'brankas_landbank', 'brankas_metrobank', 'qrph'],
+                    'reference_number'   => $invoice->invoice_number,
+                    'send_email_receipt' => false,
+                    'show_description'   => true,
+                    'show_line_items'    => true,
+                    'metadata'           => [
+                        'invoice_number' => $invoice->invoice_number,
+                        'invoice_id'     => $invoice->id,
+                    ],
+                ],
+            ],
+        ];
+
+        $response = Http::withBasicAuth($this->secretKey, '')
+            ->post("{$this->baseUrl}/checkout_sessions", $payload);
+
+        if ($response->failed()) {
+            Log::error('PayMongo createCheckoutSession failed', [
+                'status'  => $response->status(),
+                'body'    => $response->json(),
+                'invoice' => $invoice->invoice_number,
+            ]);
+            throw new \RuntimeException(
+                'PayMongo error: ' . ($response->json('errors.0.detail') ?? $response->body())
+            );
+        }
+
+        $data = $response->json('data');
+
+        return [
+            'id'           => $data['id'],
+            'checkout_url' => $data['attributes']['checkout_url'],
+            'reference'    => $data['attributes']['reference_number'] ?? $data['id'],
+        ];
+    }
+
     // ── Verify Webhook Signature ─────────────────────────────────────────
 
     /**
@@ -169,13 +231,68 @@ class PayMongoService
      *   data.attributes.data.attributes.amount            = 12000  (centavos)
      *   data.attributes.data.attributes.description       = "..."
      *   data.attributes.data.attributes.remarks           = "BILL-..."
+     *
+     * PayMongo checkout_session.payment.paid structure:
+     *   data.attributes.type                              = "checkout_session.payment.paid"
+     *   data.attributes.data.type                         = "checkout_session"
+     *   data.attributes.data.id                           = "cs_xxx"  ← checkout session id
+     *   data.attributes.data.attributes.payment_intent.id = "pi_xxx"
+     *   data.attributes.data.attributes.payments[0].id    = "pay_xxx"
+     *   data.attributes.data.attributes.payments[0].attributes.source.type = "gcash|..."
+     *   data.attributes.data.attributes.payments[0].attributes.amount      = 12000
+     *   data.attributes.data.attributes.reference_number  = "BILL-..."
+     *   data.attributes.data.attributes.metadata.invoice_number = "BILL-..."
      */
     public function parseWebhookEvent(array $body): array
     {
         $attrs    = $body['data']['attributes'] ?? [];
         $resource = $attrs['data'] ?? [];
         $resAttrs = $resource['attributes'] ?? [];
+        $eventType = $attrs['type'] ?? null;
 
+        // ── Checkout session event ────────────────────────────────────────
+        if ($eventType === 'checkout_session.payment.paid') {
+            $sessionId   = $resource['id'] ?? null; // cs_xxx
+            $payments    = $resAttrs['payments'] ?? [];
+            $firstPay    = $payments[0] ?? [];
+            $firstAttrs  = $firstPay['attributes'] ?? [];
+
+            // Amount & method come from the first payment object
+            $amount      = $firstAttrs['amount'] ?? ($resAttrs['payment_intent']['attributes']['amount'] ?? 0);
+            $sourceType  = $firstAttrs['source']['type'] ?? ($firstAttrs['payment_method_used'] ?? 'paymongo');
+            $payId       = $firstPay['id'] ?? null;
+
+            // Reference for matching: reference_number or metadata.invoice_number
+            $reference   = $resAttrs['reference_number']
+                ?? $resAttrs['metadata']['invoice_number']
+                ?? null;
+
+            Log::info('PayMongo parseWebhookEvent [checkout_session]', [
+                'event_type'   => $eventType,
+                'session_id'   => $sessionId,
+                'payment_id'   => $payId,
+                'amount'       => $amount,
+                'source_type'  => $sourceType,
+                'reference'    => $reference,
+            ]);
+
+            return [
+                'event_type'        => $eventType,
+                'resource_type'     => 'checkout_session',
+                'resource_id'       => $payId,       // pay_xxx for idempotency
+                'link_id'           => $sessionId,   // cs_xxx — stored in paymongo_link_id
+                'payment_intent_id' => $resAttrs['payment_intent']['id'] ?? null,
+                'resource_attrs'    => array_merge($firstAttrs, [
+                    'amount'      => $amount,
+                    'source'      => ['type' => $sourceType, 'id' => $sessionId],
+                    'remarks'     => $reference,
+                    'description' => $resAttrs['description'] ?? '',
+                    'id'          => $payId,
+                ]),
+            ];
+        }
+
+        // ── Link payment event (original flow) ────────────────────────────
         // For link payments: link id is in source.id
         $linkIdFromSource = $resAttrs['source']['id'] ?? null;
 
@@ -189,7 +306,7 @@ class PayMongoService
         $paymentIntentId = $resAttrs['payment_intent_id'] ?? null;
 
         Log::info('PayMongo parseWebhookEvent', [
-            'event_type'        => $attrs['type'] ?? null,
+            'event_type'        => $eventType,
             'resource_id'       => $resource['id'] ?? null,
             'link_id_source'    => $linkIdFromSource,
             'link_id_links'     => $linkIdFromLinks,
@@ -201,7 +318,7 @@ class PayMongoService
         ]);
 
         return [
-            'event_type'        => $attrs['type'] ?? null,
+            'event_type'        => $eventType,
             'resource_type'     => $resource['type'] ?? null,
             'resource_id'       => $resource['id'] ?? null,
             'link_id'           => $linkId,

@@ -50,14 +50,14 @@ class PayMongoController extends Controller
             $successUrl = route('tenant.payment-return', ['status' => 'success', 'invoice' => $invoice->id]);
             $cancelUrl  = route('tenant.payment-return', ['status' => 'failed',  'invoice' => $invoice->id]);
 
-            $link = $this->paymongo->createPaymentLink(
+            $link = $this->paymongo->createCheckoutSession(
                 $fakeInvoice,
                 "Room {$invoice->contract->room->room_number} · {$invoice->billing_month} · Your share",
                 $successUrl,
                 $cancelUrl
             );
 
-            // Store link on the TenantPayment row for webhook matching
+            // Store checkout session id on the TenantPayment row for webhook matching
             $myPayment->update(['paymongo_link_id' => $link['id']]);
             // Also store on invoice for fallback matching
             $invoice->update(['paymongo_link_id' => $link['id']]);
@@ -254,12 +254,22 @@ class PayMongoController extends Controller
             }
         }
 
-        // Strategy 2: remarks contains invoice_number (set when creating the link)
+        // Strategy 2: remarks contains invoice_number (set when creating the link/session)
         $remarks = $attrs['remarks'] ?? null;
         if ($remarks) {
             $invoice = Invoice::where('invoice_number', $remarks)->first();
             if ($invoice) {
                 Log::info('PayMongo: matched via remarks/invoice_number', ['remarks' => $remarks]);
+                return $invoice;
+            }
+        }
+
+        // Strategy 2b: metadata.invoice_id (set in checkout session)
+        $metaInvoiceId = $attrs['metadata']['invoice_id'] ?? null;
+        if ($metaInvoiceId) {
+            $invoice = Invoice::find($metaInvoiceId);
+            if ($invoice) {
+                Log::info('PayMongo: matched via metadata.invoice_id', ['invoice_id' => $metaInvoiceId]);
                 return $invoice;
             }
         }
