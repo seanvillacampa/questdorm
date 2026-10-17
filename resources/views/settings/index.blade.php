@@ -117,13 +117,7 @@
                 </span>
             @endif
         </div>
-        <div class="grid grid-cols-3 gap-4 text-sm">
-            <div>
-                <p class="text-xs text-gray-400 mb-1">Public key</p>
-                <p class="font-mono text-gray-700 text-xs truncate">
-                    {{ config('paymongo.public_key') ? substr(config('paymongo.public_key'),0,12).'••••••••••••••' : '— not set —' }}
-                </p>
-            </div>
+        <div class="grid grid-cols-2 gap-4 text-sm">
             <div>
                 <p class="text-xs text-gray-400 mb-1">Secret key</p>
                 <p class="font-mono text-gray-700 text-xs truncate">
