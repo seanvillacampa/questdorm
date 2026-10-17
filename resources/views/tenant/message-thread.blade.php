@@ -58,11 +58,6 @@
                         <div class="min-w-0 flex-1">
                             <div class="flex items-center gap-2">
                                 <span class="font-bold text-slate-900">{{ $reply->user->name }}</span>
-                                @if($reply->isFromStaff())
-                                    <span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
-                                        Staff
-                                    </span>
-                                @endif
                                 <span class="text-xs text-slate-400">•</span>
                                 <span class="text-xs text-slate-500">{{ $reply->created_at->format('M j, Y g:i A') }}</span>
                             </div>
