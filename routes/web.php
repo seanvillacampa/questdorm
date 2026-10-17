@@ -76,7 +76,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/staff/dashboard',  [DashboardController::class, 'show'])->name('staff.dashboard');
 
         // ── Laundry ──────────────────────────────────────────────────────
-        Route::get('laundry/search-tenants', [LaundryOrderController::class, 'searchTenants'])->name('laundry.search-tenants');
+        Route::get('laundry/search-tenants',   [LaundryOrderController::class, 'searchTenants'])->name('laundry.search-tenants');
+        Route::get('laundry/search-customers', [LaundryOrderController::class, 'searchCustomers'])->name('laundry.search-customers');
         Route::resource('laundry', LaundryOrderController::class)
             ->parameters(['laundry' => 'order']);
         // Redirect old laundry reports route to unified reports

@@ -267,63 +267,41 @@
         const roomInput = document.getElementById('room_no');
         const contactInput = document.getElementById('contact_no');
 
-        // Search tenants when typing in customer name (only if customer type is tenant)
+        const SEARCH_TENANT_URL    = '{{ route('laundry.search-tenants') }}';
+        const SEARCH_CUSTOMER_URL  = '{{ route('laundry.search-customers') }}';
+
+        // Search on every keystroke — works for all customer types
         customerNameInput.addEventListener('input', function() {
             const query = this.value.trim();
-            
-            console.log('Input event fired. Query:', query, 'Customer type:', customerTypeSelect.value);
-            
-            // Only show autocomplete for tenant customer type
-            if (customerTypeSelect.value !== 'tenant') {
-                console.log('Not tenant type, hiding autocomplete');
-                hideAutocomplete();
-                return;
-            }
-
-            // Clear existing timeout
             clearTimeout(searchTimeout);
 
-            // Minimum 2 characters to search
-            if (query.length < 2) {
-                console.log('Query too short, hiding autocomplete');
-                hideAutocomplete();
-                return;
-            }
+            if (query.length < 2) { hideAutocomplete(); return; }
 
-            // Show loading state
-            console.log('Showing loading state');
             showLoading();
 
-            // Debounce search by 300ms
             searchTimeout = setTimeout(() => {
-                const url = `{{ route('laundry.search-tenants') }}?q=${encodeURIComponent(query)}`;
-                console.log('Fetching from:', url);
-                
+                const type = customerTypeSelect.value;
+                let url;
+
+                if (type === 'tenant') {
+                    url = `${SEARCH_TENANT_URL}?q=${encodeURIComponent(query)}`;
+                } else {
+                    url = `${SEARCH_CUSTOMER_URL}?q=${encodeURIComponent(query)}&type=${encodeURIComponent(type)}`;
+                }
+
                 fetch(url)
-                    .then(response => {
-                        console.log('Response status:', response.status);
-                        return response.json();
-                    })
-                    .then(tenants => {
-                        console.log('Tenants received:', tenants);
-                        hideLoading();
-                        displayResults(tenants);
-                    })
-                    .catch(error => {
-                        console.error('Tenant search error:', error);
-                        hideLoading();
-                        hideAutocomplete();
-                    });
+                    .then(r => r.json())
+                    .then(results => { hideLoading(); displayResults(results, type); })
+                    .catch(() => { hideLoading(); hideAutocomplete(); });
             }, 300);
         });
 
-        // Hide autocomplete when customer type changes
+        // Re-trigger search when customer type changes if there's already text
         customerTypeSelect.addEventListener('change', function() {
             hideAutocomplete();
-            // Clear fields if switching away from tenant
-            if (this.value !== 'tenant') {
-                roomInput.value = '';
-            }
+            if (this.value !== 'tenant') roomInput.value = '';
+            const query = customerNameInput.value.trim();
+            if (query.length >= 2) customerNameInput.dispatchEvent(new Event('input'));
         });
 
         // Hide autocomplete when clicking outside
@@ -349,45 +327,40 @@
             resultsDiv.innerHTML = '';
         }
 
-        function displayResults(tenants) {
-            if (tenants.length === 0) {
+        function displayResults(results, type) {
+            if (results.length === 0) {
                 noResultsDiv.classList.remove('hidden');
                 resultsDiv.innerHTML = '';
                 return;
             }
 
             noResultsDiv.classList.add('hidden');
-            resultsDiv.innerHTML = tenants.map(tenant => `
-                <button type="button" 
+            resultsDiv.innerHTML = results.map(r => `
+                <button type="button"
                         class="tenant-result w-full text-left p-3 hover:bg-blue-50 transition-colors"
-                        data-name="${escapeHtml(tenant.name)}"
-                        data-room="${escapeHtml(tenant.room_no)}"
-                        data-contact="${escapeHtml(tenant.contact_no)}">
-                    <div class="font-medium text-sm text-gray-900">${escapeHtml(tenant.name)}</div>
+                        data-name="${escapeHtml(r.name)}"
+                        data-room="${escapeHtml(r.room_no)}"
+                        data-contact="${escapeHtml(r.contact_no)}">
+                    <div class="font-medium text-sm text-gray-900">${escapeHtml(r.name)}</div>
                     <div class="text-xs text-gray-500 mt-0.5">
-                        ${tenant.room_no ? `Room ${escapeHtml(tenant.room_no)}` : 'No active room'}
-                        ${tenant.contact_no ? ` • ${escapeHtml(tenant.contact_no)}` : ''}
+                        ${r.room_no ? `Room ${escapeHtml(r.room_no)}` : (type === 'tenant' ? 'No active room' : '')}
+                        ${r.contact_no ? ` • ${escapeHtml(r.contact_no)}` : ''}
                     </div>
                 </button>
             `).join('');
 
             autocompleteDiv.classList.remove('hidden');
 
-            // Add click handlers to results
-            document.querySelectorAll('.tenant-result').forEach(button => {
-                button.addEventListener('click', function() {
-                    selectTenant(this.dataset);
-                });
+            document.querySelectorAll('.tenant-result').forEach(btn => {
+                btn.addEventListener('click', function() { selectCustomer(this.dataset); });
             });
         }
 
-        function selectTenant(data) {
+        function selectCustomer(data) {
             customerNameInput.value = data.name;
             roomInput.value = data.room;
             contactInput.value = data.contact;
             hideAutocomplete();
-            
-            // Focus on next field (services section)
             document.querySelector('.service-select')?.focus();
         }
 

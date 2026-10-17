@@ -124,6 +124,33 @@ class LaundryOrderController extends Controller implements HasMiddleware
         return response()->json($tenants);
     }
 
+    /**
+     * Search past customers (students / non-students) by name for autocomplete.
+     */
+    public function searchCustomers(Request $request)
+    {
+        $query = strtolower($request->string('q', ''));
+        $type  = $request->string('type', '');
+
+        if (strlen($query) < 2) {
+            return response()->json([]);
+        }
+
+        $customers = Customer::whereRaw('LOWER(name) LIKE ?', ['%'.$query.'%'])
+            ->when($type && $type !== 'tenant', fn ($q) => $q->where('type', $type))
+            ->orderBy('name')
+            ->limit(10)
+            ->get()
+            ->map(fn ($c) => [
+                'id'         => $c->id,
+                'name'       => $c->name,
+                'room_no'    => $c->room_no ?? '',
+                'contact_no' => $c->contact_no ?? '',
+            ]);
+
+        return response()->json($customers);
+    }
+
     public function store(StoreLaundryOrderRequest $request)
     {
         $data = $request->validated();
