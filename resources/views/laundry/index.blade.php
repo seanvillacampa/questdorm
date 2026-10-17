@@ -161,7 +161,11 @@
                             @forelse ($order->items as $item)
                                 <div class="flex items-center gap-1">
                                     <span class="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0"></span>
-                                    {{ $item->service->name ?? '(deleted service)' }}
+                                    @if($item->service)
+                                        {{ $item->service->name }}
+                                    @else
+                                        <span class="text-gray-400 italic">₱{{ number_format($item->unit_price,0) }}/load</span>
+                                    @endif
                                     <span class="text-gray-400">({{ $item->weight_kg }} kg)</span>
                                 </div>
                             @empty
@@ -200,7 +204,7 @@
                                 {{-- View --}}
                                 <a href="{{ route('laundry.show', $order) }}"
                                    title="View"
-                                   class="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
+                                   class="p-1.5 rounded-lg text-blue-500 hover:text-blue-700 hover:bg-blue-50 transition-colors">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                                         <path d="M2 12s3.636-7 10-7 10 7 10 7-3.636 7-10 7-10-7-10-7z"/>
                                         <circle cx="12" cy="12" r="3"/>
@@ -210,7 +214,7 @@
                                 @can('update', $order)
                                     <a href="{{ route('laundry.edit', $order) }}"
                                        title="Edit"
-                                       class="p-1.5 rounded-lg text-gray-400 hover:text-amber-600 hover:bg-amber-50 transition-colors">
+                                       class="p-1.5 rounded-lg text-amber-500 hover:text-amber-700 hover:bg-amber-50 transition-colors">
                                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                                             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -222,7 +226,7 @@
                                     <button type="button"
                                             title="Delete"
                                             onclick="handleDeleteLaundryOrder({{ $order->id }}, '{{ $order->order_no }}')"
-                                            class="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+                                            class="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors">
                                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                                             <polyline points="3 6 5 6 21 6"/>
                                             <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
