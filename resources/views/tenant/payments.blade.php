@@ -15,7 +15,6 @@
                         <th class="px-5 py-3 text-right">Your share</th>
                         <th class="px-5 py-3 text-right">Carry-over</th>
                         <th class="px-5 py-3 text-right">Total owed</th>
-                        <th class="px-5 py-3 text-right">Paid</th>
                         <th class="px-5 py-3">Status</th>
                     </tr>
                 </thead>
@@ -32,13 +31,10 @@
                                 {{ ($tp->carry_over_balance ?? 0) > 0 ? '+₱'.number_format($tp->carry_over_balance, 2) : '—' }}
                             </td>
                             <td class="px-5 py-3 text-right font-bold text-slate-900">₱{{ number_format($totalOwed, 2) }}</td>
-                            <td class="px-5 py-3 text-right {{ $tp->amount_paid > 0 ? 'text-emerald-600' : 'text-slate-400' }}">
-                                {{ $tp->amount_paid > 0 ? '₱'.number_format($tp->amount_paid,2) : '—' }}
-                            </td>
                             <td class="px-5 py-3"><x-status-badge :status="$tp->status" /></td>
                         </tr>
                     @empty
-                        <tr><td colspan="7" class="px-5 py-10 text-center text-sm text-slate-400">No payment history yet.</td></tr>
+                        <tr><td colspan="6" class="px-5 py-10 text-center text-sm text-slate-400">No payment history yet.</td></tr>
                     @endforelse
                 </tbody>
             </table>
