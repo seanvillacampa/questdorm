@@ -32,6 +32,16 @@ use Illuminate\Support\Facades\Route;
 */
 Route::get('/', fn () => redirect()->route('login'));
 
+// Temporary one-time backfill route — DELETE AFTER USE
+Route::get('/run-backfill-laundry-items-x7k2q', function () {
+    abort_unless(app()->isProduction() || app()->environment('production'), 404);
+
+    $result = \Illuminate\Support\Facades\Artisan::call('laundry:backfill-items');
+    $output = \Illuminate\Support\Facades\Artisan::output();
+
+    return response('<pre style="font-family:monospace;padding:20px">' . htmlspecialchars($output) . '</pre>');
+})->middleware('auth');
+
 // PayMongo webhook — no CSRF (excluded in bootstrap/app.php), no auth
 Route::post('/webhooks/paymongo', [PayMongoController::class, 'webhook'])
     ->name('paymongo.webhook');
