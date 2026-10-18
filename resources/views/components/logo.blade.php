@@ -1,74 +1,115 @@
 @props([
-    'variant' => 'dark',   // 'dark' = green on white  |  'light' = white on dark
+    'variant' => 'dark',   // 'dark' = green on white  |  'light' = white/gold on dark
     'size'    => 'md',     // 'sm' | 'md' | 'lg'
 ])
 
 @php
-// Colors based on variant
-$outline   = $variant === 'light' ? '#ffffff' : '#123f35';
+$stroke    = $variant === 'light' ? '#ffffff'              : '#123f35';
 $gold      = '#f5ba45';
-$textColor = $variant === 'light' ? '#ffffff' : '#123f35';
-$subColor  = $variant === 'light' ? 'rgba(255,255,255,0.6)' : '#4b7a6a';
+$textColor = $variant === 'light' ? '#ffffff'              : '#123f35';
+$subColor  = $variant === 'light' ? 'rgba(255,255,255,0.55)' : '#3d7a68';
+$sw        = '2.2'; // stroke-width
 
 $sizes = [
-    'sm' => ['svg' => '42', 'quest' => '13', 'dorm' => '8',  'gap' => '7'],
-    'md' => ['svg' => '56', 'quest' => '18', 'dorm' => '10', 'gap' => '9'],
-    'lg' => ['svg' => '80', 'quest' => '26', 'dorm' => '14', 'gap' => '12'],
+    'sm' => ['svg' => '44',  'quest' => '13', 'dorm' => '7.5', 'gap' => '8'],
+    'md' => ['svg' => '58',  'quest' => '18', 'dorm' => '10',  'gap' => '10'],
+    'lg' => ['svg' => '82',  'quest' => '26', 'dorm' => '14',  'gap' => '13'],
 ];
 $s = $sizes[$size];
 @endphp
 
-<div class="flex items-center" style="gap:{{ $s['gap'] }}px">
+<div class="flex items-center" style="gap:{{ $s['gap'] }}px; line-height:1">
 
-    {{-- Building SVG — transparent background, outline style --}}
-    <svg width="{{ $s['svg'] }}" height="{{ $s['svg'] }}" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="{{ $s['svg'] }}" height="{{ $s['svg'] }}" viewBox="0 0 110 120" fill="none" xmlns="http://www.w3.org/2000/svg">
 
-        <!-- Base platform -->
-        <rect x="6" y="88" width="88" height="3" rx="1.5" fill="{{ $outline }}"/>
+  {{-- ── GROUND LINE ── --}}
+  <line x1="4" y1="108" x2="106" y2="108" stroke="{{ $stroke }}" stroke-width="2.5" stroke-linecap="round"/>
 
-        <!-- Left building (back) -->
-        <rect x="10" y="44" width="32" height="46" rx="1.5" fill="none" stroke="{{ $outline }}" stroke-width="2.5"/>
-        <!-- Left windows — gold fill -->
-        <rect x="15" y="50" width="8"  height="9" rx="1" fill="{{ $gold }}"/>
-        <rect x="27" y="50" width="8"  height="9" rx="1" fill="{{ $gold }}"/>
-        <rect x="15" y="64" width="8"  height="9" rx="1" fill="{{ $gold }}"/>
-        <rect x="27" y="64" width="8"  height="9" rx="1" fill="{{ $gold }}"/>
-        <rect x="15" y="78" width="8"  height="9" rx="1" fill="{{ $gold }}"/>
-        <rect x="27" y="78" width="8"  height="9" rx="1" fill="{{ $gold }}"/>
+  {{-- ══════════════════════════════
+       LEFT BUILDING (shorter, back)
+  ══════════════════════════════ --}}
+  {{-- Body --}}
+  <rect x="6" y="52" width="38" height="56" rx="1" fill="none" stroke="{{ $stroke }}" stroke-width="{{ $sw }}"/>
 
-        <!-- Main building (front, taller) -->
-        <rect x="36" y="24" width="54" height="66" rx="1.5" fill="none" stroke="{{ $outline }}" stroke-width="2.5"/>
+  {{-- Parapet / rooftop --}}
+  <rect x="6" y="46" width="38" height="8"  rx="1" fill="none" stroke="{{ $stroke }}" stroke-width="{{ $sw }}"/>
 
-        <!-- Rooftop tiers -->
-        <rect x="44" y="16" width="38" height="10" rx="1.5" fill="none" stroke="{{ $outline }}" stroke-width="2.5"/>
-        <rect x="52" y="8"  width="22" height="10" rx="1.5" fill="none" stroke="{{ $outline }}" stroke-width="2.5"/>
+  {{-- Left bldg windows — row 1 --}}
+  <rect x="12" y="57" width="10" height="12" rx="1.5" fill="{{ $gold }}"/>
+  <rect x="28" y="57" width="10" height="12" rx="1.5" fill="{{ $gold }}"/>
+  {{-- row 2 --}}
+  <rect x="12" y="74" width="10" height="12" rx="1.5" fill="{{ $gold }}"/>
+  <rect x="28" y="74" width="10" height="12" rx="1.5" fill="{{ $gold }}"/>
+  {{-- row 3 --}}
+  <rect x="12" y="91" width="10" height="10" rx="1.5" fill="{{ $gold }}"/>
+  <rect x="28" y="91" width="10" height="10" rx="1.5" fill="{{ $gold }}"/>
 
-        <!-- Main windows — gold (left column) -->
-        <rect x="41" y="31" width="12" height="13" rx="1" fill="{{ $gold }}"/>
-        <rect x="41" y="49" width="12" height="13" rx="1" fill="{{ $gold }}"/>
-        <rect x="41" y="67" width="12" height="13" rx="1" fill="{{ $gold }}"/>
+  {{-- ══════════════════════════════
+       MAIN BUILDING (taller, front)
+  ══════════════════════════════ --}}
+  {{-- Body --}}
+  <rect x="38" y="26" width="66" height="82" rx="1" fill="none" stroke="{{ $stroke }}" stroke-width="{{ $sw }}"/>
 
-        <!-- Main windows — outline only (right columns) -->
-        <rect x="58" y="31" width="11" height="13" rx="1" fill="none" stroke="{{ $outline }}" stroke-width="1.5"/>
-        <rect x="74" y="31" width="10" height="13" rx="1" fill="none" stroke="{{ $outline }}" stroke-width="1.5"/>
-        <rect x="58" y="49" width="11" height="13" rx="1" fill="none" stroke="{{ $outline }}" stroke-width="1.5"/>
-        <rect x="74" y="49" width="10" height="13" rx="1" fill="none" stroke="{{ $outline }}" stroke-width="1.5"/>
-        <rect x="58" y="67" width="11" height="13" rx="1" fill="none" stroke="{{ $outline }}" stroke-width="1.5"/>
-        <rect x="74" y="67" width="10" height="13" rx="1" fill="none" stroke="{{ $outline }}" stroke-width="1.5"/>
+  {{-- Mechanical floor / parapet --}}
+  <rect x="44" y="18" width="54" height="10" rx="1" fill="none" stroke="{{ $stroke }}" stroke-width="{{ $sw }}"/>
 
-        <!-- Door -->
-        <rect x="55" y="77" width="14" height="13" rx="2" fill="none" stroke="{{ $outline }}" stroke-width="2"/>
+  {{-- Rooftop spire / penthouse --}}
+  <rect x="54" y="9"  width="34" height="11" rx="1" fill="none" stroke="{{ $stroke }}" stroke-width="{{ $sw }}"/>
 
-    </svg>
+  {{-- Penthouse top cap --}}
+  <rect x="62" y="5"  width="18" height="6"  rx="1" fill="none" stroke="{{ $stroke }}" stroke-width="{{ $sw }}"/>
 
-    {{-- Wordmark --}}
-    <div>
-        <div style="font-size:{{ $s['quest'] }}px; font-weight:900; letter-spacing:-0.01em; color:{{ $textColor }}; line-height:1; font-family:'Segoe UI',Arial,sans-serif; text-transform:uppercase;">
-            QUEST
-        </div>
-        <div style="font-size:{{ $s['dorm'] }}px; font-weight:700; letter-spacing:0.2em; color:{{ $subColor }}; line-height:1.4; font-family:'Segoe UI',Arial,sans-serif; text-transform:uppercase; margin-top:1px;">
-            DORMITORY
-        </div>
-    </div>
+  {{-- ── MAIN BUILDING WINDOWS ── --}}
+  {{-- Left column — GOLD (3 rows) --}}
+  <rect x="43" y="33" width="14" height="15" rx="1.5" fill="{{ $gold }}"/>
+  <rect x="43" y="54" width="14" height="15" rx="1.5" fill="{{ $gold }}"/>
+  <rect x="43" y="75" width="14" height="15" rx="1.5" fill="{{ $gold }}"/>
+
+  {{-- Middle column — outline only --}}
+  <rect x="62" y="33" width="12" height="15" rx="1.5" fill="none" stroke="{{ $stroke }}" stroke-width="1.6"/>
+  <rect x="62" y="54" width="12" height="15" rx="1.5" fill="none" stroke="{{ $stroke }}" stroke-width="1.6"/>
+  <rect x="62" y="75" width="12" height="15" rx="1.5" fill="none" stroke="{{ $stroke }}" stroke-width="1.6"/>
+
+  {{-- Right column — outline only --}}
+  <rect x="79" y="33" width="19" height="15" rx="1.5" fill="none" stroke="{{ $stroke }}" stroke-width="1.6"/>
+  <rect x="79" y="54" width="19" height="15" rx="1.5" fill="none" stroke="{{ $stroke }}" stroke-width="1.6"/>
+  <rect x="79" y="75" width="19" height="15" rx="1.5" fill="none" stroke="{{ $stroke }}" stroke-width="1.6"/>
+
+  {{-- ── ENTRANCE DOOR ── --}}
+  {{-- Door frame --}}
+  <rect x="57" y="91" width="18" height="17" rx="2" fill="none" stroke="{{ $stroke }}" stroke-width="{{ $sw }}"/>
+  {{-- Door arch top --}}
+  <path d="M57 97 Q66 88 75 97" stroke="{{ $stroke }}" stroke-width="1.6" fill="none"/>
+  {{-- Door centre line --}}
+  <line x1="66" y1="91" x2="66" y2="108" stroke="{{ $stroke }}" stroke-width="1.4"/>
+
+  {{-- ── COLUMN DETAILS (base) ── --}}
+  <line x1="44" y1="108" x2="44" y2="100" stroke="{{ $stroke }}" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="88" y1="108" x2="88" y2="100" stroke="{{ $stroke }}" stroke-width="1.5" stroke-linecap="round"/>
+
+</svg>
+
+  {{-- Wordmark --}}
+  <div>
+    <div style="
+      font-size: {{ $s['quest'] }}px;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      color: {{ $textColor }};
+      line-height: 1;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      text-transform: uppercase;
+    ">QUEST</div>
+    <div style="
+      font-size: {{ $s['dorm'] }}px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      color: {{ $subColor }};
+      line-height: 1.5;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      text-transform: uppercase;
+      margin-top: 2px;
+    ">DORMITORY</div>
+  </div>
 
 </div>
