@@ -14,10 +14,7 @@
         <aside class="scrollbar-hidden sticky top-0 hidden h-screen w-[250px] shrink-0 flex-col overflow-y-auto bg-[#123f35] lg:flex">
             <div class="flex h-20 items-center border-b border-white/10 px-5">
                 <a href="{{ route('owner.dashboard') }}" class="block">
-                    <div class="text-[18px] font-black tracking-[-0.03em] text-white leading-none">
-                        Quest<span class="text-[#f5ba45]">.</span>
-                    </div>
-                    <div class="mt-1 text-[9px] font-bold uppercase tracking-[0.28em] text-emerald-100/50">Management System</div>
+                    <x-logo variant="light" size="sm" />
                 </a>
             </div>
 

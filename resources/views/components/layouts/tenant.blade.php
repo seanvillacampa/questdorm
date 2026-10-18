@@ -11,12 +11,7 @@
     <header class="border-b border-slate-200 bg-white/95 backdrop-blur">
         <div class="mx-auto flex h-16 max-w-5xl items-center gap-5 px-4">
             <div class="flex items-center gap-3">
-                <div>
-                    <div class="text-[17px] font-black tracking-[-0.03em] text-[#123f35] leading-none">
-                        Quest<span class="text-[#f5ba45]">.</span>
-                    </div>
-                    <div class="text-[9px] font-bold uppercase tracking-[0.25em] text-emerald-700/60 mt-0.5">Tenant Portal</div>
-                </div>
+                <x-logo variant="dark" size="sm" />
             </div>
 
             @php
