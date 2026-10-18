@@ -117,6 +117,7 @@ Route::middleware('auth')->group(function () {
         // Payments
         Route::get('payments',          [PaymentController::class, 'index'])->name('payments.index');
         Route::post('payments',         [PaymentController::class, 'store'])->name('payments.store');
+        Route::delete('payments/{payment}', [PaymentController::class, 'destroy'])->name('payments.destroy');
 
         // PayMongo QR checkout (staff-side — generates checkout URL for tenant to scan)
         Route::post('invoices/{invoice}/qr-checkout/{tenantPayment}', [PayMongoController::class, 'staffQrCheckout'])
@@ -157,6 +158,10 @@ Route::middleware('auth')->group(function () {
         Route::get('email-notifications',       [\App\Http\Controllers\EmailNotificationController::class, 'index'])->name('email-notifications.index');
         Route::post('email-notifications/prefs', [\App\Http\Controllers\EmailNotificationController::class, 'updatePrefs'])->name('email-notifications.prefs');
         Route::post('email-notifications/test',  [\App\Http\Controllers\EmailNotificationController::class, 'sendTest'])->name('email-notifications.test');
+
+        // Database backup & restore
+        Route::get('settings/backup/download',   [\App\Http\Controllers\BackupController::class, 'download'])->name('backup.download');
+        Route::post('settings/backup/restore',   [\App\Http\Controllers\BackupController::class, 'restore'])->name('backup.restore');
     });
 
     // ── Tenant-only area ─────────────────────────────────────────────────

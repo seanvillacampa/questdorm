@@ -102,5 +102,88 @@
         </div>
     </div>
 
+    {{-- Database Backup & Restore --}}
+    <div class="mt-4 bg-white rounded-xl border border-gray-200 shadow-xs p-5">
+        <div class="flex items-center gap-2 mb-1">
+            <svg class="size-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/>
+            </svg>
+            <h2 class="text-sm font-semibold text-gray-900">Database Backup & Restore</h2>
+        </div>
+        <p class="text-xs text-gray-400 mb-5">Download a live backup of the entire database, or restore from a previous backup file. <strong class="text-red-600">Restore is irreversible — it overwrites all current data.</strong></p>
+
+        <div class="grid grid-cols-2 gap-4">
+
+            {{-- Download backup --}}
+            <div class="rounded-xl border border-gray-200 p-4">
+                <div class="flex items-center gap-2 mb-1">
+                    <svg class="size-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    <p class="text-sm font-semibold text-gray-900">Download Backup</p>
+                </div>
+                <p class="text-xs text-gray-400 mb-4">Creates a live <code class="bg-gray-100 px-1 rounded">.sql.gz</code> dump of the current database and downloads it to your computer.</p>
+                <a href="{{ route('backup.download') }}"
+                   class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors">
+                    <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Download now
+                </a>
+                <p class="mt-3 text-[11px] text-gray-400">Automated daily backups also run via GitHub Actions and are stored on Google Drive.</p>
+            </div>
+
+            {{-- Restore from file --}}
+            <div class="rounded-xl border border-red-100 bg-red-50/30 p-4">
+                <div class="flex items-center gap-2 mb-1">
+                    <svg class="size-4 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <p class="text-sm font-semibold text-gray-900">Restore from Backup</p>
+                </div>
+                <p class="text-xs text-gray-400 mb-3">Upload a <code class="bg-gray-100 px-1 rounded">.sql</code> or <code class="bg-gray-100 px-1 rounded">.sql.gz</code> backup file to restore the database. <strong class="text-red-600">This will overwrite all existing data.</strong></p>
+
+                @if($errors->has('backup_file'))
+                    <div class="mb-3 px-3 py-2 bg-red-100 border border-red-200 text-red-700 rounded-lg text-xs">{{ $errors->first('backup_file') }}</div>
+                @endif
+
+                <form method="POST" action="{{ route('backup.restore') }}" enctype="multipart/form-data"
+                      onsubmit="return confirmRestore(event)">
+                    @csrf
+                    <div class="mb-3">
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Select backup file</label>
+                        <input type="file" name="backup_file" accept=".sql,.gz"
+                               class="block w-full text-xs text-gray-700 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 cursor-pointer"
+                               required />
+                    </div>
+                    <button type="submit"
+                            class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">
+                        <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                        </svg>
+                        Restore database
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    @push('scripts')
+    <script>
+        function confirmRestore(e) {
+            e.preventDefault();
+            const form = e.target;
+            const file = form.querySelector('input[type=file]').files[0];
+            if (!file) { alert('Please select a backup file.'); return false; }
+            window.showConfirm(
+                'Restore Database',
+                `Restore from "${file.name}"?\n\nThis will PERMANENTLY overwrite ALL current data with the backup. This cannot be undone.\n\nMake sure you have downloaded a fresh backup first.`,
+                () => form.submit()
+            );
+            return false;
+        }
+    </script>
+    @endpush
 
 </x-layouts.app>
