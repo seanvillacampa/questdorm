@@ -197,22 +197,33 @@ class PayMongoController extends Controller
         $amountPesos = ($attrs['amount'] ?? 0) / 100;
         $method      = $this->normalizeMethod($attrs['source']['type'] ?? 'paymongo');
 
-        DB::transaction(function () use ($invoice, $amountPesos, $method, $attrs, $event) {
-            $reference = $attrs['id'] ?? $event['resource_id'];
+        // ── Idempotency check BEFORE the transaction ─────────────────────
+        // Use the payment resource ID (pay_xxx) as the unique reference
+        $reference = $attrs['id'] ?? $event['resource_id'];
 
-            // Idempotency check
+        if ($reference && Payment::where('reference', $reference)->exists()) {
+            Log::info('PayMongo webhook: duplicate event skipped (pre-transaction)', ['reference' => $reference]);
+            return response()->json(['received' => true, 'skipped' => 'duplicate']);
+        }
+
+        // Also guard by checkout session / link ID — prevents double-fire from
+        // different event types (payment.paid + checkout_session.payment.paid)
+        $linkId = $event['link_id'] ?? null;
+        if ($linkId && Payment::where('reference', 'like', "%{$linkId}%")->exists()) {
+            Log::info('PayMongo webhook: duplicate skipped via link_id', ['link_id' => $linkId]);
+            return response()->json(['received' => true, 'skipped' => 'duplicate_link']);
+        }
+
+        DB::transaction(function () use ($invoice, $amountPesos, $method, $attrs, $event, $reference) {
+
+            // Double-check inside transaction (race condition guard)
             if ($reference && Payment::where('reference', $reference)->exists()) {
-                Log::info('PayMongo webhook: duplicate event skipped', ['reference' => $reference]);
+                Log::info('PayMongo webhook: duplicate event skipped (in-transaction)', ['reference' => $reference]);
                 return;
             }
 
             // Find the TenantPayment that originated this link
             $linkId    = $event['link_id'] ?? $event['resource_id'] ?? null;
-            
-            Log::info('PayMongo: Searching for TenantPayment', [
-                'link_id_from_event' => $linkId,
-                'resource_id' => $event['resource_id'],
-            ]);
             
             $tenantPay = $linkId
                 ? \App\Models\TenantPayment::where('paymongo_link_id', $linkId)->first()
@@ -243,7 +254,8 @@ class PayMongoController extends Controller
             }
 
             // Mark the tenant's personal share as paid (including carry-over)
-            if ($tenantPay) {
+            // Guard: skip if already paid to prevent double-recording
+            if ($tenantPay && $tenantPay->status !== 'paid') {
                 $tenantPay->update([
                     'amount_paid' => $tenantPay->totalOwed(), // share + carry_over
                     'status'      => 'paid',
