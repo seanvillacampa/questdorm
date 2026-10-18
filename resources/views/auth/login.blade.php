@@ -109,6 +109,12 @@
 
                 {{-- Header --}}
                 <div class="mb-7">
+                    <div class="mb-4">
+                        <div class="text-[22px] font-black tracking-[-0.04em] text-[#123f35] leading-none">
+                            Quest<span class="text-[#f5ba45]">.</span>
+                        </div>
+                        <div class="mt-0.5 text-[9px] font-bold uppercase tracking-[0.28em] text-slate-400">Management System</div>
+                    </div>
                     <h2 class="text-[42px] font-black leading-none tracking-[-0.06em] text-[#0d1f1a]">Welcome back</h2>
                     <p class="mt-2.5 text-[14px] leading-snug text-slate-500">Sign in to access your Quest Building account.</p>
                 </div>
