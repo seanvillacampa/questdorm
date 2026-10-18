@@ -56,17 +56,11 @@
 
         <div class="relative z-10 flex w-full flex-col justify-between p-12 text-white">
             {{-- Logo --}}
-            <div class="flex items-center gap-3">
-                <div class="flex size-11 items-center justify-center rounded-xl bg-[#f5ba45] text-[#103d34] shadow-lg">
-                    <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                         stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M4 21V5l8-3 8 3v16M9 21v-4h6v4M8 7h2m4 0h2M8 11h2m4 0h2"/>
-                    </svg>
+            <div>
+                <div class="text-[28px] font-black tracking-[-0.04em] text-white leading-none">
+                    Quest<span class="text-[#f5ba45]">.</span>
                 </div>
-                <div>
-                    <div class="text-[15px] font-extrabold tracking-tight">Quest Building</div>
-                    <div class="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-emerald-100/70">Management System</div>
-                </div>
+                <div class="mt-1 text-[9px] font-bold uppercase tracking-[0.28em] text-emerald-100/50">Management System</div>
             </div>
 
             {{-- Headline --}}
@@ -103,17 +97,11 @@
         <div class="form-card w-full max-w-[380px]">
 
             {{-- Mobile-only logo --}}
-            <div class="mb-8 flex items-center gap-3 lg:hidden">
-                <div class="flex size-10 items-center justify-center rounded-xl bg-[#123f35] text-[#f5ba45]">
-                    <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                         stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M4 21V5l8-3 8 3v16M9 21v-4h6v4M8 7h2m4 0h2M8 11h2m4 0h2"/>
-                    </svg>
+            <div class="mb-8 lg:hidden">
+                <div class="text-[22px] font-black tracking-[-0.04em] text-[#123f35] leading-none">
+                    Quest<span class="text-[#f5ba45]">.</span>
                 </div>
-                <div>
-                    <div class="text-[15px] font-extrabold tracking-tight text-[#0d2330]">Quest Building</div>
-                    <div class="mt-0.5 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Management System</div>
-                </div>
+                <div class="mt-1 text-[9px] font-bold uppercase tracking-[0.28em] text-slate-400">Management System</div>
             </div>
 
             {{-- Card --}}
@@ -121,16 +109,6 @@
 
                 {{-- Header --}}
                 <div class="mb-7">
-                    <div class="mb-2 flex items-center gap-2">
-                        <div class="flex size-8 items-center justify-center rounded-lg bg-[#123f35]">
-                            <svg class="size-4 text-[#f5ba45]" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="11" width="18" height="11" rx="2"/>
-                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                            </svg>
-                        </div>
-                        
-                    </div>
                     <h2 class="text-[42px] font-black leading-none tracking-[-0.06em] text-[#0d1f1a]">Welcome back</h2>
                     <p class="mt-2.5 text-[14px] leading-snug text-slate-500">Sign in to access your Quest Building account.</p>
                 </div>
