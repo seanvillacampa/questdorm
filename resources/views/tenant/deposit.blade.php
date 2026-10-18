@@ -39,13 +39,12 @@
 
             <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.03)]">
                 <div class="border-b border-slate-100 px-5 py-4">
-                    <h2 class="text-base font-extrabold text-slate-900">Deposit history</h2>
+                    <h2 class="text-base font-extrabold text-slate-900">Deduction History</h2>
                 </div>
                 <table class="w-full text-left text-sm">
                     <thead>
                         <tr class="bg-slate-50/80 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
                             <th class="px-5 py-3">Date</th>
-                            <th class="px-5 py-3">Type</th>
                             <th class="px-5 py-3">Reason</th>
                             <th class="px-5 py-3 text-right">Amount</th>
                         </tr>
@@ -54,14 +53,13 @@
                         @forelse($entries as $entry)
                             <tr>
                                 <td class="px-5 py-3 text-slate-600">{{ $entry->date->format('M d, Y') }}</td>
-                                <td class="px-5 py-3"><x-status-badge :status="$entry->type" /></td>
                                 <td class="px-5 py-3 text-slate-700">{{ $entry->reason ?? '—' }}</td>
                                 <td class="px-5 py-3 text-right font-semibold {{ $entry->type === 'deduction' ? 'text-red-600' : 'text-slate-900' }}">
                                     {{ $entry->type === 'deduction' ? '−' : '' }} ₱{{ number_format($entry->amount,2) }}
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="4" class="px-5 py-10 text-center text-sm text-slate-400">No deposit entries yet.</td></tr>
+                            <tr><td colspan="3" class="px-5 py-10 text-center text-sm text-slate-400">No deduction history yet.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
