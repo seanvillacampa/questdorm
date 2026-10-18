@@ -103,9 +103,6 @@
 
                 {{-- Header --}}
                 <div class="mb-7">
-                    <div class="mb-5">
-                        <x-logo variant="dark" size="sm" />
-                    </div>
                     <h2 class="text-[42px] font-black leading-none tracking-[-0.06em] text-[#0d1f1a]">Welcome back</h2>
                     <p class="mt-2.5 text-[14px] leading-snug text-slate-500">Sign in to access your Quest Building account.</p>
                 </div>
