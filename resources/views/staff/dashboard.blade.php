@@ -98,18 +98,33 @@
                         <div class="text-[15px] font-extrabold text-slate-900">Room Status</div>
                         <p class="mt-0.5 text-[11px] text-slate-400">Live dashboard of occupancy and billing state</p>
                     </div>
-                    @if($recentMessages->isNotEmpty())
-                        <a href="{{ route('tenant-messages.index') }}"
-                           class="flex items-center gap-2 px-3 py-1.5 bg-orange-500 text-white text-xs font-bold rounded-lg hover:bg-orange-600 transition-colors shadow-sm">
-                            <svg class="size-4" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                                <circle cx="12" cy="17" r="1" fill="white"/>
-                                <path d="M12 9v4" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
-                            View Messages
-                            <span class="bg-white text-orange-600 px-1.5 py-0.5 rounded-full text-[10px] font-extrabold">{{ $recentMessages->count() }}</span>
-                        </a>
-                    @endif
+                    <div class="flex items-center gap-2">
+                        {{-- View toggle --}}
+                        <div class="flex items-center rounded-lg border border-slate-200 overflow-hidden">
+                            <button id="view-cards" onclick="setView('cards')"
+                                    class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-colors bg-slate-900 text-white">
+                                <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                                Cards
+                            </button>
+                            <button id="view-calendar" onclick="setView('calendar')"
+                                    class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-colors bg-white text-slate-500 hover:text-slate-700">
+                                <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                Calendar
+                            </button>
+                        </div>
+                        @if($recentMessages->isNotEmpty())
+                            <a href="{{ route('tenant-messages.index') }}"
+                               class="flex items-center gap-2 px-3 py-1.5 bg-orange-500 text-white text-xs font-bold rounded-lg hover:bg-orange-600 transition-colors shadow-sm">
+                                <svg class="size-4" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                    <circle cx="12" cy="17" r="1" fill="white"/>
+                                    <path d="M12 9v4" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                View Messages
+                                <span class="bg-white text-orange-600 px-1.5 py-0.5 rounded-full text-[10px] font-extrabold">{{ $recentMessages->count() }}</span>
+                            </a>
+                        @endif
+                    </div>
                 </div>
 
                 @if(session('warning'))
@@ -234,10 +249,171 @@
                         </div>
                     @endforeach
                 @endif
+
+                {{-- ── Calendar View ── --}}
+                @if(!$rooms->isEmpty())
+                <div id="room-calendar" class="hidden px-5 py-4">
+                    @php
+                        $calMonth     = now();
+                        $daysInMonth  = $calMonth->daysInMonth;
+                        $firstDayOfWeek = $calMonth->copy()->startOfMonth()->dayOfWeek; // 0=Sun
+                        $today        = now()->day;
+
+                        // Build a map: day → list of rooms with due dates on that day
+                        $dueDateMap = [];
+                        foreach ($rooms as $room) {
+                            $invoice = $room->currentInvoice ?? null;
+                            if ($invoice && !in_array($invoice->status, ['paid','void'])) {
+                                $day = $invoice->due_date->day;
+                                if ($invoice->due_date->month == $calMonth->month && $invoice->due_date->year == $calMonth->year) {
+                                    $dueDateMap[$day][] = $room;
+                                }
+                            }
+                        }
+                    @endphp
+
+                    {{-- Month label --}}
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-bold text-slate-700">{{ $calMonth->format('F Y') }}</h3>
+                        <div class="flex gap-3 text-[10px]">
+                            <span class="flex items-center gap-1"><span class="size-2.5 rounded-full bg-red-400 inline-block"></span> Overdue</span>
+                            <span class="flex items-center gap-1"><span class="size-2.5 rounded-full bg-orange-400 inline-block"></span> Due Soon</span>
+                            <span class="flex items-center gap-1"><span class="size-2.5 rounded-full bg-yellow-400 inline-block"></span> Partial</span>
+                            <span class="flex items-center gap-1"><span class="size-2.5 rounded-full bg-slate-300 inline-block"></span> Pending</span>
+                        </div>
+                    </div>
+
+                    {{-- Day-of-week headers --}}
+                    <div class="grid grid-cols-7 mb-1">
+                        @foreach(['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] as $d)
+                            <div class="text-center text-[10px] font-bold text-slate-400 py-1">{{ $d }}</div>
+                        @endforeach
+                    </div>
+
+                    {{-- Calendar grid --}}
+                    <div class="grid grid-cols-7 border-l border-t border-slate-100">
+                        {{-- Empty cells before first day --}}
+                        @for($i = 0; $i < $firstDayOfWeek; $i++)
+                            <div class="border-r border-b border-slate-100 min-h-[72px] bg-slate-50/40"></div>
+                        @endfor
+
+                        {{-- Day cells --}}
+                        @for($day = 1; $day <= $daysInMonth; $day++)
+                            @php
+                                $isToday    = $day === $today;
+                                $roomsOnDay = $dueDateMap[$day] ?? [];
+                            @endphp
+                            <div class="border-r border-b border-slate-100 min-h-[72px] p-1.5 {{ $isToday ? 'bg-emerald-50' : '' }}">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-[11px] font-bold {{ $isToday ? 'text-emerald-700 bg-emerald-200 size-5 rounded-full flex items-center justify-center' : 'text-slate-400' }}">
+                                        {{ $day }}
+                                    </span>
+                                    @if(count($roomsOnDay) > 0)
+                                        <span class="text-[9px] text-slate-400">{{ count($roomsOnDay) }} due</span>
+                                    @endif
+                                </div>
+                                <div class="space-y-0.5">
+                                    @foreach(array_slice($roomsOnDay, 0, 3) as $calRoom)
+                                        @php
+                                            $inv = $calRoom->currentInvoice;
+                                            $graceDays = \App\Models\Setting::billingRules()['overdue_grace_days'];
+                                            $daysUntil = now()->startOfDay()->diffInDays($inv->due_date->startOfDay(), false);
+                                            $dotColor  = match(true) {
+                                                $daysUntil < 0                  => 'bg-red-400',
+                                                $daysUntil <= $graceDays        => 'bg-orange-400',
+                                                $inv->status === 'partial'      => 'bg-yellow-400',
+                                                default                         => 'bg-slate-300',
+                                            };
+                                            $pillColor = match(true) {
+                                                $daysUntil < 0                  => 'bg-red-100 text-red-700',
+                                                $daysUntil <= $graceDays        => 'bg-orange-100 text-orange-700',
+                                                $inv->status === 'partial'      => 'bg-yellow-100 text-yellow-700',
+                                                default                         => 'bg-slate-100 text-slate-600',
+                                            };
+                                        @endphp
+                                        <a href="{{ route('invoices.show', $inv) }}"
+                                           class="flex items-center gap-1 px-1 py-0.5 rounded text-[9px] font-semibold {{ $pillColor }} hover:opacity-80 transition-opacity truncate"
+                                           title="Room {{ $calRoom->room_number }}">
+                                            <span class="size-1.5 rounded-full {{ $dotColor }} shrink-0"></span>
+                                            Rm {{ $calRoom->room_number }}
+                                        </a>
+                                    @endforeach
+                                    @if(count($roomsOnDay) > 3)
+                                        <span class="text-[9px] text-slate-400 pl-1">+{{ count($roomsOnDay) - 3 }} more</span>
+                                    @endif
+                                </div>
+                            </div>
+                        @endfor
+
+                        {{-- Fill remaining cells to complete last row --}}
+                        @php $remaining = (7 - (($firstDayOfWeek + $daysInMonth) % 7)) % 7; @endphp
+                        @for($i = 0; $i < $remaining; $i++)
+                            <div class="border-r border-b border-slate-100 min-h-[72px] bg-slate-50/40"></div>
+                        @endfor
+                    </div>
+
+                    {{-- Rooms with no due date this month --}}
+                    @php
+                        $noDueRooms = $rooms->filter(function($r) use ($calMonth, $dueDateMap) {
+                            $inv = $r->currentInvoice ?? null;
+                            if (!$inv || in_array($inv->status, ['paid','void'])) return false;
+                            return !($inv->due_date->month == $calMonth->month && $inv->due_date->year == $calMonth->year);
+                        });
+                    @endphp
+                    @if($noDueRooms->isNotEmpty())
+                        <div class="mt-3 flex flex-wrap gap-1.5 pt-3 border-t border-slate-100">
+                            <span class="text-[10px] text-slate-400 w-full mb-1">Unpaid — due outside this month:</span>
+                            @foreach($noDueRooms as $r)
+                                @php $inv = $r->currentInvoice; @endphp
+                                <a href="{{ route('invoices.show', $inv) }}"
+                                   class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-semibold hover:bg-slate-200 transition-colors">
+                                    Rm {{ $r->room_number }} · {{ $inv->due_date->format('M j') }}
+                                </a>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+                @endif
+
             </article>
         </section>
 
         <script>
+        // ── View toggle (cards / calendar) ─────────────────────────────────
+        function setView(view) {
+            const cardsSection  = document.getElementById('floor-tabs')?.parentElement;
+            const calSection    = document.getElementById('room-calendar');
+            const btnCards      = document.getElementById('view-cards');
+            const btnCalendar   = document.getElementById('view-calendar');
+
+            // Find the floor-tabs container and all floor panels + legend
+            const floorTabs     = document.getElementById('floor-tabs');
+            const floorPanels   = document.querySelectorAll('.floor-panel');
+            const activePanel   = [...floorPanels].find(p => !p.classList.contains('hidden'));
+
+            if (view === 'calendar') {
+                floorTabs?.classList.add('hidden');
+                floorPanels.forEach(p => p.classList.add('hidden'));
+                calSection?.classList.remove('hidden');
+                btnCards.className    = btnCards.className.replace('bg-slate-900 text-white', 'bg-white text-slate-500 hover:text-slate-700');
+                btnCalendar.className = btnCalendar.className.replace('bg-white text-slate-500 hover:text-slate-700', 'bg-slate-900 text-white');
+            } else {
+                floorTabs?.classList.remove('hidden');
+                // Restore the first floor panel
+                const firstPanel = document.querySelector('.floor-panel');
+                if (firstPanel && [...floorPanels].every(p => p.classList.contains('hidden'))) {
+                    firstPanel.classList.remove('hidden');
+                } else if (activePanel) {
+                    activePanel.classList.remove('hidden');
+                } else if (firstPanel) {
+                    firstPanel.classList.remove('hidden');
+                }
+                calSection?.classList.add('hidden');
+                btnCards.className    = btnCards.className.replace('bg-white text-slate-500 hover:text-slate-700', 'bg-slate-900 text-white');
+                btnCalendar.className = btnCalendar.className.replace('bg-slate-900 text-white', 'bg-white text-slate-500 hover:text-slate-700');
+            }
+        }
+
         // ── Floor tab switching ─────────────────────────────────────────────
         function switchFloor(floor) {
             document.querySelectorAll('.floor-panel').forEach(p => p.classList.add('hidden'));
