@@ -201,7 +201,36 @@
                 @endif
 
                 <form method="POST" action="{{ route('payments.store') }}" class="space-y-2.5"
-                      x-data="{ selectedTpId: '', amount: '' }">
+                      x-data="{
+                          selectedTpId: '',
+                          selectedTpName: '',
+                          amount: '',
+                          qrLoading: false,
+                          qrUrl: null,
+                          qrAmount: null,
+                          qrError: null,
+                          generateQr() {
+                              if (!this.selectedTpId) return;
+                              this.qrLoading = true;
+                              this.qrUrl = null;
+                              this.qrError = null;
+                              fetch(`{{ url('invoices/' . $invoice->id . '/qr-checkout') }}/${this.selectedTpId}`, {
+                                  method: 'POST',
+                                  headers: {
+                                      'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                                      'Accept': 'application/json',
+                                  }
+                              })
+                              .then(r => r.json())
+                              .then(data => {
+                                  if (data.error) { this.qrError = data.error; return; }
+                                  this.qrUrl    = data.checkout_url;
+                                  this.qrAmount = data.amount;
+                              })
+                              .catch(() => { this.qrError = 'Failed to generate QR. Check PayMongo config.'; })
+                              .finally(() => { this.qrLoading = false; });
+                          }
+                      }">
                     @csrf
                     <input type="hidden" name="invoice_id" value="{{ $invoice->id }}" />
 
@@ -220,7 +249,7 @@
                                         <input type="radio" name="tenant_payment_id"
                                                value="{{ $tp->id }}"
                                                x-model="selectedTpId"
-                                               @change="amount = '{{ number_format($tp->balanceDue(), 2) }}'"
+                                               @change="amount = '{{ number_format($tp->balanceDue(), 2) }}'; selectedTpName = '{{ addslashes($tp->tenant->user->name) }}'; qrUrl = null; qrError = null;"
                                                class="text-blue-600" />
                                         <span class="text-xs font-medium text-gray-900">{{ $tp->tenant->user->name }}</span>
                                     </div>
@@ -256,6 +285,55 @@
                             <option value="qr_ph">QR Ph</option>
                         </select>
                     </div>
+
+                    {{-- Generate QR Payment button (only visible when a tenant is selected) --}}
+                    @if(config('paymongo.secret_key'))
+                    <div x-show="selectedTpId" x-cloak>
+                        <div class="border border-dashed border-blue-200 rounded-lg p-3 bg-blue-50/50 space-y-2">
+                            <p class="text-[11px] text-blue-700 font-medium">No cash? Generate a payment link for the tenant to pay online.</p>
+
+                            <button type="button"
+                                    @click="generateQr()"
+                                    :disabled="qrLoading"
+                                    class="w-full flex items-center justify-center gap-2 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-60">
+                                <template x-if="!qrLoading">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                                        <rect x="3" y="14" width="7" height="7"/>
+                                        <path d="M14 14h.01M18 14h.01M14 18h.01M18 18h.01M21 14v4a3 3 0 0 1-3 3h-4"/>
+                                    </svg>
+                                </template>
+                                <template x-if="qrLoading">
+                                    <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                                    </svg>
+                                </template>
+                                <span x-text="qrLoading ? 'Generating...' : 'Generate Payment Link'"></span>
+                            </button>
+
+                            {{-- Error --}}
+                            <p x-show="qrError" x-text="qrError" class="text-[11px] text-red-600 text-center" x-cloak></p>
+
+                            {{-- Success — show checkout link --}}
+                            <div x-show="qrUrl" x-cloak class="text-center space-y-2">
+                                <p class="text-[11px] text-blue-700">
+                                    Payment link generated for <span class="font-semibold" x-text="selectedTpName"></span>
+                                    — ₱<span x-text="qrAmount ? Number(qrAmount).toFixed(2) : ''"></span>
+                                </p>
+                                <a :href="qrUrl" target="_blank" rel="noopener"
+                                   class="flex items-center justify-center gap-1.5 w-full py-2 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700 transition-colors">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                                        <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                                    </svg>
+                                    Open Payment Page
+                                </a>
+                                <p class="text-[10px] text-gray-400">Share this link or open it on the tenant's device to pay via QR Ph, GCash, Maya, or card.</p>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
 
                     <div>
                         <label class="block text-xs font-medium text-gray-700 mb-1">Date received</label>

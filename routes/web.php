@@ -118,6 +118,10 @@ Route::middleware('auth')->group(function () {
         Route::get('payments',          [PaymentController::class, 'index'])->name('payments.index');
         Route::post('payments',         [PaymentController::class, 'store'])->name('payments.store');
 
+        // PayMongo QR checkout (staff-side — generates checkout URL for tenant to scan)
+        Route::post('invoices/{invoice}/qr-checkout/{tenantPayment}', [PayMongoController::class, 'staffQrCheckout'])
+            ->name('invoices.qr-checkout');
+
         // Meter Readings
         Route::get('meter-readings',    [MeterReadingController::class, 'index'])->name('meter-readings.index');
         Route::post('meter-readings',   [MeterReadingController::class, 'store'])->name('meter-readings.store');

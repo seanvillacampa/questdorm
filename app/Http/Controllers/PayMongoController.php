@@ -77,6 +77,61 @@ class PayMongoController extends Controller
         }
     }
 
+    // ── Staff: generate a PayMongo checkout URL for a tenant to scan ─────
+
+    public function staffQrCheckout(Invoice $invoice, \App\Models\TenantPayment $tenantPayment)
+    {
+        abort_if($invoice->status === 'void', 422, 'Invoice is void.');
+        abort_if($tenantPayment->status === 'paid', 422, 'This tenant has already paid.');
+        abort_unless($tenantPayment->invoice_id === $invoice->id, 403);
+
+        if (!config('paymongo.secret_key')) {
+            return response()->json(['error' => 'PayMongo is not configured.'], 422);
+        }
+
+        $amountDue = $tenantPayment->balanceDue();
+
+        if ($amountDue < 20) {
+            return response()->json(['error' => 'Amount is too small for online payment (minimum ₱20).'], 422);
+        }
+
+        $fakeInvoice = clone $invoice;
+        $fakeInvoice->total_amount = $amountDue;
+        $fakeInvoice->amount_paid  = 0;
+
+        try {
+            $successUrl = route('invoices.show', $invoice) . '?payment=success';
+            $cancelUrl  = route('invoices.show', $invoice) . '?payment=cancelled';
+
+            $link = $this->paymongo->createCheckoutSession(
+                $fakeInvoice,
+                "Room {$invoice->contract->room->room_number} · {$invoice->billing_month} · {$tenantPayment->tenant->user->name}",
+                $successUrl,
+                $cancelUrl
+            );
+
+            $tenantPayment->update(['paymongo_link_id' => $link['id']]);
+            $invoice->update(['paymongo_link_id' => $link['id']]);
+
+            Log::info('Staff QR checkout created', [
+                'invoice'   => $invoice->invoice_number,
+                'tenant_id' => $tenantPayment->tenant_id,
+                'amount'    => $amountDue,
+                'link_id'   => $link['id'],
+            ]);
+
+            return response()->json([
+                'checkout_url' => $link['checkout_url'],
+                'link_id'      => $link['id'],
+                'amount'       => $amountDue,
+            ]);
+
+        } catch (\RuntimeException $e) {
+            Log::error('Staff QR checkout error', ['message' => $e->getMessage()]);
+            return response()->json(['error' => 'Could not generate payment link: ' . $e->getMessage()], 422);
+        }
+    }
+
     // ── Webhook: receive payment events from PayMongo ────────────────────
 
     public function webhook(Request $request)
