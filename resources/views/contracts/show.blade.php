@@ -116,13 +116,13 @@
             {{-- Deposit Section --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-xs p-4">
                 <div class="flex items-center justify-between mb-3">
-                    <h2 class="text-sm font-semibold text-gray-900">Deposit</h2>
+                    <h2 class="text-sm font-semibold text-gray-900">Deduction History</h2>
                     <span class="text-lg font-bold {{ $depositBalance > 0 ? 'text-green-600' : 'text-gray-400' }}">
                         ₱{{ number_format($depositBalance, 2) }}
                     </span>
                 </div>
 
-                {{-- Deposit History --}}
+                {{-- Deduction History --}}
                 <div class="mb-4 max-h-48 overflow-y-auto">
                     @forelse($contract->depositEntries as $entry)
                         <div class="flex items-start justify-between py-2 border-b border-gray-50 last:border-0 text-xs">
@@ -147,7 +147,7 @@
                             </span>
                         </div>
                     @empty
-                        <p class="text-xs text-gray-400 py-2">No deposit history.</p>
+                        <p class="text-xs text-gray-400 py-2">No deduction history.</p>
                     @endforelse
                 </div>
 
