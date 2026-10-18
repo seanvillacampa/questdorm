@@ -116,7 +116,7 @@
             {{-- Deposit Section --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-xs p-4">
                 <div class="flex items-center justify-between mb-3">
-                    <h2 class="text-sm font-semibold text-gray-900">Deduction History</h2>
+                    <h2 class="text-sm font-semibold text-gray-900">Deposit</h2>
                     <span class="text-lg font-bold {{ $depositBalance > 0 ? 'text-green-600' : 'text-gray-400' }}">
                         ₱{{ number_format($depositBalance, 2) }}
                     </span>
