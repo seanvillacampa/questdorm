@@ -147,4 +147,35 @@ class PaymentController extends Controller
         return redirect()->route('payments.index')
             ->with('success', 'Payment recorded successfully.');
     }
+
+    /**
+     * Delete a payment record (owner only — for removing duplicates).
+     * Also recalculates the invoice status after removal.
+     */
+    public function destroy(Payment $payment)
+    {
+        abort_unless(auth()->user()->hasRole('owner'), 403, 'Owner only.');
+
+        $invoiceId = $payment->invoice_id;
+        $amount    = $payment->amount;
+        $ref       = $payment->reference ?? 'no-ref';
+
+        DB::transaction(function () use ($payment, $invoiceId) {
+            $payment->delete();
+
+            // Recompute invoice and tenant payment statuses
+            $invoice = Invoice::with('tenantPayments')->find($invoiceId);
+            if ($invoice) {
+                // Subtract the deleted amount from amount_paid
+                $totalPaid = Payment::where('invoice_id', $invoiceId)->sum('amount');
+                $invoice->update(['amount_paid' => $totalPaid]);
+                $invoice->recomputeStatus();
+            }
+        });
+
+        AuditLog::record('Deleted', 'Payment', $payment->id,
+            "Payment of ₱{$amount} (ref: {$ref}) deleted from invoice #{$invoiceId} by " . auth()->user()->name);
+
+        return back()->with('success', "Payment of ₱" . number_format($amount, 2) . " deleted.");
+    }
 }
