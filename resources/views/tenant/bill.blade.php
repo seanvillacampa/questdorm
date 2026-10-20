@@ -61,11 +61,15 @@
                     <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_2px_8px_rgba(15,23,42,0.03)]">
                         <div class="flex items-start justify-between gap-4">
                             <div>
-                                <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Your amount due</p>
+                                <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Your personal amount due</p>
                                 <p class="mt-3 text-4xl font-extrabold tracking-tight {{ $myBalance > 0 ? 'text-slate-900' : 'text-emerald-600' }}">
                                     ₱{{ number_format($myBalance, 2) }}
                                 </p>
-                                <p class="mt-2 text-xs text-slate-500">Due {{ $invoice->due_date->format('M d, Y') }}</p>
+                                <p class="mt-1.5 text-xs text-slate-500">
+                                    Your share of the ₱{{ number_format($invoice->total_amount, 2) }} room bill
+                                    @if($invoice->tenant_count > 1) · split {{ $invoice->tenant_count }} ways @endif
+                                </p>
+                                <p class="mt-1 text-xs text-slate-400">Due {{ $invoice->due_date->format('M d, Y') }}</p>
                             </div>
                             <x-status-badge :status="$myStatus" />
                         </div>
@@ -132,11 +136,93 @@
 
                     <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_2px_8px_rgba(15,23,42,0.03)]">
                         <h2 class="text-base font-extrabold text-slate-900">Full room bill</h2>
-                        <div class="mt-4 space-y-3 text-sm">
-                            <div class="flex items-center justify-between text-slate-600"><span>Total rent</span><span class="font-semibold text-slate-800">₱{{ number_format($invoice->rent_amount, 2) }}</span></div>
-                            <div class="flex items-center justify-between text-slate-600"><span>Total electricity</span><span class="font-semibold text-slate-800">₱{{ number_format($invoice->electricity_amount, 2) }}</span></div>
-                            <div class="flex items-center justify-between border-t border-slate-200 pt-3 text-base font-bold text-slate-900"><span>Room total</span><span>₱{{ number_format($invoice->total_amount, 2) }}</span></div>
+                        <p class="mt-0.5 text-xs text-slate-400">Shared by {{ $invoice->tenant_count }} tenant(s) — this is the room total, not your personal amount.</p>
+
+                        {{-- Room charges breakdown --}}
+                        <div class="mt-4 space-y-2 text-sm">
+                            <div class="flex items-center justify-between text-slate-600">
+                                <span>Total rent</span>
+                                <span class="font-semibold text-slate-800">₱{{ number_format($invoice->rent_amount, 2) }}</span>
+                            </div>
+                            <div class="flex items-center justify-between text-slate-600">
+                                <span>Total electricity</span>
+                                <span class="font-semibold text-slate-800">₱{{ number_format($invoice->electricity_amount, 2) }}</span>
+                            </div>
+                            @if(($invoice->carry_over_balance ?? 0) > 0)
+                                <div class="flex items-center justify-between text-red-600 text-xs">
+                                    <span>Unpaid balance from previous month(s)</span>
+                                    <span>+ ₱{{ number_format($invoice->carry_over_balance, 2) }}</span>
+                                </div>
+                            @endif
+                            <div class="flex items-center justify-between border-t border-slate-200 pt-2 text-sm font-bold text-slate-900">
+                                <span>Room total</span>
+                                <span>₱{{ number_format($invoice->total_amount, 2) }}</span>
+                            </div>
                         </div>
+
+                        {{-- Collection progress --}}
+                        @php
+                            $roomCollected  = $invoice->tenantPayments->sum('amount_paid');
+                            $roomRemaining  = max(0, $invoice->total_amount - $roomCollected);
+                            $progressPct    = $invoice->total_amount > 0
+                                ? min(100, round($roomCollected / $invoice->total_amount * 100))
+                                : 0;
+                        @endphp
+                        <div class="mt-4 rounded-xl border border-slate-100 bg-slate-50/60 p-3 space-y-2">
+                            <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Collection progress</p>
+                            <div class="flex items-center justify-between text-xs text-slate-500">
+                                <span>Collected</span>
+                                <span class="font-semibold text-emerald-600">₱{{ number_format($roomCollected, 2) }}</span>
+                            </div>
+                            <div class="w-full rounded-full bg-slate-200 h-1.5">
+                                <div class="h-1.5 rounded-full {{ $roomRemaining == 0 ? 'bg-emerald-500' : 'bg-[#145d4b]' }} transition-all"
+                                     style="width: {{ $progressPct }}%"></div>
+                            </div>
+                            <div class="flex items-center justify-between text-xs text-slate-500">
+                                <span>Still outstanding</span>
+                                <span class="font-semibold {{ $roomRemaining > 0 ? 'text-red-500' : 'text-emerald-600' }}">
+                                    ₱{{ number_format($roomRemaining, 2) }}
+                                </span>
+                            </div>
+                        </div>
+
+                        {{-- Per-tenant payment status --}}
+                        @if($invoice->tenantPayments->count() > 1)
+                            <div class="mt-4">
+                                <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 mb-2">Roommate payments</p>
+                                <div class="space-y-1.5">
+                                    @foreach($invoice->tenantPayments as $tp)
+                                        @php
+                                            $isMe       = $tp->tenant_id === ($myPayment?->tenant_id);
+                                            $tpOwed     = $tp->share_amount + ($tp->carry_over_balance ?? 0);
+                                            $tpPaid     = $tp->amount_paid;
+                                            $tpBalance  = max(0, $tpOwed - $tpPaid);
+                                        @endphp
+                                        <div class="flex items-center justify-between rounded-lg px-2.5 py-1.5 {{ $isMe ? 'bg-[#145d4b]/5 ring-1 ring-[#145d4b]/20' : 'bg-slate-50' }}">
+                                            <div class="flex items-center gap-2 min-w-0">
+                                                <div class="w-5 h-5 shrink-0 rounded-full {{ $tp->status === 'paid' ? 'bg-emerald-100' : 'bg-slate-200' }} flex items-center justify-center text-[10px] font-bold {{ $tp->status === 'paid' ? 'text-emerald-700' : 'text-slate-500' }}">
+                                                    {{ strtoupper(substr($tp->tenant->user->name ?? '?', 0, 1)) }}
+                                                </div>
+                                                <span class="text-xs font-medium text-slate-700 truncate">
+                                                    {{ $isMe ? 'You' : ($tp->tenant->user->name ?? 'Tenant') }}
+                                                </span>
+                                            </div>
+                                            <div class="flex items-center gap-2 shrink-0">
+                                                @if($tp->status === 'paid')
+                                                    <span class="text-xs font-semibold text-emerald-600">₱{{ number_format($tpPaid, 2) }}</span>
+                                                    <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-semibold">Paid</span>
+                                                @else
+                                                    <span class="text-xs font-semibold text-slate-700">₱{{ number_format($tpBalance, 2) }}</span>
+                                                    <span class="text-[10px] px-1.5 py-0.5 rounded-full {{ $tp->status === 'overdue' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700' }} font-semibold">
+                                                        {{ ucfirst($tp->status) }}
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
 
