@@ -90,23 +90,30 @@
                         <span>Per tenant share</span>
                         <span>₱{{ number_format($invoice->effectiveSharePerTenant(), 2) }}</span>
                     </div>
+                    @php
+                        // Compute collected and remaining from per-tenant rows directly.
+                        // invoice->amount_paid can exceed total_amount when a tenant's
+                        // payment covers carry-over from previous months, which would
+                        // make balanceDue() = 0 even if another tenant hasn't paid yet.
+                        // Instead: sum each tenant's min(amount_paid, totalOwed) for
+                        // "collected" and sum each tenant's balanceDue() for "remaining".
+                        $tpCollected  = $invoice->tenantPayments->sum(fn($tp) => min($tp->amount_paid, $tp->totalOwed()));
+                        $tpRemaining  = $invoice->tenantPayments->sum(fn($tp) => $tp->balanceDue());
+                    @endphp
                     <div class="flex justify-between text-green-600">
                         <span>Collected so far</span>
-                        <span>₱{{ number_format($invoice->amount_paid, 2) }}</span>
+                        <span>₱{{ number_format($tpCollected, 2) }}</span>
                     </div>
-                    @php
-                        $overpaid = max(0, $invoice->amount_paid - $invoice->total_amount);
-                    @endphp
-                    @if($overpaid > 0)
+                    @if($tpRemaining == 0 && $invoice->tenantPayments->sum('amount_paid') > $invoice->total_amount)
                     <div class="flex justify-between text-blue-600 text-xs">
-                        <span>Overpayment (will carry to next invoice)</span>
-                        <span>₱{{ number_format($overpaid, 2) }}</span>
+                        <span>Overpayment (carry-over repaid — will credit next invoice)</span>
+                        <span>₱{{ number_format($invoice->tenantPayments->sum('amount_paid') - $invoice->total_amount, 2) }}</span>
                     </div>
                     @endif
                     <div class="flex justify-between font-bold text-gray-900 text-base border-t border-gray-100 pt-2">
                         <span>Balance remaining</span>
-                        <span class="{{ $invoice->balanceDue() > 0 ? 'text-red-600' : 'text-green-600' }}">
-                            ₱{{ number_format($invoice->balanceDue(), 2) }}
+                        <span class="{{ $tpRemaining > 0 ? 'text-red-600' : 'text-green-600' }}">
+                            ₱{{ number_format($tpRemaining, 2) }}
                         </span>
                     </div>
                 </div>
@@ -122,11 +129,17 @@
                             <th class="pb-2 text-right">Share (rent)</th>
                             <th class="pb-2 text-right">Share (elec.)</th>
                             <th class="pb-2 text-right">Total share</th>
+                            <th class="pb-2 text-right">Paid</th>
+                            <th class="pb-2 text-right">Balance due</th>
                             <th class="pb-2 text-left pl-4">Status</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-50">
                         @foreach($invoice->tenantPayments as $tp)
+                            @php
+                                $tpTotalOwed  = $tp->share_amount + ($tp->carry_over_balance ?? 0);
+                                $tpBalanceDue = $tp->balanceDue();
+                            @endphp
                             <tr class="hover:bg-gray-50">
                                 <td class="py-2.5">
                                     <div class="flex items-center gap-2">
@@ -141,7 +154,18 @@
                                 </td>
                                 <td class="py-2.5 text-right text-gray-700">₱{{ number_format($invoice->rentPerTenant(), 2) }}</td>
                                 <td class="py-2.5 text-right text-gray-700">₱{{ number_format($invoice->electricityPerTenant(), 2) }}</td>
-                                <td class="py-2.5 text-right font-medium text-gray-900">₱{{ number_format($tp->share_amount, 2) }}</td>
+                                <td class="py-2.5 text-right font-medium text-gray-900">
+                                    ₱{{ number_format($tp->share_amount, 2) }}
+                                    @if(($tp->carry_over_balance ?? 0) > 0)
+                                        <span class="block text-[10px] text-red-500 font-normal">+ ₱{{ number_format($tp->carry_over_balance, 2) }} carry-over</span>
+                                    @endif
+                                </td>
+                                <td class="py-2.5 text-right {{ $tp->amount_paid > 0 ? 'text-green-600 font-semibold' : 'text-gray-400' }}">
+                                    ₱{{ number_format($tp->amount_paid, 2) }}
+                                </td>
+                                <td class="py-2.5 text-right font-semibold {{ $tpBalanceDue > 0 ? 'text-red-600' : 'text-green-600' }}">
+                                    ₱{{ number_format($tpBalanceDue, 2) }}
+                                </td>
                                 <td class="py-2.5 pl-4">
                                     <x-status-badge :status="$tp->status" />
                                 </td>
