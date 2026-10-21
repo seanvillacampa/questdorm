@@ -120,16 +120,16 @@
             </div>
 
             {{-- ── Tenant payment breakdown ──────────────────────────── --}}
-            <div class="bg-white rounded-xl border border-gray-200 shadow-xs p-4">
+            <div class="bg-white rounded-xl border border-gray-200 shadow-xs p-4 overflow-hidden">
                 <h2 class="text-sm font-semibold text-gray-900 mb-3">Tenant payment breakdown</h2>
                 <table class="w-full text-sm table-fixed">
                     <colgroup>
-                        <col class="w-[35%]">   {{-- Tenant name --}}
-                        <col class="w-[14%]">   {{-- Share (rent) --}}
-                        <col class="w-[14%]">   {{-- Share (elec.) --}}
-                        <col class="w-[16%]">   {{-- Total share --}}
-                        <col class="w-[12%]">   {{-- Balance due --}}
-                        <col class="w-[9%]">    {{-- Status --}}
+                        <col style="width:28%">  {{-- Tenant name --}}
+                        <col style="width:12%">  {{-- Share (rent) --}}
+                        <col style="width:12%">  {{-- Share (elec.) --}}
+                        <col style="width:18%">  {{-- Total share --}}
+                        <col style="width:14%">  {{-- Balance due --}}
+                        <col style="width:16%">  {{-- Status --}}
                     </colgroup>
                     <thead>
                         <tr class="border-b border-gray-100 text-xs text-gray-400 font-medium uppercase tracking-wide">
