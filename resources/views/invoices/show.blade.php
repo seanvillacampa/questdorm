@@ -122,15 +122,23 @@
             {{-- ── Tenant payment breakdown ──────────────────────────── --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-xs p-4">
                 <h2 class="text-sm font-semibold text-gray-900 mb-3">Tenant payment breakdown</h2>
-                <table class="w-full text-sm">
+                <table class="w-full text-sm table-fixed">
+                    <colgroup>
+                        <col class="w-[35%]">   {{-- Tenant name --}}
+                        <col class="w-[14%]">   {{-- Share (rent) --}}
+                        <col class="w-[14%]">   {{-- Share (elec.) --}}
+                        <col class="w-[16%]">   {{-- Total share --}}
+                        <col class="w-[12%]">   {{-- Balance due --}}
+                        <col class="w-[9%]">    {{-- Status --}}
+                    </colgroup>
                     <thead>
                         <tr class="border-b border-gray-100 text-xs text-gray-400 font-medium uppercase tracking-wide">
                             <th class="pb-2 text-left">Tenant</th>
-                            <th class="pb-2 text-right">Share (rent)</th>
-                            <th class="pb-2 text-right">Share (elec.)</th>
-                            <th class="pb-2 text-right">Total share</th>
-                            <th class="pb-2 text-right">Balance due</th>
-                            <th class="pb-2 text-left pl-4">Status</th>
+                            <th class="pb-2 text-right pr-3">Share (rent)</th>
+                            <th class="pb-2 text-right pr-3">Share (elec.)</th>
+                            <th class="pb-2 text-right pr-3">Total share</th>
+                            <th class="pb-2 text-right pr-3">Balance due</th>
+                            <th class="pb-2 text-left pl-2">Status</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-50">
@@ -145,24 +153,24 @@
                                         <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-semibold shrink-0">
                                             {{ strtoupper(substr($tp->tenant->user->name, 0, 1)) }}
                                         </div>
-                                        <div>
-                                            <p class="font-medium text-gray-900 text-xs">{{ $tp->tenant->user->name }}</p>
-                                            <p class="text-gray-400 text-[11px]">{{ $tp->tenant->user->email }}</p>
+                                        <div class="min-w-0">
+                                            <p class="font-medium text-gray-900 text-xs truncate">{{ $tp->tenant->user->name }}</p>
+                                            <p class="text-gray-400 text-[11px] truncate">{{ $tp->tenant->user->email }}</p>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="py-2.5 text-right text-gray-700">₱{{ number_format($invoice->rentPerTenant(), 2) }}</td>
-                                <td class="py-2.5 text-right text-gray-700">₱{{ number_format($invoice->electricityPerTenant(), 2) }}</td>
-                                <td class="py-2.5 text-right font-medium text-gray-900">
+                                <td class="py-2.5 text-right pr-3 text-gray-700">₱{{ number_format($invoice->rentPerTenant(), 2) }}</td>
+                                <td class="py-2.5 text-right pr-3 text-gray-700">₱{{ number_format($invoice->electricityPerTenant(), 2) }}</td>
+                                <td class="py-2.5 text-right pr-3 font-medium text-gray-900">
                                     ₱{{ number_format($tp->share_amount, 2) }}
                                     @if(($tp->carry_over_balance ?? 0) > 0)
                                         <span class="block text-[10px] text-red-500 font-normal">+ ₱{{ number_format($tp->carry_over_balance, 2) }} carry-over</span>
                                     @endif
                                 </td>
-                                <td class="py-2.5 text-right font-semibold {{ $tpBalanceDue > 0 ? 'text-red-600' : 'text-green-600' }}">
+                                <td class="py-2.5 text-right pr-3 font-semibold {{ $tpBalanceDue > 0 ? 'text-red-600' : 'text-green-600' }}">
                                     ₱{{ number_format($tpBalanceDue, 2) }}
                                 </td>
-                                <td class="py-2.5 pl-4">
+                                <td class="py-2.5 pl-2">
                                     <x-status-badge :status="$tp->status" />
                                 </td>
                             </tr>
