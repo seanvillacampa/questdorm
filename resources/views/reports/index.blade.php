@@ -68,7 +68,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-[1fr_280px] gap-4 items-stretch">
+        <div class="grid grid-cols-[1fr_280px] gap-4 items-start">
             {{-- Bar chart --}}
             @php
                 // Blue-to-teal palette — 12 stops from dark navy → light teal
@@ -102,9 +102,9 @@
                 }
 
                 // Border color matches the last (most recent) bar
-                $chartBorderColor = $barColors[$lastIndex] ?? '#b8eaf0';
+                // $chartBorderColor = $barColors[$lastIndex] ?? '#b8eaf0';
             @endphp
-            <div class="bg-white rounded-xl border-2 shadow-xs p-5 flex flex-col transition-all" style="border-color: {{ $chartBorderColor }};">
+            <div class="bg-white rounded-xl border border-gray-200 shadow-xs p-5 flex flex-col">
                 <h2 class="text-sm font-semibold text-gray-900 mb-4">Monthly income (₱ thousands)</h2>
                 @php
                     $max = max(array_merge($trendValues, [1]));
