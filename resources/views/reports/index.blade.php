@@ -70,17 +70,22 @@
 
         <div class="grid grid-cols-[1fr_280px] gap-4 items-stretch">
             {{-- Bar chart --}}
-            <div class="bg-white rounded-xl border border-gray-200 shadow-xs p-5 flex flex-col">
+            @php
+                $barColors = [
+                    '#6366f1','#3b82f6','#06b6d4','#10b981',
+                    '#84cc16','#f59e0b','#f97316','#ef4444',
+                    '#ec4899','#8b5cf6','#14b8a6','#a78bfa',
+                    '#fb923c',
+                ];
+                // Border color = color of the last bar (most recent month)
+                $lastIndex       = count($trendValues) - 1;
+                $chartBorderColor = $barColors[$lastIndex % count($barColors)];
+            @endphp
+            <div class="bg-white rounded-xl border-2 shadow-xs p-5 flex flex-col" style="border-color: {{ $chartBorderColor }};">
                 <h2 class="text-sm font-semibold text-gray-900 mb-4">Monthly income (₱ thousands)</h2>
                 @php
                     $max = max(array_merge($trendValues, [1]));
                     $chartHeight = 220;
-                    $barColors = [
-                        '#6366f1','#3b82f6','#06b6d4','#10b981',
-                        '#84cc16','#f59e0b','#f97316','#ef4444',
-                        '#ec4899','#8b5cf6','#14b8a6','#a78bfa',
-                        '#fb923c',
-                    ];
 
                     // Compute a nice rounded Y-axis max
                     // e.g. 231800 → magnitude=100000, ceil(231800/100000)*100000 = 300000
