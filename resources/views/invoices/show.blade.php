@@ -129,7 +129,6 @@
                             <th class="pb-2 text-right">Share (rent)</th>
                             <th class="pb-2 text-right">Share (elec.)</th>
                             <th class="pb-2 text-right">Total share</th>
-                            <th class="pb-2 text-right">Paid</th>
                             <th class="pb-2 text-right">Balance due</th>
                             <th class="pb-2 text-left pl-4">Status</th>
                         </tr>
@@ -159,9 +158,6 @@
                                     @if(($tp->carry_over_balance ?? 0) > 0)
                                         <span class="block text-[10px] text-red-500 font-normal">+ ₱{{ number_format($tp->carry_over_balance, 2) }} carry-over</span>
                                     @endif
-                                </td>
-                                <td class="py-2.5 text-right {{ $tp->amount_paid > 0 ? 'text-green-600 font-semibold' : 'text-gray-400' }}">
-                                    ₱{{ number_format($tp->amount_paid, 2) }}
                                 </td>
                                 <td class="py-2.5 text-right font-semibold {{ $tpBalanceDue > 0 ? 'text-red-600' : 'text-green-600' }}">
                                     ₱{{ number_format($tpBalanceDue, 2) }}
