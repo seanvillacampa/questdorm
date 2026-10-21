@@ -71,17 +71,40 @@
         <div class="grid grid-cols-[1fr_280px] gap-4 items-stretch">
             {{-- Bar chart --}}
             @php
-                $barColors = [
-                    '#6366f1','#3b82f6','#06b6d4','#10b981',
-                    '#84cc16','#f59e0b','#f97316','#ef4444',
-                    '#ec4899','#8b5cf6','#14b8a6','#a78bfa',
-                    '#fb923c',
+                // Blue-to-teal palette — 12 stops from dark navy → light teal
+                // Last bar is always the lightest (current/most recent month)
+                $blueStops = [
+                    '#1e3a5f', // darkest navy
+                    '#1e4976',
+                    '#1a5f8a',
+                    '#1d6fa0',
+                    '#1e80b8',
+                    '#2196cc',
+                    '#29a8d6',
+                    '#34b8db',
+                    '#45c4de',
+                    '#63cfe0',
+                    '#8ddae5',
+                    '#b8eaf0', // lightest teal
                 ];
-                // Border color = color of the last bar (most recent month)
-                $lastIndex       = count($trendValues) - 1;
-                $chartBorderColor = $barColors[$lastIndex % count($barColors)];
+
+                $count      = max(1, count($trendValues));
+                $lastIndex  = $count - 1;
+
+                // Map each bar index to a color stop, spreading across the palette
+                $barColors = [];
+                foreach (array_keys($trendValues) as $i) {
+                    // Last bar → lightest stop; earlier bars → darker stops
+                    $stopCount  = count($blueStops);
+                    // Distribute so index 0 = darkest, last index = lightest
+                    $stopIdx    = (int) round(($i / max(1, $lastIndex)) * ($stopCount - 1));
+                    $barColors[$i] = $blueStops[$stopIdx];
+                }
+
+                // Border color matches the last (most recent) bar
+                $chartBorderColor = $barColors[$lastIndex] ?? '#b8eaf0';
             @endphp
-            <div class="bg-white rounded-xl border-2 shadow-xs p-5 flex flex-col" style="border-color: {{ $chartBorderColor }};">
+            <div class="bg-white rounded-xl border-2 shadow-xs p-5 flex flex-col transition-all" style="border-color: {{ $chartBorderColor }};">
                 <h2 class="text-sm font-semibold text-gray-900 mb-4">Monthly income (₱ thousands)</h2>
                 @php
                     $max = max(array_merge($trendValues, [1]));
@@ -131,7 +154,7 @@
                             @foreach($trendValues as $i => $val)
                                 @php
                                     $barHeight = $niceMax > 0 ? max(2, round(($val / $niceMax) * ($chartHeight - 20))) : 2;
-                                    $color     = $barColors[$i % count($barColors)];
+                                    $color     = $barColors[$i] ?? '#1e80b8';
                                     $label     = $val > 0 ? '₱'.number_format($val/1000,1).'k' : '';
                                 @endphp
                                 <div class="flex-1 flex flex-col items-center justify-end gap-0.5" style="height:{{ $chartHeight - 20 }}px;">
